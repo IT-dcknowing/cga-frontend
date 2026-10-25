@@ -4,6 +4,11 @@ import { defineConfig, devices } from '@playwright/test';
 // ou `PLAYWRIGHT_CHANNEL=chrome` pour utiliser le Chrome déjà installé sur le poste.
 const channel = process.env.PLAYWRIGHT_CHANNEL;
 
+// Serveur de test à part (5174 par défaut, `PLAYWRIGHT_PORT` pour un autre) : le serveur de
+// développement, sur 5173, vise l'API réelle, alors que les parcours tournent sur le bouchon.
+const port = process.env.PLAYWRIGHT_PORT ?? '5174';
+const baseURL = `http://127.0.0.1:${port}`;
+
 export default defineConfig({
   testDir: './e2e',
   fullyParallel: true,
@@ -11,7 +16,7 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
   reporter: 'html',
   use: {
-    baseURL: 'http://127.0.0.1:5173',
+    baseURL,
     trace: 'on-first-retry',
     locale: 'fr-FR',
     timezoneId: 'Africa/Abidjan',
@@ -21,8 +26,10 @@ export default defineConfig({
     { name: 'mobile', use: { ...devices['Pixel 7'], channel } },
   ],
   webServer: {
-    command: 'npm run dev -- --host 127.0.0.1 --port 5173 --strictPort',
-    url: 'http://127.0.0.1:5173',
+    command: `npm run dev -- --host 127.0.0.1 --port ${port} --strictPort`,
+    url: baseURL,
+    // Les variables déjà définies l'emportent sur `.env.development` : parcours sur le bouchon.
+    env: { VITE_API_STUB: 'true' },
     reuseExistingServer: !process.env.CI,
   },
 });

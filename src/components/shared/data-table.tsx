@@ -12,6 +12,7 @@ import {
 import { ArrowDown, ArrowUp, ArrowUpDown, ChevronLeft, ChevronRight } from 'lucide-react';
 import type { KeyboardEvent, ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
 import { formatNumber } from '@/lib/format';
 import { fr } from '@/lib/i18n/fr';
 import { cn } from '@/lib/utils';
@@ -268,10 +269,4 @@ function columnLabel<TData>(column: Column<TData>): string {
   const header = column.columnDef.header;
 
   return typeof header === 'string' ? header : column.id;
-}
-
-function Skeleton({ className }: { className?: string }) {
-  return (
-    <span className={cn('block h-4 w-3/4 animate-pulse rounded bg-neutral-soft', className)} />
-  );
 }

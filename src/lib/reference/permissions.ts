@@ -1,0 +1,49 @@
+/*
+ * Codes des droits lus par le frontend, ceux du catalogue du backend (`backend/config/permissions.php`,
+ * 02-TRD §6.2). Le frontend ne décide d'aucun droit : il masque une entrée de menu ou un bouton
+ * quand `/me` ne renvoie pas le droit correspondant (RG-ROLE-07), et le serveur autorise de nouveau
+ * chaque requête.
+ */
+export const permissionCodes = {
+  cncga: {
+    organizations: 'organizations.view',
+    /** Enregistrer ou modifier un CGA, inviter son gérant (01-PRD §3.3). */
+    organizationsManage: 'organizations.manage',
+    /** Suspendre / réactiver un CGA : verrouillé sur la Présidente (RG-ROLE-04, F-ORG-06). */
+    organizationsSuspend: 'organizations.suspend',
+    subscription: 'organizations.subscription.manage',
+    dues: 'dues.view',
+    reports: 'reports.network.view',
+    concerns: 'network_concerns.view',
+    trainings: 'trainings.network.manage',
+    communications: 'announcements.network.publish',
+    statistics: 'statistics.national.view',
+    users: 'network_users.manage',
+    settings: 'network_settings.manage',
+    referentials: 'referentials.manage',
+  },
+  cga: {
+    members: 'members.view',
+    obligations: 'obligations.manage',
+    feeReminders: 'fees.remind',
+    closing: 'closing.view',
+    reports: 'reports.prepare',
+    invoices: 'invoices.issue',
+    payments: 'member_payments.manage',
+    concerns: 'concerns.reply',
+    trainings: 'trainings.cga.manage',
+    communications: 'communications.bulk.send',
+    internal: 'internal.manage',
+    bankability: 'banking.manage',
+    statistics: 'statistics.position.view',
+    profile: 'cga.profile.view',
+    users: 'cga_users.manage',
+  },
+  member: {
+    obligations: 'member.obligations.view',
+    documents: 'member.documents.view',
+    concerns: 'member.concerns.write',
+    trainings: 'member.trainings.register',
+    bankability: 'member.banking.view',
+  },
+} as const;

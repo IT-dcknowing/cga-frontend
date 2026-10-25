@@ -23,3 +23,8 @@ export function formatAmount(amount: number): string {
 export function formatDate(isoDate: string): string {
   return dateFormatter.format(new Date(`${isoDate}T00:00:00Z`));
 }
+
+/** « 2026-01-14T09:30:00Z » (date et heure de l'API) → « 14/01/2026 », jour à Abidjan. */
+export function formatTimestampDate(timestamp: string): string {
+  return dateFormatter.format(new Date(timestamp));
+}

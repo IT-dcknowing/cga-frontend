@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { formatAmount, formatDate, formatNumber } from '@/lib/format';
+import { formatAmount, formatDate, formatNumber, formatTimestampDate } from '@/lib/format';
 
 // Intl sépare les milliers par des espaces fines insécables : on les compare à des espaces simples.
 const withPlainSpaces = (value: string) => value.replace(/\s/g, ' ');
@@ -32,5 +32,12 @@ describe('formatDate (RG-GEN-02)', () => {
 
   it('ne décale pas la date au 31 décembre', () => {
     expect(formatDate('2026-12-31')).toBe('31/12/2026');
+  });
+});
+
+describe('formatTimestampDate (RG-GEN-02)', () => {
+  it('donne le jour à Abidjan d’une date et heure de l’API', () => {
+    expect(formatTimestampDate('2026-10-01T08:00:00.000000Z')).toBe('01/10/2026');
+    expect(formatTimestampDate('2026-12-31T23:59:59Z')).toBe('31/12/2026');
   });
 });

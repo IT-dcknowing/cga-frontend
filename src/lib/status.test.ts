@@ -21,6 +21,32 @@ describe('describeStatus (04-UX-UI §2.1)', () => {
     expect(describeStatus('regime', 'RSI')).toEqual({ tone: 'neutral', label: 'RSI' });
   });
 
+  it.each([
+    ['active', 'success', 'Actif'],
+    ['suspended', 'danger', 'Suspendu'],
+    ['terminated', 'neutral', 'Résilié'],
+  ])('CGA « %s » : ton %s, libellé « %s »', (code, tone, label) => {
+    expect(describeStatus('organization', code)).toEqual({ tone, label });
+  });
+
+  it.each([
+    ['pending', 'warning', 'Agrément en cours'],
+    ['granted', 'success', 'Agréé'],
+    ['withdrawn', 'danger', 'Agrément retiré'],
+  ])('RG-ORG-03, F-ORG-07 · agrément « %s » : ton %s, libellé « %s »', (code, tone, label) => {
+    expect(describeStatus('agreement', code)).toEqual({ tone, label });
+  });
+
+  it('F-ORG-05 · un CGA abonné en vert ; non abonné, en essai ou résilié en gris', () => {
+    expect(describeStatus('subscription', 'active')).toEqual({ tone: 'success', label: 'Abonné' });
+    expect(describeStatus('subscription', 'trial')).toEqual({ tone: 'neutral', label: 'Essai' });
+    expect(describeStatus('subscription', 'terminated').tone).toBe('neutral');
+    expect(describeStatus('subscription', 'none')).toEqual({
+      tone: 'neutral',
+      label: 'Non abonné',
+    });
+  });
+
   it('affiche un code inconnu tel quel, en gris', () => {
     expect(describeStatus('member', 'archived')).toEqual({ tone: 'neutral', label: 'archived' });
   });

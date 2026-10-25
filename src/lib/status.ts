@@ -24,6 +24,25 @@ const TONES = {
     RSI: 'neutral',
     RNI: 'neutral',
   },
+  /** CGA du registre (`organizations.status`) : un CGA résilié est clos, en gris. */
+  organization: {
+    active: 'success',
+    suspended: 'danger',
+    terminated: 'neutral',
+  },
+  /** F-ORG-05 : « Non abonné » et « Essai » en gris (§2.1). */
+  subscription: {
+    none: 'neutral',
+    trial: 'neutral',
+    active: 'success',
+    terminated: 'neutral',
+  },
+  /** L'agrément en cours reste à traiter (RG-ORG-03) ; retiré, il bloque (F-ORG-07). */
+  agreement: {
+    pending: 'warning',
+    granted: 'success',
+    withdrawn: 'danger',
+  },
 } as const satisfies Record<keyof typeof fr.status, Record<string, Tone>>;
 
 export type StatusDomain = keyof typeof TONES;

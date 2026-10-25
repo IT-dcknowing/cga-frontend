@@ -2,6 +2,8 @@ node_modules
 dist
 coverage
 playwright-report
+playwright-report-api
 test-results
+test-results-api
 *.local
 *.tsbuildinfo
