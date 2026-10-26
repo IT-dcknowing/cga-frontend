@@ -53,6 +53,10 @@ export const permissionCodes = {
     /** Facturation FNE et Compta Flow (F-ADM-07). */
     integrations: 'integrations.view',
     users: 'cga_users.manage',
+    /** Droits par rôle du centre (F-ADM-05), verrouillé sur le gérant. */
+    permissions: 'cga_permissions.manage',
+    /** Habilitations d'un agent du centre (RG-ROLE-07), verrouillé sur le gérant. */
+    userPermissions: 'cga_user_permissions.manage',
   },
   member: {
     obligations: 'member.obligations.view',

@@ -9,6 +9,8 @@ import { useAuth } from '@/features/auth/session/auth-context';
 import { AgentsPanel } from '@/features/cga-settings/components/agents-panel';
 import { CentreTab } from '@/features/cga-settings/components/centre-tab';
 import { ReferrersTab } from '@/features/cga-settings/components/referrers-tab';
+import { cgaPermissionRoutes } from '@/features/cga-settings/lib/routes';
+import { RolesList } from '@/features/permissions/components/roles-list';
 import { fr } from '@/lib/i18n/fr';
 import { oneOf } from '@/lib/list-params';
 import { permissionCodes } from '@/lib/reference/permissions';
@@ -39,7 +41,7 @@ type Tab = (typeof TABS)[number];
 const RIGHTS: Record<Tab, string> = {
   centre: cga.profile,
   utilisateurs: cga.users,
-  droits: cga.users,
+  droits: cga.permissions,
   bareme: cga.profile,
   regles: cga.profile,
   apporteurs: cga.referrers,
@@ -60,6 +62,7 @@ function Pending() {
 const SCREENS: Partial<Record<Tab, ReactNode>> = {
   centre: <CentreTab />,
   utilisateurs: <AgentsPanel scope="cga" />,
+  droits: <RolesList level="cga" detailPath={cgaPermissionRoutes.role} />,
   apporteurs: <ReferrersTab />,
 };
 

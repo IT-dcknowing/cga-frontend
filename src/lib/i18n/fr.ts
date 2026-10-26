@@ -1,6 +1,7 @@
 import { cgaSettingsFr } from './cga-settings';
 import { memberSpaceFr } from './member-space';
 import { membersFr } from './members';
+import { permissionsFr } from './permissions';
 import { referentialsFr } from './referentials';
 
 /** Libellés de l'interface (02-TRD §5.2) : aucun texte affiché n'est écrit dans un composant. */
@@ -501,6 +502,23 @@ export const fr = {
   memberSpace: memberSpaceFr,
   cgaSettings: cgaSettingsFr,
   referentials: referentialsFr,
+  permissions: permissionsFr,
+  /** `/plateforme` (03-APPFLOW §6). */
+  platform: {
+    tabs: {
+      droits: 'Droits du réseau',
+      utilisateurs: 'Utilisateurs CNCGA',
+      reseau: 'Paramètres réseau',
+      donnees: 'Données de référence',
+      modeles: 'Modèles de documents',
+    },
+    users: {
+      caption: 'Utilisateurs du CNCGA',
+      intro: 'Ouvrez un utilisateur pour ajuster ses habilitations par rapport à son profil.',
+      empty: 'Aucun utilisateur du CNCGA.',
+      loadError: 'Les utilisateurs du CNCGA n’ont pas pu être chargés.',
+    },
+  },
   /** `/cncga/parametres` (03-APPFLOW §3.2). */
   cncgaSettings: {
     tabs: {

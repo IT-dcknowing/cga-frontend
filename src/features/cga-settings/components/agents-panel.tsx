@@ -2,6 +2,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { UserPlus, Users } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
+import { useNavigate } from 'react-router';
 import { toast } from 'sonner';
 import { ActionMenu, type ActionMenuItem } from '@/components/shared/action-menu';
 import { ConfirmDialog } from '@/components/shared/confirm-dialog';
@@ -25,13 +26,16 @@ import {
   type Agent,
   type AgentScope,
 } from '@/features/cga-settings/api/cga-api';
+import { useAuth } from '@/features/auth/session/auth-context';
 import { cgaKeys, useAgents } from '@/features/cga-settings/api/queries';
+import { cgaPermissionRoutes } from '@/features/cga-settings/lib/routes';
 import { ApiBusinessError } from '@/lib/api-errors';
 import { config } from '@/lib/config';
 import { formatTimestampDate } from '@/lib/format';
 import { showValidationErrors } from '@/lib/form-errors';
 import { toastUnexpectedError } from '@/lib/http-error-toast';
 import { fr } from '@/lib/i18n/fr';
+import { permissionCodes } from '@/lib/reference/permissions';
 import { roleLabel } from '@/lib/reference/roles';
 
 /*
@@ -401,6 +405,10 @@ type Dialog = { name: 'invite' } | { name: 'roles' | 'disable'; agent: Agent };
 
 export function AgentsPanel({ scope }: { scope: AgentScope }) {
   const refresh = useRefresh(scope);
+  const navigate = useNavigate();
+  const { can } = useAuth();
+  // Habilitations d'un agent du centre (RG-ROLE-07) ; celles du CNCGA se règlent dans /plateforme.
+  const adjusts = scope === 'cga' && can(permissionCodes.cga.userPermissions);
   const [typed, setTyped] = useState('');
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState('');
@@ -439,6 +447,16 @@ export function AgentsPanel({ scope }: { scope: AgentScope }) {
         label: labels.editRoles,
         onSelect: () => {
           setDialog({ name: 'roles', agent });
+        },
+      });
+    }
+
+    // Le gérant garde tous ses droits : il n'a pas d'habilitations à ajuster.
+    if (adjusts && !agent.roles.some((item) => item.role === 'cga_manager')) {
+      items.push({
+        label: fr.permissions.user.action,
+        onSelect: () => {
+          void navigate(cgaPermissionRoutes.user(agent.id));
         },
       });
     }

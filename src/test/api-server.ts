@@ -25,6 +25,7 @@ import {
 } from './api-replies';
 import { createCgaBackend } from './api-cga';
 import { createImportsBackend } from './api-imports';
+import { createPermissionsBackend } from './api-permissions';
 import type { createReferentialsBackend } from './api-referentials';
 import { createMembersBackend } from './api-members';
 
@@ -255,6 +256,8 @@ export function installApiServer({
   imports = createImportsBackend(),
   cga = createCgaBackend(),
   referentials,
+  // Nommé `rights` ici : `permissions()` donne déjà les droits de l'espace actif.
+  permissions: rights = createPermissionsBackend(),
 }: {
   accounts?: Record<string, ApiAccount>;
   cgas?: Organization[];
@@ -263,6 +266,7 @@ export function installApiServer({
   cga?: ReturnType<typeof createCgaBackend>;
   /** Gestion des référentiels nationaux (`/cncga/parametres`), seulement pour les tests qui la demandent. */
   referentials?: ReturnType<typeof createReferentialsBackend>;
+  permissions?: ReturnType<typeof createPermissionsBackend>;
 } = {}) {
   const requests: RecordedRequest[] = [];
   const forced = new Map<string, ApiReply[]>();
@@ -770,6 +774,7 @@ export function installApiServer({
 
     return (
       imports.route(method, path, body, { allows }) ??
+      rights.route(method, path, parsed.searchParams, body, { allows }) ??
       cga.route(method, path, parsed.searchParams, body, {
         allows,
         organizationId: activeOrganizationId(),
@@ -856,5 +861,6 @@ export const demoIds = {
   board: demoAccounts['+2250700000013'].memberships[0].id,
   accountant: demoAccounts['+2250700000004'].memberships[0].id,
   trainer: demoAccounts['+2250700000007'].memberships[0].id,
+  platformAdmin: demoAccounts['+2250700000009'].memberships[0].id,
   memberOwner: demoAccounts['+2250700000012'].memberships[0].id,
 };

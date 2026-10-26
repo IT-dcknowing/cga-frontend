@@ -19,7 +19,7 @@ import {
 import { DemoPage } from '@/features/demo/pages/demo-page';
 import { ErrorScreen, RouteErrorPage } from '@/features/errors/pages/error-screen';
 import { memberRoutes } from '@/features/members/lib/member';
-import { cgaSettingsRoutes } from '@/features/cga-settings/lib/routes';
+import { cgaPermissionRoutes, cgaSettingsRoutes } from '@/features/cga-settings/lib/routes';
 import { CgaSettingsPage } from '@/features/cga-settings/pages/cga-settings-page';
 import { cncgaSettingsRoutes } from '@/features/cncga-settings/lib/routes';
 import { CncgaSettingsPage } from '@/features/cncga-settings/pages/cncga-settings-page';
@@ -33,6 +33,10 @@ import { organizationRoutes } from '@/features/organizations/lib/organization';
 import { OrganizationPage } from '@/features/organizations/pages/organization-page';
 import { OrganizationsPage } from '@/features/organizations/pages/organizations-page';
 import { PendingPage } from '@/features/pending/pages/pending-page';
+import { RolePermissionsPage } from '@/features/permissions/pages/role-permissions-page';
+import { UserPermissionsPage } from '@/features/permissions/pages/user-permissions-page';
+import { platformRoutes } from '@/features/platform/lib/routes';
+import { PlatformPage } from '@/features/platform/pages/platform-page';
 import { fr } from '@/lib/i18n/fr';
 import { permissionCodes } from '@/lib/reference/permissions';
 
@@ -74,7 +78,25 @@ const cncgaScreens: Record<string, MenuScreen> = {
 };
 
 const cgaScreens: Record<string, MenuScreen> = {
-  [cgaSettingsRoutes.root]: { element: <CgaSettingsPage /> },
+  [cgaSettingsRoutes.root]: {
+    element: <CgaSettingsPage />,
+    children: [
+      {
+        path: 'droits/:role',
+        element: (
+          <RolePermissionsPage
+            level="cga"
+            back={cgaPermissionRoutes.rolesTab}
+            userPath={cgaPermissionRoutes.user}
+          />
+        ),
+      },
+      {
+        path: 'utilisateurs/:id',
+        element: <UserPermissionsPage scope="cga" back={cgaPermissionRoutes.usersTab} />,
+      },
+    ],
+  },
   [memberRoutes.list]: {
     element: <MembersPage />,
     children: [
@@ -156,7 +178,15 @@ export const routes: RouteObject[] = [
         ],
       },
       spaceRoute('platform', PlatformLayout, [
-        { index: true, element: <PendingPage title={fr.spaces.platform} /> },
+        { index: true, element: <PlatformPage /> },
+        {
+          path: 'droits/:role',
+          element: <RolePermissionsPage level="network" back={platformRoutes.rolesTab} />,
+        },
+        {
+          path: 'utilisateurs/:id',
+          element: <UserPermissionsPage scope="network" back={platformRoutes.usersTab} />,
+        },
       ]),
       spaceRoute('cncga', CncgaLayout, menuRoutes(cncgaMenu, cncgaScreens)),
       spaceRoute('cga', CgaLayout, [...menuRoutes(cgaMenu, cgaScreens), ...cgaPages]),
