@@ -1,3 +1,4 @@
+import { Upload } from 'lucide-react';
 import type { ComponentType, ReactNode } from 'react';
 import { createBrowserRouter, Navigate, Outlet, type RouteObject } from 'react-router';
 import { authRoutes, spaces, type SpaceKind } from '@/features/auth/lib/destination';
@@ -18,6 +19,7 @@ import {
 import { DemoPage } from '@/features/demo/pages/demo-page';
 import { ErrorScreen, RouteErrorPage } from '@/features/errors/pages/error-screen';
 import { memberRoutes } from '@/features/members/lib/member';
+import { MemberImportPage } from '@/features/members/pages/member-import-page';
 import { MemberPage } from '@/features/members/pages/member-page';
 import { MembersPage } from '@/features/members/pages/members-page';
 import { NewMemberPage } from '@/features/members/pages/new-member-page';
@@ -27,6 +29,7 @@ import { OrganizationPage } from '@/features/organizations/pages/organization-pa
 import { OrganizationsPage } from '@/features/organizations/pages/organizations-page';
 import { PendingPage } from '@/features/pending/pages/pending-page';
 import { fr } from '@/lib/i18n/fr';
+import { permissionCodes } from '@/lib/reference/permissions';
 
 /*
  * Routes de l'application (03-APPFLOW §1, §2, §7). Les écrans publics s'affichent sans session ;
@@ -73,6 +76,25 @@ const cgaScreens: Record<string, MenuScreen> = {
     ],
   },
 };
+
+/** Écrans d'un espace hors de son menu (import du portefeuille), sous leur propre droit. */
+const cgaPages: RouteObject[] = [
+  {
+    path: memberRoutes.import,
+    element: (
+      <RequireMenuEntry
+        entry={{
+          path: memberRoutes.import,
+          label: fr.members.import.title,
+          icon: Upload,
+          permissions: [permissionCodes.cga.membersImport],
+        }}
+      >
+        <MemberImportPage />
+      </RequireMenuEntry>
+    ),
+  },
+];
 
 /**
  * Routes d'un espace : sa coque, puis ses écrans. Une erreur levée par un écran (403, 404 de l'API)
@@ -126,7 +148,7 @@ export const routes: RouteObject[] = [
         { index: true, element: <PendingPage title={fr.spaces.platform} /> },
       ]),
       spaceRoute('cncga', CncgaLayout, menuRoutes(cncgaMenu, cncgaScreens)),
-      spaceRoute('cga', CgaLayout, menuRoutes(cgaMenu, cgaScreens)),
+      spaceRoute('cga', CgaLayout, [...menuRoutes(cgaMenu, cgaScreens), ...cgaPages]),
       spaceRoute('member', MemberLayout, menuRoutes(memberMenu)),
       // Page de démonstration des composants de l'étape 0.4.
       { path: '/demo', element: <DemoPage /> },

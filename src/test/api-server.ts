@@ -23,6 +23,7 @@ import {
   type ApiReply,
   type Input,
 } from './api-replies';
+import { createImportsBackend } from './api-imports';
 import { createMembersBackend } from './api-members';
 
 /*
@@ -249,10 +250,12 @@ export function installApiServer({
   accounts = demoAccounts,
   cgas = demoCgas(),
   members = createMembersBackend(),
+  imports = createImportsBackend(),
 }: {
   accounts?: Record<string, ApiAccount>;
   cgas?: Organization[];
   members?: ReturnType<typeof createMembersBackend>;
+  imports?: ReturnType<typeof createImportsBackend>;
 } = {}) {
   const requests: RecordedRequest[] = [];
   const forced = new Map<string, ApiReply[]>();
@@ -734,6 +737,7 @@ export function installApiServer({
     const path = parsed.pathname.replace(/^.*\/api\/v1/, '');
 
     return (
+      imports.route(method, path, body, { allows }) ??
       members.route(method, path, parsed.searchParams, input, { allows }) ??
       organizationsRoute(method, parsed, input) ??
       notFound
@@ -757,7 +761,7 @@ export function installApiServer({
       data: reply.data ?? '',
       status: reply.status,
       statusText: '',
-      headers: {},
+      headers: reply.headers ?? {},
       config: request,
     } as AxiosResponse;
 
@@ -784,6 +788,8 @@ export function installApiServer({
     cgas: () => registry,
     /** Dossiers des adhérents simulés (`api-members.ts`). */
     members,
+    /** Imports de portefeuille simulés (`api-imports.ts`). */
+    imports,
     /** Ouvre une session côté serveur, comme un cookie de session encore valide. */
     signIn(phone: string, activeId: string | null = null) {
       signedIn = { phone: normalizePhone(phone), activeId };

@@ -68,4 +68,6 @@ export const config = {
   pageSizeMax: integer(import.meta.env.VITE_PAGE_SIZE_MAX, 100),
   /** Pause de frappe avant de lancer une recherche dans une liste, en millisecondes. */
   searchDebounceMs: integer(import.meta.env.VITE_SEARCH_DEBOUNCE_MS, 300),
+  /** Intervalle de lecture de l'avancement d'un import en file « imports », en millisecondes. */
+  importPollMs: integer(import.meta.env.VITE_IMPORT_POLL_MS, 2000),
 } as const;

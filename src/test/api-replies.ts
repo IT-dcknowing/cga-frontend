@@ -2,7 +2,8 @@
  * Réponses types du backend simulé (`api-server.ts` et ses modules par domaine), au format de
  * `BaseApiController` : message, code métier, détails, erreurs de validation par champ.
  */
-export type ApiReply = { status: number; data?: unknown } | 'network-error';
+export type ApiReply =
+  { status: number; data?: unknown; headers?: Record<string, string> } | 'network-error';
 
 export type Input = Record<string, unknown>;
 

@@ -197,6 +197,58 @@ export const membersFr = {
       confirm: 'Cochez la case pour confirmer.',
     },
   },
+  /** `/cga/imports/adherents` (F-IMP-02, RG-IMP-01 à 03, 03-APPFLOW §4.3). */
+  import: {
+    title: 'Importer un portefeuille',
+    steps: {
+      template: '1. Télécharger le modèle',
+      file: '2. Déposer le fichier',
+      preview: '3. Vérifier l’aperçu',
+      progress: '4. Import',
+    },
+    templateHint:
+      'Une ligne par adhérent : portefeuille, régime, ancien n°, date d’adhésion, apporteur (portefeuille CGA seulement), honoraires.',
+    downloadTemplate: 'Télécharger le modèle',
+    file: 'Fichier Excel du portefeuille',
+    fileHint: 'Classeur .xlsx rempli à partir du modèle.',
+    fileRequired: 'Choisissez le fichier à importer.',
+    startNumber: 'Numéro de départ de la séquence CGA Connect',
+    startNumberHint: (proposed: string) =>
+      `Proposé : ${proposed}. Les dossiers actifs du portefeuille CGA sont numérotés dans l’ordre chronologique des adhésions (RG-IMP-01).`,
+    analyze: 'Analyser',
+    summary: {
+      total: 'Lignes',
+      importable: 'Importables',
+      drafts: 'Brouillons',
+      rejected: 'Rejetées',
+    },
+    paidNote:
+      'Les adhérents importés actifs sont réputés avoir payé leur droit d’adhésion (RG-IMP-03) ; chaque dossier garde son ancien n° (RG-IMP-01).',
+    caption: 'Aperçu de l’import',
+    columns: {
+      row: 'Ligne',
+      label: 'Adhérent',
+      legacyNumber: 'Ancien n°',
+      number: 'N° CGA Connect',
+      portfolio: 'Portefeuille',
+      status: 'Résultat',
+      messages: 'Motifs',
+    },
+    nothing: 'Aucune ligne à importer : corrigez le fichier, puis analysez-le de nouveau.',
+    start: 'Importer',
+    started: 'Import lancé',
+    progress: (done: string, total: string) => `${done} ligne(s) traitée(s) sur ${total}`,
+    done: (imported: string, drafts: string, rejected: string) =>
+      `Import terminé : ${imported} importée(s), ${drafts} brouillon(s), ${rejected} rejetée(s).`,
+    failed: 'L’import a échoué. Téléchargez le rapport ou recommencez.',
+    report: 'Télécharger le rapport',
+    seeMembers: 'Voir les adhérents importés',
+    again: 'Importer un autre fichier',
+    history: 'Imports précédents',
+    historyEmpty: 'Aucun import pour l’instant.',
+    historyLine: (date: string, file: string, author: string) => `${date} · ${file} · ${author}`,
+    loadError: 'Les imports précédents n’ont pas pu être chargés.',
+  },
   /** Dossier `/cga/adherents/:id` (F-ADH-03 à 07, 03-APPFLOW §4.3) et ses modales. */
   detail: {
     loadError: 'Le dossier de l’adhérent n’a pas pu être chargé.',

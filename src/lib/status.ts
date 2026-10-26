@@ -25,6 +25,19 @@ const TONES = {
     expired: 'danger',
     not_applicable: 'neutral',
   },
+  /** Ligne d'un import (RG-IMP-02) : importée, en brouillon (champs manquants) ou rejetée. */
+  importRow: {
+    imported: 'success',
+    draft: 'warning',
+    rejected: 'danger',
+  },
+  /** Import en file « imports » : en attente, en cours, terminé, échoué. */
+  importBatch: {
+    queued: 'neutral',
+    processing: 'info',
+    done: 'success',
+    failed: 'danger',
+  },
   /** Accès en ligne d'un adhérent ou d'un agent (`memberships.status`). */
   access: {
     invited: 'warning',

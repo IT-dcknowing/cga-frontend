@@ -55,6 +55,17 @@ export const fr = {
       expired: 'Expirée',
       not_applicable: 'Sans objet',
     },
+    importRow: {
+      imported: 'Importée',
+      draft: 'À compléter',
+      rejected: 'Rejetée',
+    },
+    importBatch: {
+      queued: 'En attente',
+      processing: 'En cours',
+      done: 'Terminé',
+      failed: 'En échec',
+    },
     access: {
       invited: 'Invité',
       active: 'Actif',
