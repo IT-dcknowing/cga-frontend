@@ -103,6 +103,14 @@ const TONES = {
     provisional: 'warning',
     validated: 'success',
   },
+  /** Statut FNE d'une facture (RG-FNE-01 à 04) : seule une facture certifiée se remet. */
+  invoice: {
+    draft: 'neutral',
+    pending_certification: 'warning',
+    certified: 'success',
+    rejected: 'danger',
+    cancelled: 'neutral',
+  },
 } as const satisfies Record<keyof typeof fr.status, Record<string, Tone>>;
 
 export type StatusDomain = keyof typeof TONES;

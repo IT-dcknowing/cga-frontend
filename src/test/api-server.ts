@@ -25,6 +25,7 @@ import {
 } from './api-replies';
 import { createCgaBackend } from './api-cga';
 import { createImportsBackend } from './api-imports';
+import { createInvoicesBackend } from './api-invoices';
 import { createMemberFinanceBackend } from './api-member-finance';
 import { createPermissionsBackend } from './api-permissions';
 import { createReferenceDataBackend } from './api-reference-data';
@@ -265,6 +266,7 @@ export function installApiServer({
   referenceData = createReferenceDataBackend(),
   memberFinance = createMemberFinanceBackend(),
   templates = createTemplatesBackend(),
+  invoices = createInvoicesBackend(),
 }: {
   accounts?: Record<string, ApiAccount>;
   cgas?: Organization[];
@@ -277,6 +279,7 @@ export function installApiServer({
   referenceData?: ReturnType<typeof createReferenceDataBackend>;
   memberFinance?: ReturnType<typeof createMemberFinanceBackend>;
   templates?: ReturnType<typeof createTemplatesBackend>;
+  invoices?: ReturnType<typeof createInvoicesBackend>;
 } = {}) {
   const requests: RecordedRequest[] = [];
   const forced = new Map<string, ApiReply[]>();
@@ -794,6 +797,7 @@ export function installApiServer({
       rights.route(method, path, parsed.searchParams, body, { allows }) ??
       referenceData.route(method, path, body, { allows }) ??
       templates.route(method, path, body, { allows }) ??
+      invoices.route(method, path, parsed.searchParams, body, { allows }) ??
       memberFinance.route(method, path, body, { allows, memberId: activeMemberId() }) ??
       cga.route(method, path, parsed.searchParams, body, {
         allows,

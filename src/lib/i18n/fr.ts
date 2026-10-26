@@ -1,5 +1,6 @@
 import { cgaSettingsFr } from './cga-settings';
 import { memberSpaceFr } from './member-space';
+import { invoicesFr } from './invoices';
 import { membersFr } from './members';
 import { permissionsFr } from './permissions';
 import { referenceDataFr } from './reference-data';
@@ -127,6 +128,13 @@ export const fr = {
     dataStatus: {
       provisional: 'Provisoire',
       validated: 'Validé',
+    },
+    invoice: {
+      draft: 'Brouillon',
+      pending_certification: 'En attente de certification',
+      certified: 'Certifiée',
+      rejected: 'Rejetée',
+      cancelled: 'Annulée',
     },
   },
   errors: {
@@ -521,6 +529,7 @@ export const fr = {
   },
   referenceData: referenceDataFr,
   templates: templatesFr,
+  invoices: invoicesFr,
   /** `/plateforme` (03-APPFLOW §6). */
   platform: {
     tabs: {

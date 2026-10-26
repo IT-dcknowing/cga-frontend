@@ -27,6 +27,7 @@ import { memberSpaceRoutes } from '@/features/member-space/lib/routes';
 import { MemberDocumentsPage } from '@/features/member-space/pages/member-documents-page';
 import { MemberFeesPage } from '@/features/member-space/pages/member-fees-page';
 import { MemberHomePage } from '@/features/member-space/pages/member-home-page';
+import { InvoicesPage } from '@/features/invoices/pages/invoices-page';
 import { MemberImportPage } from '@/features/members/pages/member-import-page';
 import { MemberPage } from '@/features/members/pages/member-page';
 import { MembersPage } from '@/features/members/pages/members-page';
@@ -82,6 +83,7 @@ const cncgaScreens: Record<string, MenuScreen> = {
 };
 
 const cgaScreens: Record<string, MenuScreen> = {
+  '/cga/factures': { element: <InvoicesPage /> },
   [cgaSettingsRoutes.root]: {
     element: <CgaSettingsPage />,
     children: [
