@@ -1006,6 +1006,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/cga/members/{member}/history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["cga.members.history.index"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/cga/imports/members/template": {
         parameters: {
             query?: never;
@@ -1953,6 +1969,22 @@ export interface paths {
         put: operations["referentials.sectors.update"];
         post?: never;
         delete: operations["referentials.sectors.destroy"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/cga/sectors": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["cga.sectors.store"];
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -3198,6 +3230,15 @@ export interface components {
             /** @enum {string} */
             type: "membership_contract" | "membership_certificate" | "receipt" | "radiation_notice";
             payment_id?: string;
+        };
+        /**
+         * ProposeSectorRequest
+         * @description POST /api/v1/cga/sectors : « Proposer un secteur » (RG-REF-01) — le nom seul ; le code, le statut et
+         *     le CGA auteur sont fixés par le serveur. Un nom déjà pris par un secteur visible du centre (validé, ou
+         *     proposé par lui) est refusé, sans distinguer majuscules et minuscules.
+         */
+        ProposeSectorRequest: {
+            name: string;
         };
         /**
          * RadiationInitiator
@@ -6078,6 +6119,38 @@ export interface operations {
             422: components["responses"]["ValidationException"];
         };
     };
+    "cga.members.history.index": {
+        parameters: {
+            query?: {
+                page?: number;
+                per_page?: number;
+            };
+            header?: never;
+            path: {
+                /** @description The member ID */
+                member: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Array of items */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: string[];
+                    } | Record<string, never>;
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
     "cga.imports.members.template": {
         parameters: {
             query?: never;
@@ -8231,6 +8304,32 @@ export interface operations {
             };
             401: components["responses"]["AuthenticationException"];
             404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "cga.sectors.store": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProposeSectorRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": Record<string, never>;
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            422: components["responses"]["ValidationException"];
         };
     };
     "auth.login": {

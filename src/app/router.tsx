@@ -17,6 +17,10 @@ import {
 } from '@/features/auth/session/guards';
 import { DemoPage } from '@/features/demo/pages/demo-page';
 import { ErrorScreen, RouteErrorPage } from '@/features/errors/pages/error-screen';
+import { memberRoutes } from '@/features/members/lib/member';
+import { MemberPage } from '@/features/members/pages/member-page';
+import { MembersPage } from '@/features/members/pages/members-page';
+import { NewMemberPage } from '@/features/members/pages/new-member-page';
 import { cgaMenu, cncgaMenu, memberMenu, type MenuEntry } from '@/features/navigation/menu';
 import { organizationRoutes } from '@/features/organizations/lib/organization';
 import { OrganizationPage } from '@/features/organizations/pages/organization-page';
@@ -57,6 +61,16 @@ const cncgaScreens: Record<string, MenuScreen> = {
   [organizationRoutes.list]: {
     element: <OrganizationsPage />,
     children: [{ path: ':id', element: <OrganizationPage /> }],
+  },
+};
+
+const cgaScreens: Record<string, MenuScreen> = {
+  [memberRoutes.list]: {
+    element: <MembersPage />,
+    children: [
+      { path: 'nouveau', element: <NewMemberPage /> },
+      { path: ':id', element: <MemberPage /> },
+    ],
   },
 };
 
@@ -112,7 +126,7 @@ export const routes: RouteObject[] = [
         { index: true, element: <PendingPage title={fr.spaces.platform} /> },
       ]),
       spaceRoute('cncga', CncgaLayout, menuRoutes(cncgaMenu, cncgaScreens)),
-      spaceRoute('cga', CgaLayout, menuRoutes(cgaMenu)),
+      spaceRoute('cga', CgaLayout, menuRoutes(cgaMenu, cgaScreens)),
       spaceRoute('member', MemberLayout, menuRoutes(memberMenu)),
       // Page de démonstration des composants de l'étape 0.4.
       { path: '/demo', element: <DemoPage /> },

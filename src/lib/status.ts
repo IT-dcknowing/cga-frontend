@@ -18,6 +18,20 @@ const TONES = {
     pending: 'warning',
     complete: 'success',
   },
+  /** Une pièce du dossier (F-PJ-01) : attendue ou expirée, à traiter. */
+  piece: {
+    expected: 'warning',
+    received: 'success',
+    expired: 'danger',
+    not_applicable: 'neutral',
+  },
+  /** Accès en ligne d'un adhérent ou d'un agent (`memberships.status`). */
+  access: {
+    invited: 'warning',
+    active: 'success',
+    read_only: 'neutral',
+    disabled: 'neutral',
+  },
   regime: {
     RME: 'neutral',
     TEE: 'neutral',

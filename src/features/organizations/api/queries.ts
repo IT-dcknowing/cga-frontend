@@ -1,5 +1,5 @@
 import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query';
-import { httpStatusOf } from '@/lib/api-errors';
+import { isScreenError, retryUnlessScreenError } from '@/lib/query';
 import { organizationsApi } from './index';
 import type { Organization, OrganizationFilters } from './organizations-api';
 
@@ -10,20 +10,6 @@ export const organizationKeys = {
   detail: (id: string) => ['organizations', 'detail', id] as const,
   regionalDirectorates: ['referentials', 'regional-directorates'] as const,
 };
-
-/**
- * 403 et 404 : l'écran commun « Vous n'avez pas accès » ou « Élément introuvable » remplace la page
- * (03-APPFLOW §7), sans nouvel essai.
- */
-function isScreenError(error: unknown): boolean {
-  const status = httpStatusOf(error);
-
-  return status === 403 || status === 404;
-}
-
-function retryUnlessScreenError(failureCount: number, error: unknown): boolean {
-  return !isScreenError(error) && failureCount < 1;
-}
 
 export function useOrganizations(filters: OrganizationFilters) {
   return useQuery({

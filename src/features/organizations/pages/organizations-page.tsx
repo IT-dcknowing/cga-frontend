@@ -1,6 +1,6 @@
-import type { ColumnDef, PaginationState, SortingState, Updater } from '@tanstack/react-table';
+import type { ColumnDef } from '@tanstack/react-table';
 import { Building2, Plus } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
 import { PageHeader } from '@/components/layout/page-header';
 import { DataTable } from '@/components/shared/data-table';
@@ -22,9 +22,16 @@ import {
 import { useOrganizations, useRegionalDirectorates } from '@/features/organizations/api/queries';
 import { NewOrganizationDialog } from '@/features/organizations/components/new-organization-dialog';
 import { organizationRoutes } from '@/features/organizations/lib/organization';
-import { config } from '@/lib/config';
 import { formatNumber } from '@/lib/format';
 import { fr } from '@/lib/i18n/fr';
+import {
+  oneOf,
+  pageParam,
+  textParam,
+  useSearchInput,
+  useTableParams,
+  withFilter,
+} from '@/lib/list-params';
 import { permissionCodes } from '@/lib/reference/permissions';
 
 /*
@@ -50,49 +57,15 @@ const PARAM = {
 const SORTABLE = ['name', 'city'] as const;
 const SORTS: OrganizationSort[] = ['name', '-name', 'city', '-city'];
 
-function oneOf<T extends string>(values: readonly T[], value: string | null): T | null {
-  return values.find((candidate) => candidate === value) ?? null;
-}
-
 function filtersFrom(params: URLSearchParams): OrganizationFilters {
-  const page = Number.parseInt(params.get(PARAM.page) ?? '', 10);
-  const region = params.get(PARAM.region);
-
   return {
-    search: params.get(PARAM.search)?.trim() ?? '',
+    search: textParam(params, PARAM.search) ?? '',
     status: oneOf(ORGANIZATION_STATUSES, params.get(PARAM.status)),
     subscriptionStatus: oneOf(SUBSCRIPTION_STATUSES, params.get(PARAM.subscription)),
-    regionalDirectorateId: region === null || region === '' ? null : region,
+    regionalDirectorateId: textParam(params, PARAM.region),
     sort: oneOf(SORTS, params.get(PARAM.sort)),
-    page: Number.isInteger(page) && page > 0 ? page : 1,
+    page: pageParam(params, PARAM.page),
   };
-}
-
-/** Adresse avec un critère changé ; un nouveau critère ramène à la première page. */
-function withFilter(current: URLSearchParams, name: string, value: string): URLSearchParams {
-  const next = new URLSearchParams(current);
-
-  if (value === '') {
-    next.delete(name);
-  } else {
-    next.set(name, value);
-  }
-
-  if (name !== PARAM.page) {
-    next.delete(PARAM.page);
-  }
-
-  return next;
-}
-
-function sortingOf(sort: OrganizationSort | null): SortingState {
-  return sort === null ? [] : [{ id: sort.replace(/^-/, ''), desc: sort.startsWith('-') }];
-}
-
-function sortOf(sorting: SortingState): string {
-  const [first] = sorting as (SortingState[number] | undefined)[];
-
-  return first === undefined ? '' : `${first.desc ? '-' : ''}${first.id}`;
 }
 
 function orNone(value: string | null | undefined): string {
@@ -160,58 +133,22 @@ export function OrganizationsPage() {
   const navigate = useNavigate();
   const [params, setParams] = useSearchParams();
   const filters = filtersFrom(params);
-  const [search, setSearch] = useState(filters.search);
-  const [searchInUrl, setSearchInUrl] = useState(filters.search);
+  const [search, setSearch] = useSearchInput(filters.search, setParams, PARAM.search);
   const [creating, setCreating] = useState(false);
   const query = useOrganizations(filters);
   const regions = useRegionalDirectorates();
   const canManage = can(permissionCodes.cncga.organizationsManage);
 
-  // Adresse changée sans la saisie (retour arrière) : le champ reprend la recherche de l'adresse.
-  if (filters.search !== searchInUrl) {
-    setSearchInUrl(filters.search);
-
-    if (filters.search !== search.trim()) {
-      setSearch(filters.search);
-    }
-  }
-
   function setFilter(name: string, value: string) {
     setParams((current) => withFilter(current, name, value));
   }
 
-  // La recherche part après une pause de frappe (`searchDebounceMs`), sans empiler l'historique.
-  useEffect(() => {
-    const wanted = search.trim();
-
-    if (wanted === filters.search) {
-      return;
-    }
-
-    const timer = window.setTimeout(() => {
-      setParams((current) => withFilter(current, PARAM.search, wanted), { replace: true });
-    }, config.searchDebounceMs);
-
-    return () => {
-      window.clearTimeout(timer);
-    };
-  }, [search, filters.search, setParams]);
-
-  const pagination: PaginationState = {
-    pageIndex: filters.page - 1,
-    pageSize: query.data?.perPage ?? config.pageSize,
-  };
-  const sorting = sortingOf(filters.sort);
-
-  function changePage(updater: Updater<PaginationState>) {
-    const next = typeof updater === 'function' ? updater(pagination) : updater;
-
-    setFilter(PARAM.page, next.pageIndex === 0 ? '' : String(next.pageIndex + 1));
-  }
-
-  function changeSorting(updater: Updater<SortingState>) {
-    setFilter(PARAM.sort, sortOf(typeof updater === 'function' ? updater(sorting) : updater));
-  }
+  const table = useTableParams({
+    page: filters.page,
+    pageSize: query.data?.perPage,
+    sort: filters.sort,
+    setFilter,
+  });
 
   const filtered =
     filters.search !== '' ||
@@ -329,10 +266,7 @@ export function OrganizationsPage() {
               columns={columns}
               data={query.data?.items ?? []}
               rowCount={query.data?.total ?? 0}
-              pagination={pagination}
-              onPaginationChange={changePage}
-              sorting={sorting}
-              onSortingChange={changeSorting}
+              {...table}
               isLoading={query.isPending}
               getRowId={(organization) => organization.id}
               onRowClick={(organization) => {

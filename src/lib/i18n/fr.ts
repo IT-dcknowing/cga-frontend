@@ -1,3 +1,5 @@
+import { membersFr } from './members';
+
 /** Libellés de l'interface (02-TRD §5.2) : aucun texte affiché n'est écrit dans un composant. */
 export const fr = {
   common: {
@@ -9,6 +11,8 @@ export const fr = {
     notProvided: 'Non renseigné',
     comingSoon: 'Bientôt disponible',
     effects: 'Effets de cette action',
+    yes: 'Oui',
+    no: 'Non',
   },
   /** 03-APPFLOW §7 : formulaire modifié non enregistré. */
   unsaved: {
@@ -44,6 +48,18 @@ export const fr = {
     pieces: {
       pending: 'Pièces en attente',
       complete: 'Complet',
+    },
+    piece: {
+      expected: 'Attendue',
+      received: 'Reçue',
+      expired: 'Expirée',
+      not_applicable: 'Sans objet',
+    },
+    access: {
+      invited: 'Invité',
+      active: 'Actif',
+      read_only: 'Consultation seule',
+      disabled: 'Désactivé',
     },
     regime: {
       RME: 'RME',
@@ -439,6 +455,7 @@ export const fr = {
       lastNameRequired: 'Renseignez le nom.',
     },
   },
+  members: membersFr,
   demo: {
     title: 'Composants de base',
     intro:

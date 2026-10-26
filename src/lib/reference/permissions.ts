@@ -24,6 +24,16 @@ export const permissionCodes = {
   },
   cga: {
     members: 'members.view',
+    membersCreate: 'members.create',
+    /** Valider une radiation, et donc « Valider immédiatement » à la demande (F-ADH-06). */
+    radiationValidate: 'members.radiation.validate',
+    membersImport: 'members.import',
+    /** Inviter l'adhérent en ligne et gérer ses accès (F-ADH-09). */
+    membersAccess: 'members.access.manage',
+    /** Portefeuille Cabinet, et donc le choix « Tous » de la liste (RG-PTF-02). */
+    cabinet: 'members.cabinet.view',
+    /** Apporteurs et étiquette « Accessoire n » (RG-PTF-06). */
+    referrers: 'members.referrers.view',
     obligations: 'obligations.manage',
     feeReminders: 'fees.remind',
     closing: 'closing.view',

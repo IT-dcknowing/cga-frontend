@@ -7,6 +7,12 @@ const dateFormatter = new Intl.DateTimeFormat('fr-FR', {
   timeZone: 'Africa/Abidjan',
 });
 
+const timeFormatter = new Intl.DateTimeFormat('fr-FR', {
+  hour: '2-digit',
+  minute: '2-digit',
+  timeZone: 'Africa/Abidjan',
+});
+
 const NO_BREAK_SPACE = String.fromCharCode(0x00a0);
 
 /** 1234567 → « 1 234 567 » (espaces insécables). */
@@ -27,4 +33,11 @@ export function formatDate(isoDate: string): string {
 /** « 2026-01-14T09:30:00Z » (date et heure de l'API) → « 14/01/2026 », jour à Abidjan. */
 export function formatTimestampDate(timestamp: string): string {
   return dateFormatter.format(new Date(timestamp));
+}
+
+/** « 2026-01-14T09:30:00Z » → « 14/01/2026 à 09:30 », heure d'Abidjan (journal, historique). */
+export function formatTimestamp(timestamp: string): string {
+  const moment = new Date(timestamp);
+
+  return `${dateFormatter.format(moment)} à ${timeFormatter.format(moment)}`;
 }

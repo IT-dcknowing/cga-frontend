@@ -22,6 +22,8 @@ export type FormDialogProps = {
   conflict?: string | null;
   /** `danger` pour une action irréversible (03-APPFLOW §7, 04-UX-UI §6). */
   variant?: 'primary' | 'danger';
+  /** 720 px pour un formulaire long (fiche complète), 560 px sinon (04-UX-UI §6). */
+  size?: 'form' | 'preview';
   children: ReactNode;
 };
 
@@ -39,6 +41,7 @@ export function FormDialog({
   onSubmit,
   conflict = null,
   variant = 'primary',
+  size = 'form',
   children,
 }: FormDialogProps) {
   return (
@@ -50,7 +53,7 @@ export function FormDialog({
         }
       }}
     >
-      <DialogContent title={title} description={description}>
+      <DialogContent title={title} description={description} size={size}>
         <form noValidate onSubmit={onSubmit} className="flex min-h-0 flex-1 flex-col">
           <DialogBody>
             {conflict !== null ? (

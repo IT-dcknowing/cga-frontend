@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import type { Membership } from '@/features/auth/api/auth-api';
 import { spaceKindOf, type SpaceKind } from '@/features/auth/lib/destination';
+import { memberRoutes } from '@/features/members/lib/member';
 import { organizationRoutes } from '@/features/organizations/lib/organization';
 import { fr } from '@/lib/i18n/fr';
 import { permissionCodes } from '@/lib/reference/permissions';
@@ -93,7 +94,7 @@ export const cncgaMenu: MenuEntry[] = [
 
 export const cgaMenu: MenuEntry[] = [
   { path: '/cga/tableau-de-bord', label: fr.nav.dashboard, icon: LayoutDashboard },
-  { path: '/cga/adherents', label: fr.nav.members, icon: Users, permissions: [cga.members] },
+  { path: memberRoutes.list, label: fr.nav.members, icon: Users, permissions: [cga.members] },
   // Échéances des obligations, et relances d'honoraires pour le chargé des cotisations (§4.1).
   {
     path: '/cga/echeances',

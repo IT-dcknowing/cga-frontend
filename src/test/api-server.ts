@@ -14,6 +14,16 @@ import { config } from '@/lib/config';
 import { http } from '@/lib/http';
 import { fr } from '@/lib/i18n/fr';
 import { defaultRolePermissions } from '@/lib/reference/default-permissions';
+import {
+  conflict,
+  forbidden,
+  invalid,
+  notFound,
+  unauthenticated,
+  type ApiReply,
+  type Input,
+} from './api-replies';
+import { createMembersBackend } from './api-members';
 
 /*
  * Backend de la plateforme (`backend/`, `/api/v1`) simulé derrière le **vrai** client `http` :
@@ -40,7 +50,7 @@ export type ApiAccount = {
   disabled?: boolean;
 };
 
-export type ApiReply = { status: number; data?: unknown } | 'network-error';
+export type { ApiReply } from './api-replies';
 
 export type RecordedRequest = {
   method: string;
@@ -231,35 +241,6 @@ function parse(data: unknown): unknown {
   return typeof data === 'string' && data !== '' ? (JSON.parse(data) as unknown) : data;
 }
 
-const unauthenticated: ApiReply = {
-  status: 401,
-  data: { message: 'Non authentifié.', code: 'unauthenticated' },
-};
-const forbidden: ApiReply = {
-  status: 403,
-  data: { message: 'Vous n’avez pas le droit de faire cette action.', code: 'forbidden' },
-};
-const notFound: ApiReply = {
-  status: 404,
-  data: { message: 'Élément introuvable.', code: 'not_found' },
-};
-
-function invalid(errors: Record<string, string>): ApiReply {
-  return {
-    status: 422,
-    data: {
-      message: Object.values(errors)[0],
-      errors: Object.fromEntries(Object.entries(errors).map(([field, text]) => [field, [text]])),
-    },
-  };
-}
-
-function conflict(code: string, message: string): ApiReply {
-  return { status: 409, data: { message, code, details: {} } };
-}
-
-type Input = Record<string, unknown>;
-
 /**
  * Installe le serveur simulé sur le client `http`. `failNext` force la prochaine réponse d'une route
  * (refus, panne, réseau coupé) ; `restore` remet le client d'origine.
@@ -267,7 +248,12 @@ type Input = Record<string, unknown>;
 export function installApiServer({
   accounts = demoAccounts,
   cgas = demoCgas(),
-}: { accounts?: Record<string, ApiAccount>; cgas?: Organization[] } = {}) {
+  members = createMembersBackend(),
+}: {
+  accounts?: Record<string, ApiAccount>;
+  cgas?: Organization[];
+  members?: ReturnType<typeof createMembersBackend>;
+} = {}) {
   const requests: RecordedRequest[] = [];
   const forced = new Map<string, ApiReply[]>();
   const previousAdapter = http.defaults.adapter;
@@ -745,7 +731,13 @@ export function installApiServer({
       };
     }
 
-    return organizationsRoute(method, parsed, input) ?? notFound;
+    const path = parsed.pathname.replace(/^.*\/api\/v1/, '');
+
+    return (
+      members.route(method, path, parsed.searchParams, input, { allows }) ??
+      organizationsRoute(method, parsed, input) ??
+      notFound
+    );
   }
 
   const adapter: AxiosAdapter = (request: InternalAxiosRequestConfig) => {
@@ -790,6 +782,8 @@ export function installApiServer({
     requests,
     /** CGA du registre simulé, dans leur état courant. */
     cgas: () => registry,
+    /** Dossiers des adhérents simulés (`api-members.ts`). */
+    members,
     /** Ouvre une session côté serveur, comme un cookie de session encore valide. */
     signIn(phone: string, activeId: string | null = null) {
       signedIn = { phone: normalizePhone(phone), activeId };
@@ -815,4 +809,7 @@ export const demoIds = {
   multiDck: demoAccounts['+2250700000003'].memberships[1].id,
   multiBouake: demoAccounts['+2250700000003'].memberships[2].id,
   board: demoAccounts['+2250700000013'].memberships[0].id,
+  accountant: demoAccounts['+2250700000004'].memberships[0].id,
+  trainer: demoAccounts['+2250700000007'].memberships[0].id,
+  memberOwner: demoAccounts['+2250700000012'].memberships[0].id,
 };
