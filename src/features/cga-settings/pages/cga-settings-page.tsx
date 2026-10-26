@@ -6,6 +6,8 @@ import { EmptyState } from '@/components/shared/empty-state';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/features/auth/session/auth-context';
+import { AgentsPanel } from '@/features/cga-settings/components/agents-panel';
+import { CentreTab } from '@/features/cga-settings/components/centre-tab';
 import { ReferrersTab } from '@/features/cga-settings/components/referrers-tab';
 import { fr } from '@/lib/i18n/fr';
 import { oneOf } from '@/lib/list-params';
@@ -56,6 +58,8 @@ function Pending() {
 }
 
 const SCREENS: Partial<Record<Tab, ReactNode>> = {
+  centre: <CentreTab />,
+  utilisateurs: <AgentsPanel scope="cga" />,
   apporteurs: <ReferrersTab />,
 };
 

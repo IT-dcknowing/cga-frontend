@@ -12,6 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Select } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/features/auth/session/auth-context';
+import { useCgaProfile } from '@/features/cga-settings/api/queries';
 import {
   MEMBER_SORTS,
   REGIMES,
@@ -127,6 +128,7 @@ const columns: ColumnDef<Member>[] = baseColumns.map((column) => ({
 
 export function MembersPage() {
   const { can, activeMembership } = useAuth();
+  const profile = useCgaProfile(can(permissionCodes.cga.profile));
   const navigate = useNavigate();
   const [params, setParams] = useSearchParams();
   const seesCabinet = can(permissionCodes.cga.cabinet);
@@ -186,14 +188,21 @@ export function MembersPage() {
     filters.regime !== null ||
     filters.taxOfficeId !== null ||
     filters.referrerId !== null;
-  const createButton = can(permissionCodes.cga.membersCreate) ? (
+  // Agrément en cours (RG-ORG-03) : l'inscription attend l'agrément ; le serveur refuse de même.
+  const agreementPending = profile.data?.agreement_status === 'pending';
+  const createButton = !can(permissionCodes.cga.membersCreate) ? null : agreementPending ? (
+    <Button disabled title={fr.cgaSettings.banners.agreementPending}>
+      <Plus aria-hidden="true" />
+      {labels.create}
+    </Button>
+  ) : (
     <Button asChild>
       <Link to={memberRoutes.create}>
         <Plus aria-hidden="true" />
         {labels.create}
       </Link>
     </Button>
-  ) : null;
+  );
   const actions = (
     <div className="flex flex-wrap gap-2">
       {can(permissionCodes.cga.membersImport) ? (

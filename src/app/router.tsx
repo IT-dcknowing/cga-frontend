@@ -21,6 +21,8 @@ import { ErrorScreen, RouteErrorPage } from '@/features/errors/pages/error-scree
 import { memberRoutes } from '@/features/members/lib/member';
 import { cgaSettingsRoutes } from '@/features/cga-settings/lib/routes';
 import { CgaSettingsPage } from '@/features/cga-settings/pages/cga-settings-page';
+import { cncgaSettingsRoutes } from '@/features/cncga-settings/lib/routes';
+import { CncgaSettingsPage } from '@/features/cncga-settings/pages/cncga-settings-page';
 import { MemberHomePage } from '@/features/member-space/pages/member-home-page';
 import { MemberImportPage } from '@/features/members/pages/member-import-page';
 import { MemberPage } from '@/features/members/pages/member-page';
@@ -68,6 +70,7 @@ const cncgaScreens: Record<string, MenuScreen> = {
     element: <OrganizationsPage />,
     children: [{ path: ':id', element: <OrganizationPage /> }],
   },
+  [cncgaSettingsRoutes.root]: { element: <CncgaSettingsPage /> },
 };
 
 const cgaScreens: Record<string, MenuScreen> = {

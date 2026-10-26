@@ -23,7 +23,9 @@ import {
   type ApiReply,
   type Input,
 } from './api-replies';
+import { createCgaBackend } from './api-cga';
 import { createImportsBackend } from './api-imports';
+import type { createReferentialsBackend } from './api-referentials';
 import { createMembersBackend } from './api-members';
 
 /*
@@ -251,11 +253,16 @@ export function installApiServer({
   cgas = demoCgas(),
   members = createMembersBackend(),
   imports = createImportsBackend(),
+  cga = createCgaBackend(),
+  referentials,
 }: {
   accounts?: Record<string, ApiAccount>;
   cgas?: Organization[];
   members?: ReturnType<typeof createMembersBackend>;
   imports?: ReturnType<typeof createImportsBackend>;
+  cga?: ReturnType<typeof createCgaBackend>;
+  /** Gestion des référentiels nationaux (`/cncga/parametres`), seulement pour les tests qui la demandent. */
+  referentials?: ReturnType<typeof createReferentialsBackend>;
 } = {}) {
   const requests: RecordedRequest[] = [];
   const forced = new Map<string, ApiReply[]>();
@@ -272,6 +279,13 @@ export function installApiServer({
     const active = account()?.memberships.find((item) => item.id === signedIn?.activeId);
 
     return active === undefined ? [] : (defaultRolePermissions[active.role] ?? []);
+  }
+
+  /** Organisation de l'espace actif (`TenantContext::organizationId()`). */
+  function activeOrganizationId(): string | null {
+    return (
+      account()?.memberships.find((item) => item.id === signedIn?.activeId)?.organization.id ?? null
+    );
   }
 
   /** Dossier de l'accès adhérent actif (`TenantContext::memberId()`). */
@@ -730,6 +744,17 @@ export function installApiServer({
     }
 
     const parsed = new URL(url);
+    const managed = referentials?.route(
+      method,
+      parsed.pathname.replace(/^.*\/api\/v1/, ''),
+      parsed.searchParams,
+      body,
+      { allows },
+    );
+
+    if (managed !== undefined) {
+      return managed;
+    }
 
     if (method === 'GET' && parsed.pathname.endsWith('/referentials/regional-directorates')) {
       return {
@@ -745,6 +770,10 @@ export function installApiServer({
 
     return (
       imports.route(method, path, body, { allows }) ??
+      cga.route(method, path, parsed.searchParams, body, {
+        allows,
+        organizationId: activeOrganizationId(),
+      }) ??
       members.route(method, path, parsed.searchParams, input, {
         allows,
         memberId: activeMemberId(),

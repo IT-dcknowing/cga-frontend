@@ -8,6 +8,7 @@ import {
   type SpaceKind,
 } from '@/features/auth/lib/destination';
 import { useAuth } from '@/features/auth/session/auth-context';
+import { CgaBanners } from '@/features/cga-settings/components/cga-banners';
 import { ErrorScreen } from '@/features/errors/pages/error-screen';
 import { isEntryVisible, type MenuEntry } from '@/features/navigation/menu';
 
@@ -61,24 +62,36 @@ export function RequireSpace({ children }: { children: ReactNode }) {
  * accès à cette page » dans la coque de l'espace ouvert ; pour y entrer, l'utilisateur change
  * d'espace par le sélecteur.
  */
-export function SpaceLayout({ space }: { space: SpaceKind }) {
+export function SpaceLayout({ space, banners }: { space: SpaceKind; banners?: ReactNode }) {
   return (
     <RequireSpace>
-      <SpaceGate space={space} />
+      <SpaceGate space={space} banners={banners} />
     </RequireSpace>
   );
 }
 
-function SpaceGate({ space }: { space: SpaceKind }) {
+/** `banners` : bandeaux propres à l'espace (03-APPFLOW §4.2), au-dessus de chaque écran. */
+function SpaceGate({ space, banners }: { space: SpaceKind; banners?: ReactNode }) {
   const { activeMembership } = useAuth();
   const allowed = activeMembership !== null && spaceKindOf(activeMembership) === space;
 
-  return <AppShell>{allowed ? <Outlet /> : <ErrorScreen kind="forbidden" />}</AppShell>;
+  return (
+    <AppShell>
+      {allowed ? (
+        <>
+          {banners}
+          <Outlet />
+        </>
+      ) : (
+        <ErrorScreen kind="forbidden" />
+      )}
+    </AppShell>
+  );
 }
 
 export const PlatformLayout = () => <SpaceLayout space="platform" />;
 export const CncgaLayout = () => <SpaceLayout space="cncga" />;
-export const CgaLayout = () => <SpaceLayout space="cga" />;
+export const CgaLayout = () => <SpaceLayout space="cga" banners={<CgaBanners />} />;
 export const MemberLayout = () => <SpaceLayout space="member" />;
 
 /**

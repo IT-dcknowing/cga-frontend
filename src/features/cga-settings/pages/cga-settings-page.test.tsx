@@ -63,6 +63,9 @@ describe('/cga/parametres · Apporteurs d’affaires (2.16, RG-PTF-06)', () => {
     expect(screen.getAllByRole('tab').map((tab) => tab.textContent)).toEqual(
       Object.values(fr.cgaSettings.tabs),
     );
+    // L'onglet Centre s'ouvre d'abord ; un onglet d'une étape suivante reste « Bientôt disponible ».
+    expect(await screen.findByText(fr.cgaSettings.centre.complete('05/01/2026'))).toBeVisible();
+    await user.click(screen.getByRole('tab', { name: fr.cgaSettings.tabs.droits }));
     expect(screen.getByText(fr.common.comingSoon)).toBeVisible();
 
     await user.click(screen.getByRole('tab', { name: fr.cgaSettings.tabs.apporteurs }));

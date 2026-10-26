@@ -91,6 +91,18 @@ const TONES = {
     granted: 'success',
     withdrawn: 'danger',
   },
+  /** Secteur proposé par un CGA, à fusionner dans un secteur validé (RG-REF-01). */
+  sector: {
+    validated: 'success',
+    proposed: 'warning',
+    rejected: 'danger',
+    merged: 'neutral',
+  },
+  /** Donnée de référence provisoire, remplaçable par un fichier (RG-DATA-01). */
+  dataStatus: {
+    provisional: 'warning',
+    validated: 'success',
+  },
 } as const satisfies Record<keyof typeof fr.status, Record<string, Tone>>;
 
 export type StatusDomain = keyof typeof TONES;

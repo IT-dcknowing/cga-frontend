@@ -41,7 +41,9 @@ function valueOf(label: string): string | null {
   return term?.nextElementSibling?.textContent ?? null;
 }
 
-describe('/adherent/accueil · accueil de l’adhérent (2.11)', () => {
+// Le premier écran charge l'espace adhérent : délai des parcours (voir la fiche adhérent), assertions
+// inchangées ; il dépassait 5 s quand toute la suite tourne en parallèle.
+describe('/adherent/accueil · accueil de l’adhérent (2.11)', { timeout: 15_000 }, () => {
   it('bonjour, message d’accueil, son dossier et les contacts de son CGA', async () => {
     await openHome();
 

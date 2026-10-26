@@ -1,6 +1,7 @@
 import { cgaSettingsFr } from './cga-settings';
 import { memberSpaceFr } from './member-space';
 import { membersFr } from './members';
+import { referentialsFr } from './referentials';
 
 /** Libellés de l'interface (02-TRD §5.2) : aucun texte affiché n'est écrit dans un composant. */
 export const fr = {
@@ -113,6 +114,16 @@ export const fr = {
       pending: 'Agrément en cours',
       granted: 'Agréé',
       withdrawn: 'Agrément retiré',
+    },
+    sector: {
+      validated: 'Validé',
+      proposed: 'Proposé',
+      rejected: 'Rejeté',
+      merged: 'Fusionné',
+    },
+    dataStatus: {
+      provisional: 'Provisoire',
+      validated: 'Validé',
     },
   },
   errors: {
@@ -489,6 +500,18 @@ export const fr = {
   members: membersFr,
   memberSpace: memberSpaceFr,
   cgaSettings: cgaSettingsFr,
+  referentials: referentialsFr,
+  /** `/cncga/parametres` (03-APPFLOW §3.2). */
+  cncgaSettings: {
+    tabs: {
+      utilisateurs: 'Utilisateurs CNCGA',
+      secteurs: 'Secteurs',
+      territoire: 'DR, CDI et communes',
+      references: 'Références nationales',
+      feries: 'Jours fériés',
+      reseau: 'Paramètres réseau',
+    },
+  },
   demo: {
     title: 'Composants de base',
     intro:
