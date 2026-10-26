@@ -59,6 +59,8 @@ export const permissionCodes = {
     userPermissions: 'cga_user_permissions.manage',
   },
   member: {
+    /** Honoraires de l'adhérent et déclaration d'un paiement (F-PAY-03). */
+    payments: 'member.payments.declare',
     obligations: 'member.obligations.view',
     documents: 'member.documents.view',
     concerns: 'member.concerns.write',

@@ -2,7 +2,9 @@ import { cgaSettingsFr } from './cga-settings';
 import { memberSpaceFr } from './member-space';
 import { membersFr } from './members';
 import { permissionsFr } from './permissions';
+import { referenceDataFr } from './reference-data';
 import { referentialsFr } from './referentials';
+import { templatesFr } from './templates';
 
 /** Libellés de l'interface (02-TRD §5.2) : aucun texte affiché n'est écrit dans un composant. */
 export const fr = {
@@ -503,6 +505,22 @@ export const fr = {
   cgaSettings: cgaSettingsFr,
   referentials: referentialsFr,
   permissions: permissionsFr,
+  /** `/verifier/:jeton` (F-DOC-04, 03-APPFLOW §2). */
+  verification: {
+    title: 'Vérification d’un document',
+    valid: 'Document authentique et valide',
+    cancelled: (date: string) => `Document ANNULÉ le ${date}`,
+    unknown: 'Aucun document ne correspond à ce code.',
+    tooMany: 'Trop de vérifications en peu de temps : réessayez dans une minute.',
+    loadError: 'La vérification n’a pas pu aboutir.',
+    type: 'Type de document',
+    issuedOn: 'Date d’émission',
+    issuer: 'CGA émetteur',
+    member: 'Adhérent',
+    membershipNumber: 'N° d’adhésion',
+  },
+  referenceData: referenceDataFr,
+  templates: templatesFr,
   /** `/plateforme` (03-APPFLOW §6). */
   platform: {
     tabs: {

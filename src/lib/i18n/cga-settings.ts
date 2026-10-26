@@ -184,6 +184,43 @@ export const cgaSettingsFr = {
       done: (name: string) => `Accès de ${name} désactivé`,
     },
   },
+  /** Onglet « Barème » (F-PAY-01) : droit d'adhésion et honoraires du portefeuille CGA. */
+  fees: {
+    intro:
+      'Montants proposés à l’inscription d’un adhérent du portefeuille CGA ; chaque dossier garde ensuite les siens.',
+    entryFee: 'Droit d’adhésion (F CFA)',
+    regime: (regime: string) => `Honoraires ${regime}`,
+    amount: 'Montant (F CFA)',
+    periodicity: 'Périodicité',
+    since: (date: string) => ` (depuis le ${date})`,
+    save: 'Enregistrer le barème',
+    saved: 'Barème enregistré',
+    loadError: 'Le barème n’a pas pu être chargé.',
+  },
+  /** Onglet « Campagne d'attestations » (RG-DOC-06, 07, 10). */
+  campaign: {
+    title: (year: string) => `Campagne d’attestations ${year}`,
+    intro:
+      'La campagne produit l’attestation de l’année de chaque adhérent éligible du portefeuille CGA. Les radiés, les radiations en cours, les dossiers Cabinet et les attestations bloquées en sont exclus.',
+    eligible: 'Adhérents éligibles',
+    issued: 'Attestations déjà émises',
+    blocked: 'Attestations bloquées',
+    blockedTitle: 'Attestations bloquées',
+    blockedLine: (date: string, trigger: string, reason: string) =>
+      `Bloquée le ${date} (${trigger}) : ${reason}`,
+    none: 'Aucun adhérent éligible pour cette année.',
+    launch: (year: string) => `Lancer la campagne ${year}`,
+    summary: (eligible: string, blocked: string) =>
+      `${eligible} adhérent(s) éligible(s), ${blocked} bloqué(s).`,
+    effects: [
+      'Une attestation est produite pour chaque adhérent éligible, en tâche de fond.',
+      'Les attestations bloquées restent exclues tant que le gérant ne les débloque pas.',
+    ],
+    blockedEffect: (name: string, trigger: string) => `Exclu : ${name} (${trigger})`,
+    submit: 'Lancer',
+    launched: (count: string) => `Production de ${count} attestations en cours`,
+    loadError: 'La campagne d’attestations n’a pas pu être chargée.',
+  },
   /** Bandeaux de l'espace CGA (03-APPFLOW §4.2). */
   banners: {
     suspended: 'Votre centre est suspendu : consultation seule.',

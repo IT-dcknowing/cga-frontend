@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import { Link } from 'react-router';
 import { KeyValueList } from '@/components/shared/key-value-list';
 import { StatusBadge } from '@/components/shared/status-badge';
 import { Banner } from '@/components/ui/banner';
@@ -7,9 +8,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/features/auth/session/auth-context';
 import { httpMemberSpaceApi } from '@/features/member-space/api/member-space-api';
+import { memberSpaceRoutes } from '@/features/member-space/lib/routes';
 import { formatDate } from '@/lib/format';
 import { fr } from '@/lib/i18n/fr';
 import { isScreenError, retryUnlessScreenError } from '@/lib/query';
+import { permissionCodes } from '@/lib/reference/permissions';
 
 /*
  * `/adherent/accueil`, version minimale (06-IMPLEMENTATION-PLAN étape 2.11, 03-APPFLOW §5.2) :
@@ -24,7 +27,7 @@ function orNull(value: string | null | undefined): string | null {
 }
 
 export function MemberHomePage() {
-  const { session } = useAuth();
+  const { session, can } = useAuth();
   const home = useQuery({
     queryKey: ['member-space', 'home'],
     queryFn: () => httpMemberSpaceApi.home(),
@@ -102,8 +105,27 @@ export function MemberHomePage() {
                 { label: fields.access, value: access.role_label },
               ]}
             />
+            {can(permissionCodes.member.documents) ? (
+              <Button variant="secondary" size="sm" className="justify-self-start" asChild>
+                <Link to={memberSpaceRoutes.documents}>{labels.documentsLink}</Link>
+              </Button>
+            ) : null}
           </CardContent>
         </Card>
+
+        {can(permissionCodes.member.payments) ? (
+          <Card>
+            <CardHeader>
+              <CardTitle>{labels.feesCard}</CardTitle>
+            </CardHeader>
+            <CardContent className="grid gap-3">
+              <p className="text-note text-muted">{labels.feesIntro}</p>
+              <Button size="sm" className="justify-self-start" asChild>
+                <Link to={memberSpaceRoutes.fees}>{labels.feesLink}</Link>
+              </Button>
+            </CardContent>
+          </Card>
+        ) : null}
 
         <Card>
           <CardHeader>

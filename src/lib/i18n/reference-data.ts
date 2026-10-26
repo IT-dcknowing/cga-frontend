@@ -1,0 +1,53 @@
+/** Libellés de l'onglet « Données de référence » de `/plateforme` (RG-DATA-01, 02), dans `fr.referenceData`. */
+export const referenceDataFr = {
+  title: 'Données de référence',
+  intro:
+    'Chaque jeu se remplace par un fichier Excel, sans développement. Une donnée provisoire reste modifiable jusqu’à sa validation.',
+  caption: 'Jeux de données de référence',
+  loadError: 'Les données de référence n’ont pas pu être chargées.',
+  count: (count: string) => `${count} élément(s)`,
+  provisional: (count: string) => `${count} provisoire(s)`,
+  template: 'Modèle Excel',
+  import: 'Importer',
+  validate: 'Marquer comme validé',
+  validated: (count: string) => `${count} valeur(s) validée(s)`,
+  validateDialog: {
+    title: 'Marquer comme validé',
+    effects: [
+      'Les valeurs provisoires de ce jeu passent au statut « validé ».',
+      'Elles restent modifiables par un nouvel import.',
+    ],
+    submit: 'Valider',
+  },
+  importDialog: {
+    title: (label: string) => `Importer : ${label}`,
+    mode: 'Mode d’import',
+    modes: {
+      update: 'Mettre à jour : ajoute et modifie les valeurs du fichier',
+      replace: 'Remplacer : la liste devient celle du fichier',
+    },
+    file: 'Fichier Excel',
+    fileHint: 'Le modèle Excel du jeu, complété.',
+    analyse: 'Analyser',
+    apply: 'Appliquer',
+    applied: 'Données de référence mises à jour',
+    previewTitle: 'Aperçu des changements',
+    nothing: 'Aucun changement.',
+    summary: {
+      creates: 'Ajouts',
+      updates: 'Modifications',
+      unchanged: 'Inchangées',
+      deletes: 'Suppressions',
+      deactivates: 'Désactivations',
+      kept: 'Conservées (utilisées)',
+      rejected: 'Lignes rejetées',
+    } as Record<string, string>,
+    rejectedTitle: 'Lignes rejetées',
+    warningsTitle: 'Avertissements',
+    removalsTitle: 'Valeurs absentes du fichier',
+    updatesTitle: 'Valeurs modifiées',
+    row: (row: string, label: string) => `Ligne ${row} — ${label}`,
+    change: (field: string, before: string, after: string) => `${field} : ${before} → ${after}`,
+    rejectedNote: 'Les lignes rejetées ne sont pas importées.',
+  },
+} as const;

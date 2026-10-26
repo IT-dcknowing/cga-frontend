@@ -25,7 +25,11 @@ import {
 } from './api-replies';
 import { createCgaBackend } from './api-cga';
 import { createImportsBackend } from './api-imports';
+import { createMemberFinanceBackend } from './api-member-finance';
 import { createPermissionsBackend } from './api-permissions';
+import { createReferenceDataBackend } from './api-reference-data';
+import { createTemplatesBackend } from './api-templates';
+import { verificationRoute } from './api-verification';
 import type { createReferentialsBackend } from './api-referentials';
 import { createMembersBackend } from './api-members';
 
@@ -258,6 +262,9 @@ export function installApiServer({
   referentials,
   // Nommé `rights` ici : `permissions()` donne déjà les droits de l'espace actif.
   permissions: rights = createPermissionsBackend(),
+  referenceData = createReferenceDataBackend(),
+  memberFinance = createMemberFinanceBackend(),
+  templates = createTemplatesBackend(),
 }: {
   accounts?: Record<string, ApiAccount>;
   cgas?: Organization[];
@@ -267,6 +274,9 @@ export function installApiServer({
   /** Gestion des référentiels nationaux (`/cncga/parametres`), seulement pour les tests qui la demandent. */
   referentials?: ReturnType<typeof createReferentialsBackend>;
   permissions?: ReturnType<typeof createPermissionsBackend>;
+  referenceData?: ReturnType<typeof createReferenceDataBackend>;
+  memberFinance?: ReturnType<typeof createMemberFinanceBackend>;
+  templates?: ReturnType<typeof createTemplatesBackend>;
 } = {}) {
   const requests: RecordedRequest[] = [];
   const forced = new Map<string, ApiReply[]>();
@@ -720,6 +730,13 @@ export function installApiServer({
 
     const input = (body ?? {}) as Input;
 
+    // Vérification publique d'un document : sans session (F-DOC-04).
+    const verified = verificationRoute(method, new URL(url).pathname.replace(/^.*\/api\/v1/, ''));
+
+    if (verified !== undefined) {
+      return verified;
+    }
+
     if (method === 'POST' && url === apiUrl('/auth/login')) {
       return login(input);
     }
@@ -775,6 +792,9 @@ export function installApiServer({
     return (
       imports.route(method, path, body, { allows }) ??
       rights.route(method, path, parsed.searchParams, body, { allows }) ??
+      referenceData.route(method, path, body, { allows }) ??
+      templates.route(method, path, body, { allows }) ??
+      memberFinance.route(method, path, body, { allows, memberId: activeMemberId() }) ??
       cga.route(method, path, parsed.searchParams, body, {
         allows,
         organizationId: activeOrganizationId(),

@@ -1,6 +1,7 @@
 import type { Agent, CgaProfile } from '@/features/cga-settings/api/cga-api';
 import type { TaxOffice } from '@/features/referentials/api/referentials-api';
 import { roleLabel } from '@/lib/reference/roles';
+import { demoFeeSchedule } from './demo-members';
 import {
   forbidden,
   invalid,
@@ -240,8 +241,13 @@ const PERMISSIONS: Record<string, string> = {
   network: 'network_users.manage',
 };
 
-export function createCgaBackend(initial: CgaProfile = demoProfile()) {
+export function createCgaBackend(
+  initial: CgaProfile = demoProfile(),
+  options: { eligible?: number } = {},
+) {
   let profile = initial;
+  let schedule = structuredClone(demoFeeSchedule);
+  let eligible = options.eligible ?? 12;
   const agents = demoAgents();
   let nextId = 0;
 
@@ -435,6 +441,74 @@ export function createCgaBackend(initial: CgaProfile = demoProfile()) {
     return ok(updated);
   }
 
+  function feeSchedule(method: string, body: unknown, context: Context): ApiReply | undefined {
+    if (method === 'GET') {
+      return context.allows('cga.profile.view') || context.allows('members.create')
+        ? ok({ ...schedule, can: { update: context.allows('cga.profile.manage') } })
+        : forbidden;
+    }
+
+    if (method !== 'PUT') {
+      return undefined;
+    }
+
+    if (!context.allows('cga.profile.manage')) {
+      return forbidden;
+    }
+
+    const input = (body ?? {}) as {
+      entry_fee: number;
+      fees: Record<'RME' | 'TEE', { amount: number; periodicity: string }>;
+    };
+
+    schedule = {
+      entry_fee: { amount: input.entry_fee, valid_from: '2026-10-26' },
+      fees: {
+        RME: { ...input.fees.RME, valid_from: '2026-10-26' },
+        TEE: { ...input.fees.TEE, valid_from: '2026-10-26' },
+      },
+    };
+
+    return ok({ ...schedule, can: { update: true } });
+  }
+
+  function campaign(method: string, context: Context): ApiReply | undefined {
+    if (!context.allows('documents.produce')) {
+      return forbidden;
+    }
+
+    if (method === 'GET') {
+      return ok({
+        year: 2026,
+        eligible,
+        issued: 3,
+        blocked: [
+          {
+            member: {
+              id: '01mbr000000000000000000012',
+              company_name: 'IMPRIMERIE KONÉ',
+              membership_number: '2026-DCK-0012',
+            },
+            trigger: 'fees_overdue',
+            trigger_label: 'Honoraires impayés',
+            reason: 'Relances sans réponse',
+            blocked_at: '2026-10-20T09:00:00Z',
+          },
+        ],
+      });
+    }
+
+    if (method === 'POST') {
+      const queued = eligible;
+
+      eligible = 0;
+
+      return ok({ year: 2026, queued }, 202);
+    }
+
+    return undefined;
+  }
+
   /** Routes de la fiche, des agents et des CDI ; `undefined` pour une autre route. */
   function route(
     method: string,
@@ -445,6 +519,14 @@ export function createCgaBackend(initial: CgaProfile = demoProfile()) {
   ): ApiReply | undefined {
     if (method === 'GET' && path === '/referentials/tax-offices') {
       return paginated(demoTaxOfficesWithDirectorate, query);
+    }
+
+    if (path === '/cga/fee-schedule') {
+      return feeSchedule(method, body, context);
+    }
+
+    if (path === '/cga/certificate-campaign') {
+      return campaign(method, context);
     }
 
     if (path === '/cga/profile') {

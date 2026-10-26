@@ -7,7 +7,9 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/features/auth/session/auth-context';
 import { AgentsPanel } from '@/features/cga-settings/components/agents-panel';
+import { CampaignTab } from '@/features/cga-settings/components/campaign-tab';
 import { CentreTab } from '@/features/cga-settings/components/centre-tab';
+import { FeeScheduleTab } from '@/features/cga-settings/components/fee-schedule-tab';
 import { ReferrersTab } from '@/features/cga-settings/components/referrers-tab';
 import { cgaPermissionRoutes } from '@/features/cga-settings/lib/routes';
 import { RolesList } from '@/features/permissions/components/roles-list';
@@ -63,7 +65,9 @@ const SCREENS: Partial<Record<Tab, ReactNode>> = {
   centre: <CentreTab />,
   utilisateurs: <AgentsPanel scope="cga" />,
   droits: <RolesList level="cga" detailPath={cgaPermissionRoutes.role} />,
+  bareme: <FeeScheduleTab />,
   apporteurs: <ReferrersTab />,
+  campagne: <CampaignTab />,
 };
 
 export function CgaSettingsPage() {

@@ -8,6 +8,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/features/auth/session/auth-context';
 import { RolesList } from '@/features/permissions/components/roles-list';
 import { NetworkUsersList } from '@/features/platform/components/network-users-list';
+import { ReferenceDataPanel } from '@/features/reference-data/components/reference-data-panel';
+import { TemplatesPanel } from '@/features/templates/components/templates-panel';
 import { platformRoutes } from '@/features/platform/lib/routes';
 import { fr } from '@/lib/i18n/fr';
 import { oneOf } from '@/lib/list-params';
@@ -50,6 +52,8 @@ export function PlatformPage() {
   const screens: Partial<Record<Tab, ReactNode>> = {
     droits: <RolesList level="network" detailPath={platformRoutes.role} />,
     utilisateurs: <NetworkUsersList />,
+    donnees: <ReferenceDataPanel />,
+    modeles: <TemplatesPanel />,
   };
 
   return (

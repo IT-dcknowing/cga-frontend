@@ -1,4 +1,4 @@
-import { Upload } from 'lucide-react';
+import { Upload, Wallet } from 'lucide-react';
 import type { ComponentType, ReactNode } from 'react';
 import { createBrowserRouter, Navigate, Outlet, type RouteObject } from 'react-router';
 import { authRoutes, spaces, type SpaceKind } from '@/features/auth/lib/destination';
@@ -23,6 +23,9 @@ import { cgaPermissionRoutes, cgaSettingsRoutes } from '@/features/cga-settings/
 import { CgaSettingsPage } from '@/features/cga-settings/pages/cga-settings-page';
 import { cncgaSettingsRoutes } from '@/features/cncga-settings/lib/routes';
 import { CncgaSettingsPage } from '@/features/cncga-settings/pages/cncga-settings-page';
+import { memberSpaceRoutes } from '@/features/member-space/lib/routes';
+import { MemberDocumentsPage } from '@/features/member-space/pages/member-documents-page';
+import { MemberFeesPage } from '@/features/member-space/pages/member-fees-page';
 import { MemberHomePage } from '@/features/member-space/pages/member-home-page';
 import { MemberImportPage } from '@/features/members/pages/member-import-page';
 import { MemberPage } from '@/features/members/pages/member-page';
@@ -35,6 +38,7 @@ import { OrganizationsPage } from '@/features/organizations/pages/organizations-
 import { PendingPage } from '@/features/pending/pages/pending-page';
 import { RolePermissionsPage } from '@/features/permissions/pages/role-permissions-page';
 import { UserPermissionsPage } from '@/features/permissions/pages/user-permissions-page';
+import { VerificationPage } from '@/features/verification/pages/verification-page';
 import { platformRoutes } from '@/features/platform/lib/routes';
 import { PlatformPage } from '@/features/platform/pages/platform-page';
 import { fr } from '@/lib/i18n/fr';
@@ -108,7 +112,27 @@ const cgaScreens: Record<string, MenuScreen> = {
 
 const memberScreens: Record<string, MenuScreen> = {
   [spaces.member.home]: { element: <MemberHomePage /> },
+  [memberSpaceRoutes.documents]: { element: <MemberDocumentsPage /> },
 };
+
+/** Écrans de l'espace adhérent hors de son menu (honoraires, depuis l'accueil), sous leur droit. */
+const memberPages: RouteObject[] = [
+  {
+    path: memberSpaceRoutes.fees,
+    element: (
+      <RequireMenuEntry
+        entry={{
+          path: memberSpaceRoutes.fees,
+          label: fr.memberSpace.fees.title,
+          icon: Wallet,
+          permissions: [permissionCodes.member.payments],
+        }}
+      >
+        <MemberFeesPage />
+      </RequireMenuEntry>
+    ),
+  },
+];
 
 /** Écrans d'un espace hors de son menu (import du portefeuille), sous leur propre droit. */
 const cgaPages: RouteObject[] = [
@@ -160,6 +184,8 @@ export const routes: RouteObject[] = [
       { path: authRoutes.login, element: <LoginPage /> },
       { path: authRoutes.forgottenPassword, element: <ForgottenPasswordPage /> },
       { path: authRoutes.activation, element: <ActivationPage /> },
+      // Vérification publique d'un document par son QR code (F-DOC-04), sans compte.
+      { path: '/verifier/:jeton', element: <VerificationPage /> },
       {
         path: authRoutes.chooseSpace,
         element: (
@@ -190,7 +216,10 @@ export const routes: RouteObject[] = [
       ]),
       spaceRoute('cncga', CncgaLayout, menuRoutes(cncgaMenu, cncgaScreens)),
       spaceRoute('cga', CgaLayout, [...menuRoutes(cgaMenu, cgaScreens), ...cgaPages]),
-      spaceRoute('member', MemberLayout, menuRoutes(memberMenu, memberScreens)),
+      spaceRoute('member', MemberLayout, [
+        ...menuRoutes(memberMenu, memberScreens),
+        ...memberPages,
+      ]),
       // Page de démonstration des composants de l'étape 0.4.
       { path: '/demo', element: <DemoPage /> },
       { path: '*', element: <ErrorScreen kind="notFound" /> },

@@ -403,8 +403,10 @@ describe('Modale « Nouveau CGA » (F-ORG-02)', () => {
     await user.type(field(dialog, labels.fields.agreementDate), '2026-01-10');
     await user.click(within(dialog).getByRole('button', { name: labels.create.submit }));
 
+    // Création, navigation puis lecture de la fiche : plus d'une seconde quand toute la suite
+    // tourne en parallèle ; assertion inchangée.
     expect(
-      await screen.findByRole('heading', { level: 1, name: 'CGA du Nord' }),
+      await screen.findByRole('heading', { level: 1, name: 'CGA du Nord' }, { timeout: 5000 }),
     ).toBeInTheDocument();
     expect(server.cgas().at(-1)).toMatchObject({
       agreement_status: 'granted',

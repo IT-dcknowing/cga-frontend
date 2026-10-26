@@ -453,7 +453,8 @@ describe('/cga/adherents/:id · modifier, valider, supprimer (F-ADH-02, 04)', JO
     const dialog = screen.getByRole('dialog', { name: labels.validateDialog.title });
 
     await user.click(within(dialog).getByRole('button', { name: labels.validateDialog.submit }));
-    expect(within(dialog).getByText(fr.members.create.errors.confirm)).toBeVisible();
+    // La validation du formulaire est asynchrone : on attend le message, assertion inchangée.
+    expect(await within(dialog).findByText(fr.members.create.errors.confirm)).toBeVisible();
 
     await user.click(within(dialog).getByRole('checkbox', { name: fields.exclusivityConfirmed }));
     await user.click(within(dialog).getByRole('button', { name: labels.validateDialog.submit }));
