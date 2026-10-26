@@ -1,0 +1,46 @@
+/** Libellés de l'onglet « Modèles de documents » de `/plateforme` (F-ADM-02, RG-DATA-03), dans `fr.templates`. */
+export const templatesFr = {
+  title: 'Modèles de documents',
+  intro:
+    'Chaque document est produit avec la version active de son modèle ; un document déjà émis garde la version avec laquelle il a été produit.',
+  caption: 'Versions des modèles',
+  empty: 'Aucun modèle de document.',
+  loadError: 'Les modèles de documents n’ont pas pu être chargés.',
+  line: (type: string, version: string) => `${type} — version ${version}`,
+  active: 'Active',
+  approved: (date: string) => `Validée par le CNCGA le ${date}`,
+  notApproved: 'Non encore validée par le CNCGA',
+  documents: (count: string) => `${count} document(s) émis`,
+  download: 'Fichier',
+  rowActions: (name: string) => `Actions : ${name}`,
+  preview: 'Prévisualiser',
+  previewed: (version: string) =>
+    `Aperçu de la version ${version} produit avec des données de test`,
+  checkValid: 'Variables conformes : la version peut être prévisualisée puis activée.',
+  checkInvalid: 'Variables non conformes : la version ne peut être ni prévisualisée ni activée.',
+  missing: (variables: string) => `Variables manquantes : ${variables}`,
+  unknown: (variables: string) => `Variables inconnues : ${variables}`,
+  upload: {
+    action: 'Déposer une version',
+    title: 'Déposer une version',
+    description: 'Le fichier est contrôlé dès le dépôt : variables manquantes ou inconnues.',
+    type: 'Type de document',
+    version: 'Version',
+    versionHint: 'Par exemple 2026.2 (lettres, chiffres, point, tiret).',
+    file: 'Fichier du modèle',
+    fileHint: 'Word (.docx) ou Excel (.xlsx) selon le type de document.',
+    notes: 'Notes (facultatives)',
+    submit: 'Déposer et contrôler',
+    finish: 'Terminer',
+    done: 'Version déposée',
+  },
+  activate: {
+    action: 'Activer',
+    title: 'Activer la version',
+    description: (type: string, version: string) =>
+      `${type}, version ${version} : les prochains documents seront produits avec elle.`,
+    approvedOn: 'Date de validation par le CNCGA',
+    submit: 'Activer',
+    done: (version: string) => `Version ${version} activée`,
+  },
+} as const;

@@ -1,0 +1,8 @@
+dist
+coverage
+playwright-report
+playwright-report-api
+test-results
+test-results-api
+src/types/api.d.ts
+package-lock.json
