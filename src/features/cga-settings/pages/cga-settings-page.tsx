@@ -10,6 +10,7 @@ import { AgentsPanel } from '@/features/cga-settings/components/agents-panel';
 import { CampaignTab } from '@/features/cga-settings/components/campaign-tab';
 import { CentreTab } from '@/features/cga-settings/components/centre-tab';
 import { FeeScheduleTab } from '@/features/cga-settings/components/fee-schedule-tab';
+import { ProviderTab } from '@/features/invoices/components/provider-tab';
 import { ReferrersTab } from '@/features/cga-settings/components/referrers-tab';
 import { cgaPermissionRoutes } from '@/features/cga-settings/lib/routes';
 import { RolesList } from '@/features/permissions/components/roles-list';
@@ -68,6 +69,7 @@ const SCREENS: Partial<Record<Tab, ReactNode>> = {
   bareme: <FeeScheduleTab />,
   apporteurs: <ReferrersTab />,
   campagne: <CampaignTab />,
+  facturation: <ProviderTab />,
 };
 
 export function CgaSettingsPage() {
