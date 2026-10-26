@@ -1,4 +1,4 @@
-import type { Member, Sector } from '@/features/members/api/members-api';
+import type { Member, Referrer, Sector } from '@/features/members/api/members-api';
 import {
   conflict,
   forbidden,
@@ -30,7 +30,11 @@ import { createMemberRecords, demoRadiationOptions, formInput } from './api-memb
  * `members.referrers.view` (RG-PTF-06) ; un NCC n'est ouvert qu'une fois dans le centre, et jamais
  * au portefeuille CGA s'il l'est dans un autre CGA (RG-ADH-05).
  */
-export type DomainContext = { allows: (permission: string) => boolean };
+export type DomainContext = {
+  allows: (permission: string) => boolean;
+  /** Dossier de l'accès adhérent actif, `null` pour un agent. */
+  memberId?: string | null;
+};
 
 const STATUSES = ['draft', 'active', 'radiation_pending', 'radiated', 'closed'];
 const SORTS = ['company_name', 'adhesion_date', 'membership_number', 'created_at'];
@@ -71,6 +75,7 @@ export function createMembersBackend(initial: Member[] = demoMembers()) {
   /** Droits d'adhésion payés (dossier → oui) : le paiement arrive avec l'étape 3.8. */
   const entryFeesPaid = new Set<string>();
   const sequence = { membership: 2, client: 2, sector: 0 };
+  let referrers: Referrer[] = demoReferrers.map((referrer) => ({ ...referrer }));
   let current: DomainContext = { allows: () => false };
   const records = createMemberRecords(
     (member) => save(member),
@@ -192,7 +197,7 @@ export function createMembersBackend(initial: Member[] = demoMembers()) {
     const office = demoTaxOffices.find((item) => item.id === input.tax_office_id);
     const commune = demoCommunes.find((item) => item.id === input.commune_id);
     const sector = sectors.find((item) => item.id === input.sector_id);
-    const referrer = demoReferrers.find((item) => item.id === input.referrer_id);
+    const referrer = referrers.find((item) => item.id === input.referrer_id);
 
     return {
       ...member,
@@ -499,6 +504,123 @@ export function createMembersBackend(initial: Member[] = demoMembers()) {
     return path in lists ? paginated(lists[path], query) : undefined;
   }
 
+  /** `ReferrerController` (RG-PTF-06) : lecture avec « Voir les apporteurs », écriture pour le gérant. */
+  function referrersRoute(
+    method: string,
+    path: string,
+    input: Input,
+    context: DomainContext,
+  ): ApiReply | undefined {
+    const match = /^\/cga\/referrers(?:\/([^/]+))?$/.exec(path);
+
+    if (match === null) {
+      return undefined;
+    }
+
+    if (!context.allows('members.referrers.view')) {
+      return forbidden;
+    }
+
+    if (method === 'GET') {
+      return ok(referrers);
+    }
+
+    if (!context.allows('cga.profile.manage')) {
+      return forbidden;
+    }
+
+    const id = match[1];
+    const current = referrers.find((item) => item.id === id);
+
+    if (id !== undefined && current === undefined) {
+      return notFound;
+    }
+
+    if (method === 'DELETE' && current !== undefined) {
+      if (current.members_count > 0) {
+        return conflict('referrer_in_use', 'Cet apporteur est rattaché à des dossiers.');
+      }
+
+      referrers = referrers.filter((item) => item.id !== id);
+
+      return { status: 204 };
+    }
+
+    const label = text(input, 'label');
+
+    if (text(input, 'name') === '') {
+      return invalid({ name: 'Le champ nom est obligatoire.' });
+    }
+
+    if (label !== '' && referrers.some((item) => item.label === label && item.id !== id)) {
+      return invalid({ label: 'La valeur du champ libellé est déjà utilisée.' });
+    }
+
+    const next =
+      Math.max(
+        0,
+        ...referrers.map((item) => Number(/^Accessoire (\d+)$/.exec(item.label)?.[1] ?? 0)),
+      ) + 1;
+    const saved: Referrer = {
+      ...(current ?? {
+        id: `01ref9${String(referrers.length + 1).padStart(20, '0')}`,
+        members_count: 0,
+        can: { update: true, delete: true },
+      }),
+      label: label === '' ? (current?.label ?? `Accessoire ${String(next)}`) : label,
+      name: text(input, 'name'),
+      phone: (input.phone as string | null) ?? null,
+      email: (input.email as string | null) ?? null,
+      terms: (input.terms as string | null) ?? null,
+      active: input.active !== false,
+    };
+
+    referrers =
+      current === undefined
+        ? [...referrers, saved]
+        : referrers.map((item) => (item.id === id ? saved : item));
+
+    return { status: current === undefined ? 201 : 200, data: { data: saved } };
+  }
+
+  /** `MemberHomeController` : son dossier et son CGA, jamais l'apporteur (RG-PTF-06). */
+  function memberHome(context: DomainContext): ApiReply {
+    const member = members.find((candidate) => candidate.id === context.memberId);
+
+    if (member === undefined) {
+      return forbidden;
+    }
+
+    return ok({
+      member: {
+        company_name: member.company_name,
+        sigle: member.sigle,
+        number: member.membership_number ?? member.client_number,
+        portfolio: member.portfolio,
+        portfolio_label: member.portfolio_label,
+        status: member.status,
+        status_label: member.status_label,
+        regime_label: member.regime_label,
+        adhesion_date: member.adhesion_date,
+        ended_on: member.radiation?.status === 'validated' ? member.radiation.effective_date : null,
+      },
+      access: {
+        role: 'member_owner',
+        role_label: 'Accès principal',
+        read_only_until: member.status === 'radiated' ? '2027-03-31' : null,
+      },
+      organization: {
+        name: 'DC-KNOWING CGA',
+        sigle: 'DCK',
+        address: 'Rue des Jardins, Cocody',
+        city: 'Abidjan',
+        phone_1: '+2252722445501',
+        phone_2: null,
+        email: 'contact@dcknowing.demo',
+      },
+    });
+  }
+
   function route(
     method: string,
     path: string,
@@ -512,14 +634,20 @@ export function createMembersBackend(initial: Member[] = demoMembers()) {
       return referential;
     }
 
-    if (method === 'GET' && path === '/cga/referrers') {
-      return context.allows('members.referrers.view') ? ok(demoReferrers) : forbidden;
+    const referrerRoute = referrersRoute(method, path, body, context);
+
+    if (referrerRoute !== undefined) {
+      return referrerRoute;
     }
 
     if (method === 'GET' && path === '/cga/fee-schedule') {
       return context.allows('members.create') || context.allows('cga.profile.view')
         ? ok({ ...demoFeeSchedule, can: { update: context.allows('cga.profile.manage') } })
         : forbidden;
+    }
+
+    if (method === 'GET' && path === '/member/home') {
+      return memberHome(context);
     }
 
     if (method === 'POST' && path === '/cga/sectors') {

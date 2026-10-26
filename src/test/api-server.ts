@@ -274,6 +274,13 @@ export function installApiServer({
     return active === undefined ? [] : (defaultRolePermissions[active.role] ?? []);
   }
 
+  /** Dossier de l'accès adhérent actif (`TenantContext::memberId()`). */
+  function activeMemberId(): string | null {
+    return (
+      account()?.memberships.find((item) => item.id === signedIn?.activeId)?.member?.id ?? null
+    );
+  }
+
   function allows(permission: string): boolean {
     return permissions().includes(permission);
   }
@@ -738,7 +745,10 @@ export function installApiServer({
 
     return (
       imports.route(method, path, body, { allows }) ??
-      members.route(method, path, parsed.searchParams, input, { allows }) ??
+      members.route(method, path, parsed.searchParams, input, {
+        allows,
+        memberId: activeMemberId(),
+      }) ??
       organizationsRoute(method, parsed, input) ??
       notFound
     );

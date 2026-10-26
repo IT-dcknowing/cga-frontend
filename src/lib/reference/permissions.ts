@@ -47,6 +47,11 @@ export const permissionCodes = {
     bankability: 'banking.manage',
     statistics: 'statistics.position.view',
     profile: 'cga.profile.view',
+    /** Modifier la fiche du centre, son barème et ses apporteurs (gérant). */
+    profileManage: 'cga.profile.manage',
+    documentsProduce: 'documents.produce',
+    /** Facturation FNE et Compta Flow (F-ADM-07). */
+    integrations: 'integrations.view',
     users: 'cga_users.manage',
   },
   member: {

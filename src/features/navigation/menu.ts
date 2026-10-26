@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import type { Membership } from '@/features/auth/api/auth-api';
 import { spaceKindOf, type SpaceKind } from '@/features/auth/lib/destination';
+import { cgaSettingsRoutes } from '@/features/cga-settings/lib/routes';
 import { memberRoutes } from '@/features/members/lib/member';
 import { organizationRoutes } from '@/features/organizations/lib/organization';
 import { fr } from '@/lib/i18n/fr';
@@ -156,7 +157,7 @@ export const cgaMenu: MenuEntry[] = [
     permissions: [cga.statistics],
   },
   {
-    path: '/cga/parametres',
+    path: cgaSettingsRoutes.root,
     label: fr.nav.settings,
     icon: Settings,
     permissions: [cga.profile, cga.users],

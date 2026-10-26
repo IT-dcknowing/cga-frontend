@@ -1,3 +1,5 @@
+import { cgaSettingsFr } from './cga-settings';
+import { memberSpaceFr } from './member-space';
 import { membersFr } from './members';
 
 /** Libellés de l'interface (02-TRD §5.2) : aucun texte affiché n'est écrit dans un composant. */
@@ -467,6 +469,8 @@ export const fr = {
     },
   },
   members: membersFr,
+  memberSpace: memberSpaceFr,
+  cgaSettings: cgaSettingsFr,
   demo: {
     title: 'Composants de base',
     intro:

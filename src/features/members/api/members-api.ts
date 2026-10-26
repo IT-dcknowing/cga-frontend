@@ -277,6 +277,15 @@ export type MoveToCga = {
   } | null;
 };
 
+export type ReferrerInput = {
+  label: string | null;
+  name: string;
+  phone: string | null;
+  email: string | null;
+  terms: string | null;
+  active: boolean;
+};
+
 export const PAYMENT_METHODS = ['cash', 'cheque', 'transfer', 'mobile_money', 'other'] as const;
 export const INVITATION_CHANNELS = ['sms', 'email', 'sms_email'] as const;
 
@@ -314,6 +323,11 @@ export type MembersApi = {
   /** Pièce du dossier (PDF, JPG ou PNG), dont l'exemplaire signé du contrat CGA. */
   uploadPiece: (id: string, pieceType: string, file: File) => Promise<void>;
   referrers: () => Promise<Referrer[]>;
+  /** Apporteurs du centre (RG-PTF-06) : libellé « Accessoire n » proposé par le serveur s'il est vide. */
+  createReferrer: (input: ReferrerInput) => Promise<Referrer>;
+  updateReferrer: (id: string, input: ReferrerInput) => Promise<Referrer>;
+  /** 409 `referrer_in_use` si un dossier y est rattaché. */
+  deleteReferrer: (id: string) => Promise<void>;
   taxOffices: () => Promise<TaxOffice[]>;
   communes: () => Promise<ReferenceOption[]>;
   sectors: () => Promise<Sector[]>;
@@ -490,6 +504,28 @@ export const httpMembersApi: MembersApi = {
 
     return data.data;
   },
+
+  createReferrer: (input) =>
+    withApiErrors(async () => {
+      const { data } = await http.post<ApiItem<Referrer>>('/cga/referrers', input);
+
+      return data.data;
+    }),
+
+  updateReferrer: (id, input) =>
+    withApiErrors(async () => {
+      const { data } = await http.put<ApiItem<Referrer>>(
+        `/cga/referrers/${encodeURIComponent(id)}`,
+        input,
+      );
+
+      return data.data;
+    }),
+
+  deleteReferrer: (id) =>
+    withApiErrors(async () => {
+      await http.delete(`/cga/referrers/${encodeURIComponent(id)}`);
+    }),
 
   async taxOffices() {
     const offices = await referential<TaxOffice>('/referentials/tax-offices', {

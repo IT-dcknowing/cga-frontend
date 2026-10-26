@@ -141,6 +141,9 @@ async function openMember(id: string, who: keyof typeof accesses = 'gerant', sho
 
 type User = ReturnType<typeof userEvent.setup>;
 
+/** Parcours avec modales et relectures : délai propre, assertions inchangées (voir l'assistant). */
+const JOURNEY = { timeout: 15_000 };
+
 function main() {
   return within(screen.getByRole('main'));
 }
@@ -177,7 +180,7 @@ function bodyOf(index = -1, suffix = ''): Record<string, unknown> {
     : (body as Record<string, unknown>);
 }
 
-describe('/cga/adherents/:id · en-tête et onglet Identité (F-ADH-03)', () => {
+describe('/cga/adherents/:id · en-tête et onglet Identité (F-ADH-03)', JOURNEY, () => {
   it('en-tête : n°, ancien n°, portefeuille, apporteur, statut ; fil d’Ariane vers la liste', async () => {
     const { user, router } = await openMember(demoMemberIds.adjoua);
 
@@ -252,7 +255,7 @@ describe('/cga/adherents/:id · en-tête et onglet Identité (F-ADH-03)', () => 
   });
 });
 
-describe('/cga/adherents/:id · pièces, accès en ligne, historique', () => {
+describe('/cga/adherents/:id · pièces, accès en ligne, historique', JOURNEY, () => {
   it('RG-PJ-02 · pièces en attente : bandeau, « Voir les pièces », dépôt d’une pièce', async () => {
     const { user } = await openMember(demoMemberIds.bamba);
 
@@ -340,7 +343,7 @@ describe('/cga/adherents/:id · pièces, accès en ligne, historique', () => {
   });
 });
 
-describe('/cga/adherents/:id · modifier, valider, supprimer (F-ADH-02, 04)', () => {
+describe('/cga/adherents/:id · modifier, valider, supprimer (F-ADH-02, 04)', JOURNEY, () => {
   it('RG-ADH-06b · raison sociale modifiée d’un dossier validé : justificatif exigé, envoyé en multipart', async () => {
     const { user } = await openMember(demoMemberIds.adjoua);
 
@@ -471,7 +474,7 @@ describe('/cga/adherents/:id · modifier, valider, supprimer (F-ADH-02, 04)', ()
   });
 });
 
-describe('/cga/adherents/:id · régime et radiation (F-ADH-05, 06, RG-ADH-08 à 18)', () => {
+describe('/cga/adherents/:id · régime et radiation (F-ADH-05, 06, RG-ADH-08 à 18)', JOURNEY, () => {
   it('RG-ADH-08 · passage au RSI : avertissement, justificatif exigé, puis bandeau « Radiation requise »', async () => {
     const { user } = await openMember(demoMemberIds.bamba);
 
@@ -699,7 +702,7 @@ describe('/cga/adherents/:id · régime et radiation (F-ADH-05, 06, RG-ADH-08 à
   });
 });
 
-describe('/cga/adherents/:id · compléments et refus du serveur', () => {
+describe('/cga/adherents/:id · compléments et refus du serveur', JOURNEY, () => {
   it('entreprise individuelle : dirigeant dans l’onglet Identité, sans capital social', async () => {
     await openMember(individualId);
 

@@ -19,6 +19,9 @@ import {
 import { DemoPage } from '@/features/demo/pages/demo-page';
 import { ErrorScreen, RouteErrorPage } from '@/features/errors/pages/error-screen';
 import { memberRoutes } from '@/features/members/lib/member';
+import { cgaSettingsRoutes } from '@/features/cga-settings/lib/routes';
+import { CgaSettingsPage } from '@/features/cga-settings/pages/cga-settings-page';
+import { MemberHomePage } from '@/features/member-space/pages/member-home-page';
 import { MemberImportPage } from '@/features/members/pages/member-import-page';
 import { MemberPage } from '@/features/members/pages/member-page';
 import { MembersPage } from '@/features/members/pages/members-page';
@@ -68,6 +71,7 @@ const cncgaScreens: Record<string, MenuScreen> = {
 };
 
 const cgaScreens: Record<string, MenuScreen> = {
+  [cgaSettingsRoutes.root]: { element: <CgaSettingsPage /> },
   [memberRoutes.list]: {
     element: <MembersPage />,
     children: [
@@ -75,6 +79,10 @@ const cgaScreens: Record<string, MenuScreen> = {
       { path: ':id', element: <MemberPage /> },
     ],
   },
+};
+
+const memberScreens: Record<string, MenuScreen> = {
+  [spaces.member.home]: { element: <MemberHomePage /> },
 };
 
 /** Écrans d'un espace hors de son menu (import du portefeuille), sous leur propre droit. */
@@ -149,7 +157,7 @@ export const routes: RouteObject[] = [
       ]),
       spaceRoute('cncga', CncgaLayout, menuRoutes(cncgaMenu, cncgaScreens)),
       spaceRoute('cga', CgaLayout, [...menuRoutes(cgaMenu, cgaScreens), ...cgaPages]),
-      spaceRoute('member', MemberLayout, menuRoutes(memberMenu)),
+      spaceRoute('member', MemberLayout, menuRoutes(memberMenu, memberScreens)),
       // Page de démonstration des composants de l'étape 0.4.
       { path: '/demo', element: <DemoPage /> },
       { path: '*', element: <ErrorScreen kind="notFound" /> },

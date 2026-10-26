@@ -119,11 +119,18 @@ function writes(path: string) {
   );
 }
 
+/**
+ * Parcours complets de l'assistant (une vingtaine de champs, deux envois) : 3 s environ sur un poste
+ * libre, davantage quand toute la suite tourne en parallèle. Délai propre à ces parcours ; les
+ * assertions restent les mêmes.
+ */
+const JOURNEY = { timeout: 15_000 };
+
 function portfolioRadio(name: string) {
   return within(screen.getByRole('group', { name: fields.portfolio })).getByRole('radio', { name });
 }
 
-describe('/cga/adherents/nouveau · étape 1 « Identification » (F-ADH-02)', () => {
+describe('/cga/adherents/nouveau · étape 1 « Identification » (F-ADH-02)', JOURNEY, () => {
   it('portefeuille CGA par défaut : régimes TEE et RME, apporteur ; au Cabinet, quatre régimes sans apporteur', async () => {
     const { user } = await openWizard();
 
@@ -236,7 +243,7 @@ describe('/cga/adherents/nouveau · étape 1 « Identification » (F-ADH-02)', (
   });
 });
 
-describe('/cga/adherents/nouveau · brouillon et validation (RG-ADH-01, 02)', () => {
+describe('/cga/adherents/nouveau · brouillon et validation (RG-ADH-01, 02)', JOURNEY, () => {
   it('RG-ADH-01 · « Enregistrer comme brouillon » : dossier sans numéro, toast, puis le dossier', async () => {
     const { user, router } = await openWizard();
 
@@ -408,7 +415,7 @@ describe('/cga/adherents/nouveau · brouillon et validation (RG-ADH-01, 02)', ()
   });
 });
 
-describe('/cga/adherents/nouveau · refus du serveur et sortie', () => {
+describe('/cga/adherents/nouveau · refus du serveur et sortie', JOURNEY, () => {
   it('03-APPFLOW §7 · refus 422 : message sous le champ, sur son étape', async () => {
     const { user } = await openWizard();
 
