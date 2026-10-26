@@ -288,52 +288,95 @@ describe('/cga/adherents/nouveau · brouillon et validation (RG-ADH-01, 02)', JO
     expect(field(fields.feesPeriodicity)).toHaveValue('monthly');
   });
 
-  it('RG-ADH-02 · éléments manquants : liste, lien vers l’étape ; le paiement du droit d’adhésion manque', async () => {
+  it('RG-ADH-02 · plusieurs éléments manquants : liste, lien vers l’étape concernée', async () => {
     const { user } = await openWizard();
 
     await fillIdentification(user);
     await user.click(screen.getByRole('button', { name: labels.next }));
     await fillActivity(user);
+    server.failNext('POST', apiUrl(`/cga/members/01mbr8${String(8).padStart(20, '0')}/validate`), {
+      status: 409,
+      data: {
+        message: 'L’adhésion ne peut pas encore être validée : complétez ce qui manque.',
+        code: 'membership_incomplete',
+        details: { missing: ['signatory_title', 'entry_fee_payment'] },
+      },
+    });
     await user.click(screen.getByRole('button', { name: labels.validate }));
 
     const dialog = await screen.findByRole('dialog', { name: labels.missing.title });
 
+    expect(within(dialog).getByText(labels.missing.items.signatory_title)).toBeVisible();
     expect(within(dialog).getByText(labels.missing.items.entry_fee_payment)).toBeVisible();
     expect(writes('/validate')[0].body).toEqual({ exclusivity_confirmed: true });
 
     await user.click(
       within(dialog).getByRole('button', {
-        name: labels.missing.goTo(labels.steps.activity),
+        name: labels.missing.goTo(labels.steps.identification),
       }),
     );
 
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(screen.getByText(labels.stepOf('1', '2'))).toBeVisible();
   });
 
-  it('RG-ADH-03 · « Valider l’adhésion » : n° d’adhésion attribué, toast, puis le dossier ; un second envoi modifie le brouillon', async () => {
+  it('RG-ADH-02, 03 · seul le droit d’adhésion manque : paiement pré-rempli, « Enregistrer et valider », n° attribué', async () => {
     const { user, router } = await openWizard();
 
     await fillIdentification(user);
     await user.click(screen.getByRole('button', { name: labels.next }));
     await fillActivity(user);
     await user.click(screen.getByRole('button', { name: labels.validate }));
-    const missing = await screen.findByRole('dialog', { name: labels.missing.title });
 
+    // 03-APPFLOW §4.3 : la modale du paiement, montant TTC donné par le serveur.
+    const payment = await screen.findByRole('dialog', { name: fr.members.finance.entryFee.title });
+    const amount = fieldByLabel(payment, fr.members.finance.paymentDialog.amount);
+
+    await waitFor(() => {
+      expect(amount).toHaveValue('29500');
+    });
     await user.click(
-      within(missing).getAllByRole('button', { name: fr.common.close }).at(-1) as HTMLElement,
+      within(payment).getByRole('button', { name: fr.members.finance.entryFee.submit }),
     );
 
-    // Le droit d'adhésion payé (étape 3.8), la validation passe.
+    expect(await screen.findByText(labels.validated('2026-DCK-0003'))).toBeInTheDocument();
+
     const draft = members.members().at(-1);
 
-    members.payEntryFee(draft?.id ?? '');
-    await user.click(screen.getByRole('button', { name: labels.validate }));
-
-    expect(await screen.findByText(labels.validated('2026-DCK-0003'))).toBeInTheDocument();
-    expect(router.state.location.pathname).toBe(memberRoutes.detail(draft?.id ?? ''));
-    // Un seul dossier : le second envoi a modifié le brouillon (PUT).
+    await waitFor(() => {
+      expect(router.state.location.pathname).toBe(memberRoutes.detail(draft?.id ?? ''));
+    });
+    // Bandeau vert du dossier et ses suites (03-APPFLOW §4.3).
+    expect(
+      await screen.findByText(fr.members.detail.banners.validated('2026-DCK-0003')),
+    ).toBeVisible();
+    // La modale de paiement se referme : le bouton redevient accessible.
+    await waitFor(
+      () => {
+        expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+      },
+      { timeout: 4000 },
+    );
+    expect(
+      screen.getByRole('button', { name: fr.members.detail.banners.produceDocuments }),
+    ).toBeVisible();
+    // Le paiement a soldé le droit d'adhésion, puis la validation est repartie (deux envois).
+    expect(writes('/payments')[0].body).toBeInstanceOf(FormData);
+    expect(writes('/validate')).toHaveLength(2);
     expect(writes('/cga/members')).toHaveLength(1);
-    expect(server.requests.filter((request) => request.method === 'PUT')).toHaveLength(1);
+  });
+
+  it('un second envoi après un refus modifie le brouillon (PUT), sans en créer un autre', async () => {
+    const { user } = await openWizard();
+
+    await fillDraft(user);
+    server.failNext('POST', apiUrl('/cga/members'), { status: 500 });
+    await user.click(screen.getByRole('button', { name: labels.saveDraft }));
+    await screen.findByText(fr.errors.http.server);
+
+    await user.click(screen.getByRole('button', { name: labels.saveDraft }));
+    expect(await screen.findByText(labels.draftSaved)).toBeInTheDocument();
+    expect(server.requests.filter((request) => request.method === 'PUT')).toHaveLength(0);
   });
 
   it('portefeuille Cabinet : ni contrat ni droit d’adhésion ; « Dossier client créé — n° CAB-… »', async () => {

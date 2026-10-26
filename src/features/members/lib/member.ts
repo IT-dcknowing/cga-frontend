@@ -28,6 +28,41 @@ export function memberNumber(member: Pick<Member, 'membership_number' | 'client_
   return member.membership_number ?? member.client_number;
 }
 
+/**
+ * Champs repris sur le contrat et l'attestation, d'après les variables de leurs modèles
+ * (`MembershipContractComposer`, `MembershipCertificateComposer`).
+ */
+const DOCUMENT_FIELDS = [
+  'company_name',
+  'sigle',
+  'legal_form',
+  'share_capital',
+  'ncc',
+  'rccm',
+  'regime',
+  'main_activity',
+  'activity_code_text',
+  'address',
+  'land_section',
+  'land_parcel',
+  'phone',
+  'email',
+  'signatory_name',
+  'signatory_title',
+] as const;
+
+/** RG-ADH-07 : un champ figurant sur le contrat ou l'attestation a changé. */
+export function documentFieldsChanged(before: Member, after: Member): boolean {
+  return (
+    DOCUMENT_FIELDS.some((field) => before[field] !== after[field]) ||
+    before.commune?.id !== after.commune?.id ||
+    before.tax_office?.id !== after.tax_office?.id ||
+    before.activity_code?.id !== after.activity_code?.id ||
+    before.owner.last_name !== after.owner.last_name ||
+    before.owner.first_names !== after.owner.first_names
+  );
+}
+
 /** Choix du portefeuille mémorisé par accès (04-UX-UI §2.2 : stockage local, sans donnée sensible). */
 const STORAGE_PREFIX = 'cga-connect.members.portfolio.';
 

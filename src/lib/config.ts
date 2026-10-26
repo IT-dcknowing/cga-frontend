@@ -70,4 +70,6 @@ export const config = {
   searchDebounceMs: integer(import.meta.env.VITE_SEARCH_DEBOUNCE_MS, 300),
   /** Intervalle de lecture de l'avancement d'un import en file « imports », en millisecondes. */
   importPollMs: integer(import.meta.env.VITE_IMPORT_POLL_MS, 2000),
+  /** Intervalle de relecture d'un document en cours de production (RG-DOC-05), en millisecondes. */
+  documentPollMs: integer(import.meta.env.VITE_DOCUMENT_POLL_MS, 3000),
 } as const;

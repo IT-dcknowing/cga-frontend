@@ -35,6 +35,7 @@ import {
   useTaxOffices,
 } from '@/features/members/api/queries';
 import { ActivityFields, IdentificationFields } from '@/features/members/components/member-fields';
+import { PaymentDialog } from '@/features/members/components/payment-dialog';
 import { memberNumber } from '@/features/members/lib/member';
 import {
   checkMember,
@@ -140,7 +141,14 @@ function TextArea({
 
 /* ---------------------------------------------------------------- Modifier (F-ADH-04) */
 
-export function EditMemberDialog({ member, onClose }: MemberDialogProps) {
+export function EditMemberDialog({
+  member,
+  onClose,
+  onSaved,
+}: MemberDialogProps & {
+  /** Dossier enregistré : la page compare avant / après (régénération des documents, RG-ADH-07). */
+  onSaved?: (before: Member, after: Member) => void;
+}) {
   const { can } = useAuth();
   const { conflict, run } = useMemberWrite(onClose);
   const seesReferrers = can(permissionCodes.cga.referrers);
@@ -180,7 +188,7 @@ export function EditMemberDialog({ member, onClose }: MemberDialogProps) {
       return;
     }
 
-    await run(
+    const updated = await run(
       () => membersApi.update(member.id, memberInput(values), justification),
       () => labels.saved,
       (field, error) => {
@@ -204,6 +212,10 @@ export function EditMemberDialog({ member, onClose }: MemberDialogProps) {
           .filter(([, field]) => field !== undefined),
       ) as Partial<Record<string, Path<MemberForm>>>,
     );
+
+    if (updated !== null) {
+      onSaved?.(member, updated);
+    }
   });
 
   return (
@@ -242,9 +254,19 @@ export function EditMemberDialog({ member, onClose }: MemberDialogProps) {
 
 /* ---------------------------------------------------------------- Valider l'adhésion (RG-ADH-02) */
 
-export function ValidateMembershipDialog({ member, onClose }: MemberDialogProps) {
-  const { conflict, run } = useMemberWrite(onClose);
+export function ValidateMembershipDialog({
+  member,
+  onClose,
+  onValidated,
+}: MemberDialogProps & {
+  /** Adhésion validée : la page affiche son bandeau vert et ses suites (03-APPFLOW §4.3). */
+  onValidated?: (member: Member) => void;
+}) {
+  const { can } = useAuth();
+  const saved = useMemberSaved();
+  const [conflict, setConflict] = useState<string | null>(null);
   const [missing, setMissing] = useState<string[]>(member.missing_for_validation);
+  const [paying, setPaying] = useState(false);
   const cga = member.portfolio === 'cga';
   const form = useForm<{ exclusivity_confirmed: boolean }>({
     defaultValues: { exclusivity_confirmed: false },
@@ -253,9 +275,47 @@ export function ValidateMembershipDialog({ member, onClose }: MemberDialogProps)
     register,
     handleSubmit,
     setError,
+    getValues,
     formState: { errors, isSubmitting },
   } = form;
   const items = fr.members.create.missing.items;
+  const shownMissing = missing.filter((code) => code !== 'exclusivity_confirmed');
+  // Le droit d'adhésion se paie dans la foulée quand il est seul à manquer (RG-ADH-02).
+  const payFirst =
+    can(permissionCodes.cga.payments) &&
+    shownMissing.length > 0 &&
+    shownMissing.every((code) => code === 'entry_fee_payment');
+
+  /** Validation ; `false` si le serveur la refuse (la liste de ce qui manque est alors montrée). */
+  async function validate(exclusivityConfirmed: boolean): Promise<boolean> {
+    setConflict(null);
+
+    try {
+      const validated = await membersApi.validate(member.id, exclusivityConfirmed);
+      const number = memberNumber(validated) ?? '';
+
+      saved(validated);
+      toast.success(
+        cga ? fr.members.create.validated(number) : fr.members.create.clientCreated(number),
+      );
+      onClose();
+      onValidated?.(validated);
+
+      return true;
+    } catch (error) {
+      if (error instanceof ApiBusinessError && error.code === 'membership_incomplete') {
+        const list = Array.isArray(error.details.missing) ? error.details.missing : [];
+
+        setMissing(list.filter((item): item is string => typeof item === 'string'));
+      } else if (error instanceof ApiBusinessError) {
+        setConflict(error.message);
+      } else {
+        toastUnexpectedError(error);
+      }
+
+      return false;
+    }
+  }
 
   const submit = handleSubmit(async ({ exclusivity_confirmed }) => {
     if (cga && !exclusivity_confirmed) {
@@ -264,29 +324,31 @@ export function ValidateMembershipDialog({ member, onClose }: MemberDialogProps)
       return;
     }
 
-    await run(
-      () => membersApi.validate(member.id, exclusivity_confirmed),
-      (validated) =>
-        cga
-          ? fr.members.create.validated(memberNumber(validated) ?? '')
-          : fr.members.create.clientCreated(memberNumber(validated) ?? ''),
-      setError,
-      {},
-      (error) => {
-        if (error.code !== 'membership_incomplete') {
-          return false;
-        }
+    if (payFirst) {
+      setPaying(true);
 
-        const list = Array.isArray(error.details.missing) ? error.details.missing : [];
+      return;
+    }
 
-        setMissing(list.filter((item): item is string => typeof item === 'string'));
-
-        return true;
-      },
-    );
+    await validate(exclusivity_confirmed);
   });
 
-  const shownMissing = missing.filter((code) => code !== 'exclusivity_confirmed');
+  if (paying) {
+    return (
+      <PaymentDialog
+        memberId={member.id}
+        only="entry_fee"
+        title={fr.members.finance.entryFee.title}
+        submitLabel={fr.members.finance.entryFee.submit}
+        onClose={onClose}
+        onRecorded={async () => {
+          if (!(await validate(getValues('exclusivity_confirmed')))) {
+            setPaying(false);
+          }
+        }}
+      />
+    );
+  }
 
   return (
     <FormDialog
@@ -299,7 +361,7 @@ export function ValidateMembershipDialog({ member, onClose }: MemberDialogProps)
       onSubmit={submit}
       conflict={conflict}
     >
-      {shownMissing.length > 0 ? (
+      {shownMissing.length > 0 && !payFirst ? (
         <div role="alert" className="grid gap-1.5">
           <p className="text-label font-semibold text-muted">
             {labels.validateDialog.missingIntro}
@@ -310,6 +372,9 @@ export function ValidateMembershipDialog({ member, onClose }: MemberDialogProps)
             ))}
           </ul>
         </div>
+      ) : null}
+      {payFirst ? (
+        <p className="text-note text-muted">{labels.validateDialog.entryFeeNext}</p>
       ) : null}
       {cga ? (
         <CheckboxField

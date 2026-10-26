@@ -23,6 +23,14 @@ export const memberKeys = {
   sectors: ['referentials', 'sectors'] as const,
 };
 
+/** Honoraires, paiements et documents d'un dossier (étape 3.8), relus avec lui. */
+export const dossierKeys = {
+  all: (id: string) => ['members', 'detail', id, 'dossier'] as const,
+  charges: (id: string) => ['members', 'detail', id, 'dossier', 'charges'] as const,
+  payments: (id: string) => ['members', 'detail', id, 'dossier', 'payments'] as const,
+  documents: (id: string) => ['members', 'detail', id, 'dossier', 'documents'] as const,
+};
+
 export function useMembers(filters: MemberFilters) {
   return useQuery({
     queryKey: memberKeys.list(filters),

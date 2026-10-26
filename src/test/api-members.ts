@@ -20,6 +20,7 @@ import {
   demoTaxOffices,
   NCC_ENROLLED_ELSEWHERE,
 } from './demo-members';
+import { createDossierBackend } from './api-dossier';
 import { createMemberRecords, demoRadiationOptions, formInput } from './api-member-records';
 
 /*
@@ -77,6 +78,13 @@ export function createMembersBackend(initial: Member[] = demoMembers()) {
   const sequence = { membership: 2, client: 2, sector: 0 };
   let referrers: Referrer[] = demoReferrers.map((referrer) => ({ ...referrer }));
   let current: DomainContext = { allows: () => false };
+  const dossier = createDossierBackend(
+    (id) => members.find((member) => member.id === id),
+    (member) => save(member),
+    (memberId) => {
+      entryFeesPaid.add(memberId);
+    },
+  );
   const records = createMemberRecords(
     (member) => save(member),
     (member) => shown(member, current),
@@ -646,6 +654,12 @@ export function createMembersBackend(initial: Member[] = demoMembers()) {
         : forbidden;
     }
 
+    const documentReply = dossier.documentRoute(method, path, formInput(body), context);
+
+    if (documentReply !== undefined) {
+      return documentReply;
+    }
+
     if (method === 'GET' && path === '/member/home') {
       return memberHome(context);
     }
@@ -699,7 +713,10 @@ export function createMembersBackend(initial: Member[] = demoMembers()) {
     }
 
     if (action !== undefined) {
-      return records.route(member, method, action, query, body, context);
+      return (
+        records.route(member, method, action, query, body, context) ??
+        dossier.route(member, method, action, formInput(body), context)
+      );
     }
 
     const input = formInput(body);
@@ -731,6 +748,8 @@ export function createMembersBackend(initial: Member[] = demoMembers()) {
     sectors: () => sectors,
     /** Éléments des dossiers (pièces, accès, historique). */
     records,
+    /** Honoraires, paiements, documents et blocages d'attestation (étape 3.8). */
+    dossier,
     /** Droit d'adhésion payé et confirmé (paiement de l'étape 3.8). */
     payEntryFee(memberId: string) {
       entryFeesPaid.add(memberId);

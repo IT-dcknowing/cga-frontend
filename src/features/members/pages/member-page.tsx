@@ -1,6 +1,8 @@
+import { useQueryClient } from '@tanstack/react-query';
 import { CheckCircle2, Pencil } from 'lucide-react';
 import { useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router';
+import { Link, useLocation, useNavigate, useParams } from 'react-router';
+import { toast } from 'sonner';
 import { PageHeader } from '@/components/layout/page-header';
 import { ActionMenu, type ActionMenuItem } from '@/components/shared/action-menu';
 import { StatusBadge } from '@/components/shared/status-badge';
@@ -9,8 +11,17 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useAuth } from '@/features/auth/session/auth-context';
+import { dossierApi } from '@/features/members/api/dossier-api';
 import type { Member } from '@/features/members/api/members-api';
-import { useMember } from '@/features/members/api/queries';
+import { dossierKeys, useMember } from '@/features/members/api/queries';
+import {
+  BlockAttestationDialog,
+  RegenerateDocumentsDialog,
+  ReleaseAttestationDialog,
+} from '@/features/members/components/attestation-dialogs';
+import { DocumentsTab } from '@/features/members/components/documents-tab';
+import { FinanceTab } from '@/features/members/components/finance-tab';
 import {
   CancelRadiationDialog,
   ChangeRegimeDialog,
@@ -28,22 +39,40 @@ import {
   PiecesTab,
 } from '@/features/members/components/member-tabs';
 import { PortfolioBadge, ReferrerTag } from '@/features/members/components/portfolio-badge';
-import { memberNumber, memberRoutes } from '@/features/members/lib/member';
+import { documentFieldsChanged, memberNumber, memberRoutes } from '@/features/members/lib/member';
+import { ApiBusinessError } from '@/lib/api-errors';
 import { formatTimestampDate } from '@/lib/format';
+import { toastUnexpectedError } from '@/lib/http-error-toast';
 import { fr } from '@/lib/i18n/fr';
+import { permissionCodes } from '@/lib/reference/permissions';
 
 /*
  * `/cga/adherents/:id` (F-ADH-03, 03-APPFLOW §4.3) : en-tête (raison sociale, n°, ancien n°, badges
  * portefeuille, apporteur, statut), bandeaux (brouillon, reclassement au réel, pièces, radiation),
- * actions selon le bloc `can` du serveur, onglets Identité · Pièces · Accès en ligne · Historique.
- * Les alertes proposent seulement d'ouvrir une modale : la plateforme ne radie jamais (RG-ADH-18).
+ * actions selon le bloc `can` du serveur, onglets Identité · Honoraires et paiements · Documents ·
+ * Pièces · Accès en ligne · Historique. Après la validation : bandeau vert et suites proposées
+ * (produire le contrat et l'attestation, inviter l'adhérent). Les alertes proposent seulement
+ * d'ouvrir une modale : la plateforme ne radie ni ne bloque jamais d'elle-même (RG-ADH-18, RG-DOC-10).
  */
 const labels = fr.members.detail;
 
-type Tab = 'identity' | 'pieces' | 'accesses' | 'history';
+const TABS = ['identity', 'finance', 'documents', 'pieces', 'accesses', 'history'] as const;
+
+type Tab = (typeof TABS)[number];
 
 type DialogState =
-  | { name: 'edit' | 'validate' | 'regime' | 'cancelRadiation' | 'move' | 'delete' }
+  | {
+      name:
+        | 'edit'
+        | 'validate'
+        | 'regime'
+        | 'cancelRadiation'
+        | 'move'
+        | 'delete'
+        | 'block'
+        | 'release'
+        | 'regenerate';
+    }
   | { name: 'radiation'; toCabinet: boolean; preset?: { initiator: string; reason: string } }
   | { name: 'validateRadiation'; defaultOutcome: string };
 
@@ -103,7 +132,17 @@ function Banners({
         key={alert.code}
         tone={alert.overdue ? 'danger' : 'warning'}
         action={
-          required && member.can.request_radiation ? (
+          !required && alert.overdue && member.can.block_attestation ? (
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => {
+                open({ name: 'block' });
+              }}
+            >
+              {labels.blockDialog.action}
+            </Button>
+          ) : required && member.can.request_radiation ? (
             <Button
               variant="secondary"
               size="sm"
@@ -121,6 +160,36 @@ function Banners({
         }
       >
         {required ? labels.banners.radiationRequired(String(alert.days)) : alert.label}
+      </Banner>,
+    );
+  }
+
+  if (member.attestation_block) {
+    const block = member.attestation_block;
+
+    banners.push(
+      <Banner
+        key="attestation"
+        tone="danger"
+        action={
+          member.can.release_attestation ? (
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => {
+                open({ name: 'release' });
+              }}
+            >
+              {labels.releaseDialog.action}
+            </Button>
+          ) : undefined
+        }
+      >
+        {labels.banners.attestationBlocked(
+          formatTimestampDate(block.blocked_at),
+          block.trigger_label,
+          block.reason,
+        )}
       </Banner>,
     );
   }
@@ -182,9 +251,17 @@ function Banners({
 export function MemberPage() {
   const { id = '' } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
+  const { can: allows } = useAuth();
+  const queryClient = useQueryClient();
   const query = useMember(id);
   const [tab, setTab] = useState<Tab>('identity');
   const [dialog, setDialog] = useState<DialogState | null>(null);
+  // Bandeau vert : adhésion validée ici, ou par l'assistant d'inscription (état de navigation).
+  const [justValidated, setJustValidated] = useState(
+    (location.state as { validated?: boolean } | null)?.validated === true,
+  );
+  const [producing, setProducing] = useState(false);
 
   if (query.isPending) {
     return <LoadingMember />;
@@ -221,6 +298,27 @@ export function MemberPage() {
 
   const menu: ActionMenuItem[] = [];
 
+  /** Contrat et attestation produits en file (RG-DOC-05), suivis dans l'onglet Documents. */
+  async function produceDocuments() {
+    setProducing(true);
+
+    try {
+      await dossierApi.produce(member.id, 'membership_contract');
+      await dossierApi.produce(member.id, 'membership_certificate');
+      toast.success(labels.banners.produced);
+      await queryClient.invalidateQueries({ queryKey: dossierKeys.documents(member.id) });
+      setTab('documents');
+    } catch (error) {
+      if (error instanceof ApiBusinessError) {
+        toast.error(error.message);
+      } else {
+        toastUnexpectedError(error);
+      }
+    } finally {
+      setProducing(false);
+    }
+  }
+
   if (can.change_regime) {
     menu.push({
       label: labels.regimeDialog.action,
@@ -252,6 +350,24 @@ export function MemberPage() {
       label: labels.validateRadiationDialog.action,
       onSelect: () => {
         open({ name: 'validateRadiation', defaultOutcome: 'closed' });
+      },
+    });
+  }
+
+  if (can.block_attestation) {
+    menu.push({
+      label: labels.blockDialog.action,
+      onSelect: () => {
+        open({ name: 'block' });
+      },
+    });
+  }
+
+  if (can.release_attestation) {
+    menu.push({
+      label: labels.releaseDialog.action,
+      onSelect: () => {
+        open({ name: 'release' });
       },
     });
   }
@@ -333,6 +449,47 @@ export function MemberPage() {
         ) : null}
       </div>
 
+      {justValidated && member.status !== 'draft' ? (
+        <Banner
+          tone="success"
+          role="status"
+          className="mb-4"
+          action={
+            <div className="flex flex-wrap gap-2">
+              {member.portfolio === 'cga' && allows(permissionCodes.cga.documentsProduce) ? (
+                <Button size="sm" loading={producing} onClick={() => void produceDocuments()}>
+                  {labels.banners.produceDocuments}
+                </Button>
+              ) : null}
+              {allows(permissionCodes.cga.membersAccess) ? (
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => {
+                    setTab('accesses');
+                  }}
+                >
+                  {labels.banners.inviteOnline}
+                </Button>
+              ) : null}
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => {
+                  setJustValidated(false);
+                }}
+              >
+                {labels.banners.close}
+              </Button>
+            </div>
+          }
+        >
+          {member.portfolio === 'cga'
+            ? labels.banners.validated(number ?? '')
+            : labels.banners.clientCreated(number ?? '')}
+        </Banner>
+      ) : null}
+
       <Banners
         member={member}
         open={open}
@@ -348,7 +505,7 @@ export function MemberPage() {
         }}
       >
         <TabsList>
-          {(['identity', 'pieces', 'accesses', 'history'] as const).map((key) => (
+          {TABS.map((key) => (
             <TabsTrigger key={key} value={key}>
               {labels.tabs[key]}
             </TabsTrigger>
@@ -356,6 +513,12 @@ export function MemberPage() {
         </TabsList>
         <TabsContent value="identity">
           <IdentityTab member={member} />
+        </TabsContent>
+        <TabsContent value="finance">
+          <FinanceTab member={member} />
+        </TabsContent>
+        <TabsContent value="documents">
+          <DocumentsTab member={member} />
         </TabsContent>
         <TabsContent value="pieces">
           <PiecesTab member={member} />
@@ -368,9 +531,33 @@ export function MemberPage() {
         </TabsContent>
       </Tabs>
 
-      {dialog?.name === 'edit' ? <EditMemberDialog member={member} onClose={close} /> : null}
+      {dialog?.name === 'edit' ? (
+        <EditMemberDialog
+          member={member}
+          onClose={close}
+          onSaved={(before, after) => {
+            // RG-ADH-07 : un champ du contrat ou de l'attestation a changé → le CGA décide.
+            if (after.status !== 'draft' && documentFieldsChanged(before, after)) {
+              open({ name: 'regenerate' });
+            }
+          }}
+        />
+      ) : null}
       {dialog?.name === 'validate' ? (
-        <ValidateMembershipDialog member={member} onClose={close} />
+        <ValidateMembershipDialog
+          member={member}
+          onClose={close}
+          onValidated={() => {
+            setJustValidated(true);
+          }}
+        />
+      ) : null}
+      {dialog?.name === 'block' ? <BlockAttestationDialog member={member} onClose={close} /> : null}
+      {dialog?.name === 'release' ? (
+        <ReleaseAttestationDialog member={member} onClose={close} />
+      ) : null}
+      {dialog?.name === 'regenerate' ? (
+        <RegenerateDocumentsDialog member={member} onClose={close} />
       ) : null}
       {dialog?.name === 'regime' ? <ChangeRegimeDialog member={member} onClose={close} /> : null}
       {dialog?.name === 'radiation' ? (

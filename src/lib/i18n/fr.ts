@@ -68,6 +68,24 @@ export const fr = {
       done: 'Terminé',
       failed: 'En échec',
     },
+    charge: {
+      due: 'À payer',
+      partial: 'Payée en partie',
+      paid: 'Payée',
+      overdue: 'Impayée',
+      cancelled: 'Annulée',
+    },
+    payment: {
+      pending_confirmation: 'À confirmer',
+      confirmed: 'Confirmé',
+      rejected: 'Rejeté',
+    },
+    document: {
+      generating: 'En production',
+      valid: 'Valide',
+      cancelled: 'Annulé',
+      failed: 'Production en échec',
+    },
     access: {
       invited: 'Invité',
       active: 'Actif',

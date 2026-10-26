@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useForm, useWatch, type UseFormReturn } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router';
 import { toast } from 'sonner';
@@ -29,6 +29,7 @@ import {
   useTaxOffices,
 } from '@/features/members/api/queries';
 import { ActivityFields, IdentificationFields } from '@/features/members/components/member-fields';
+import { PaymentDialog } from '@/features/members/components/payment-dialog';
 import { ProposeSectorDialog } from '@/features/members/components/propose-sector-dialog';
 import { memberNumber, memberRoutes } from '@/features/members/lib/member';
 import {
@@ -126,6 +127,9 @@ function NewMemberWizard() {
   const [checkingNcc, setCheckingNcc] = useState(false);
   const [refusedExclusive, setRefusedExclusive] = useState<string | null>(null);
   const [missing, setMissing] = useState<string[] | null>(null);
+  const [payingFor, setPayingFor] = useState<Member | null>(null);
+  // Dossier enregistré : la navigation qui suit ne repasse pas par « Quitter sans enregistrer ? ».
+  const recorded = useRef(false);
   const [conflict, setConflict] = useState<string | null>(null);
   const [saving, setSaving] = useState<Saving>(null);
   const [proposing, setProposing] = useState(false);
@@ -329,6 +333,19 @@ function NewMemberWizard() {
     }
   }
 
+  /** Adhésion validée : toast, puis le dossier avec son bandeau vert et ses suites. */
+  async function validated(member: Member, exclusivityConfirmed: boolean) {
+    const result = await membersApi.validate(member.id, exclusivityConfirmed);
+    const number = memberNumber(result) ?? '';
+
+    saved(result);
+    toast.success(
+      result.portfolio === 'cga' ? labels.validated(number) : labels.clientCreated(number),
+    );
+    recorded.current = true;
+    await navigate(memberRoutes.detail(result.id), { state: { validated: true } });
+  }
+
   async function save(kind: 'draft' | 'validate') {
     setConflict(null);
 
@@ -360,27 +377,32 @@ function NewMemberWizard() {
 
     if (kind === 'draft') {
       toast.success(labels.draftSaved);
+      recorded.current = true;
       await navigate(memberRoutes.detail(member.id));
 
       return;
     }
 
     try {
-      const validated = await membersApi.validate(member.id, values.exclusivity_confirmed);
-      const number = memberNumber(validated) ?? '';
-
-      saved(validated);
-      toast.success(
-        validated.portfolio === 'cga' ? labels.validated(number) : labels.clientCreated(number),
-      );
-      await navigate(memberRoutes.detail(validated.id));
+      await validated(member, values.exclusivity_confirmed);
     } catch (error) {
       setSaving(null);
 
       if (error instanceof ApiBusinessError && error.code === 'membership_incomplete') {
-        const items = Array.isArray(error.details.missing) ? error.details.missing : [];
+        const list = Array.isArray(error.details.missing) ? error.details.missing : [];
+        const items = list.filter((item): item is string => typeof item === 'string');
+        const blocking = items.filter((item) => item !== 'exclusivity_confirmed');
 
-        setMissing(items.filter((item): item is string => typeof item === 'string'));
+        // Seul le droit d'adhésion manque : son paiement, puis la validation (03-APPFLOW §4.3).
+        if (
+          can(permissionCodes.cga.payments) &&
+          blocking.length > 0 &&
+          blocking.every((item) => item === 'entry_fee_payment')
+        ) {
+          setPayingFor(member);
+        } else {
+          setMissing(items);
+        }
       } else if (error instanceof ApiBusinessError && error.code === 'membership_exclusive') {
         setRefusedExclusive(values.ncc.trim());
         setStep(1);
@@ -561,7 +583,38 @@ function NewMemberWizard() {
         </CardContent>
       </Card>
 
-      <UnsavedChangesGuard when={form.formState.isDirty && saving === null && !leaving} />
+      <UnsavedChangesGuard
+        when={form.formState.isDirty && saving === null && !leaving}
+        saved={recorded}
+      />
+
+      {payingFor !== null ? (
+        <PaymentDialog
+          memberId={payingFor.id}
+          only="entry_fee"
+          title={fr.members.finance.entryFee.title}
+          submitLabel={fr.members.finance.entryFee.submit}
+          onClose={() => {
+            setPayingFor(null);
+          }}
+          onRecorded={async () => {
+            setSaving('validate');
+
+            try {
+              await validated(payingFor, getValues('exclusivity_confirmed'));
+            } catch (error) {
+              setSaving(null);
+              setPayingFor(null);
+
+              if (error instanceof ApiBusinessError) {
+                setConflict(error.message);
+              } else {
+                toastUnexpectedError(error);
+              }
+            }
+          }}
+        />
+      ) : null}
 
       {proposing ? (
         <ProposeSectorDialog

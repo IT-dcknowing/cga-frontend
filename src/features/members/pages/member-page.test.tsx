@@ -369,13 +369,23 @@ describe('/cga/adherents/:id · modifier, valider, supprimer (F-ADH-02, 04)', JO
     await user.click(within(dialog).getByRole('button', { name: labels.editDialog.submit }));
 
     expect(await screen.findByText(labels.saved)).toBeInTheDocument();
-    expect(
-      await screen.findByRole('heading', { level: 1, name: 'BOULANGERIE ADJOUA & FILS' }),
-    ).toBeVisible();
     expect(bodyOf(-1, `/cga/members/${demoMemberIds.adjoua}`)).toMatchObject({
       _method: 'PUT',
       company_name: 'Boulangerie Adjoua & Fils',
     });
+
+    // RG-ADH-07 : la raison sociale figure sur le contrat et l'attestation → le CGA décide.
+    const regenerate = await screen.findByRole('dialog', { name: labels.regenerateDialog.title });
+
+    await user.click(
+      within(regenerate).getByRole('button', { name: labels.regenerateDialog.submit }),
+    );
+
+    expect(await screen.findByText(labels.regenerateDialog.done('2'))).toBeInTheDocument();
+    expect(writes('/regenerate')).toHaveLength(2);
+    expect(
+      await screen.findByRole('heading', { level: 1, name: 'BOULANGERIE ADJOUA & FILS' }),
+    ).toBeVisible();
   });
 
   it('modification sans changement d’identité : envoyée en JSON, sans justificatif', async () => {
@@ -392,6 +402,18 @@ describe('/cga/adherents/:id · modifier, valider, supprimer (F-ADH-02, 04)', JO
     expect(writes(`/cga/members/${demoMemberIds.bamba}`).map((request) => request.method)).toEqual([
       'PUT',
     ]);
+
+    // L'adresse figure sur les documents : « Plus tard » ne régénère rien (RG-ADH-07).
+    const regenerate = await screen.findByRole('dialog', { name: labels.regenerateDialog.title });
+
+    await user.click(
+      within(regenerate).getByRole('button', { name: labels.regenerateDialog.later }),
+    );
+
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    });
+    expect(writes('/regenerate')).toHaveLength(0);
     expect(valueOf(fields.address)).toBe('Marché de Treichville');
   });
 

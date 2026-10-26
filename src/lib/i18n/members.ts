@@ -197,6 +197,104 @@ export const membersFr = {
       confirm: 'Cochez la case pour confirmer.',
     },
   },
+  /** Onglet « Honoraires et paiements » du dossier (F-PAY-01 à 03, 03-APPFLOW §4.3). */
+  finance: {
+    loadError: 'Les honoraires et paiements n’ont pas pu être chargés.',
+    record: 'Enregistrer un paiement',
+    recorded: 'Paiement enregistré',
+    recordedWithReceipt: (number: string) => `Paiement enregistré — reçu ${number}`,
+    examine: 'Examiner',
+    charges: {
+      title: 'Échéances',
+      empty: 'Aucune somme due pour ce dossier.',
+      due: (date: string) => `Échéance du ${date}`,
+      amount: (amount: string) => `Montant ${amount}`,
+      paid: (amount: string) => `Payé ${amount}`,
+      balance: (amount: string) => `Reste ${amount}`,
+    },
+    payments: {
+      title: 'Paiements',
+      empty: 'Aucun paiement enregistré.',
+      rejected: (reason: string) => `Rejeté : ${reason}`,
+    },
+    paymentDialog: {
+      title: 'Enregistrer un paiement',
+      submit: 'Enregistrer',
+      charges: 'Échéances payées',
+      noCharge: 'Aucune somme due : le paiement sera ventilé plus tard.',
+      amount: 'Montant payé (F CFA)',
+      paidOn: 'Date du paiement',
+      method: 'Mode de paiement',
+      reference: 'Référence (facultative)',
+      proof: 'Preuve (facultative)',
+    },
+    // 03-APPFLOW §4.3 : droit d'adhésion à payer avant de valider l'adhésion.
+    entryFee: {
+      title: 'Enregistrer le paiement du droit d’adhésion',
+      submit: 'Enregistrer et valider',
+    },
+    review: {
+      title: 'Examiner le paiement déclaré',
+      description: (amount: string, date: string) =>
+        `${amount} payé le ${date}, déclaré par l’adhérent.`,
+      method: 'Mode',
+      reference: 'Référence',
+      proof: (name: string) => `Preuve : ${name}`,
+      toReject: 'Rejeter ce paiement',
+      reason: 'Motif du rejet',
+      confirm: 'Confirmer le paiement',
+      reject: 'Rejeter le paiement',
+      confirmed: 'Paiement confirmé',
+      rejected: 'Paiement rejeté',
+    },
+  },
+  /** Onglet « Documents » du dossier (F-DOC-01 à 05, 03-APPFLOW §4.3). */
+  documents: {
+    caption: 'Documents du dossier',
+    menu: 'Documents',
+    empty: 'Aucun document pour ce dossier.',
+    loadError: 'Les documents n’ont pas pu être chargés.',
+    produceContract: 'Produire le contrat',
+    produceCertificate: 'Produire l’attestation',
+    producing: 'Production lancée : le document sera prêt dans quelques instants.',
+    ready: (type: string) => `${type} prêt`,
+    failed: (type: string) => `${type} : la production a échoué.`,
+    pdf: 'PDF',
+    docx: 'Word',
+    version: (version: string) => `version ${version}`,
+    rowActions: (title: string) => `Actions : ${title}`,
+    regenerate: 'Rééditer',
+    regenerated: 'Nouvelle version en production',
+    retry: 'Relancer la production',
+    retried: 'Production relancée',
+    cancel: {
+      action: 'Annuler',
+      title: 'Annuler le document',
+      reason: 'Motif',
+      effects: [
+        'Le document reste consultable avec la mention « Annulé ».',
+        'Sa vérification publique le signale comme annulé.',
+      ],
+      submit: 'Annuler le document',
+      done: 'Document annulé',
+    },
+    upload: {
+      action: 'Déposer un document',
+      title: 'Déposer un document',
+      description: 'Document du CGA rendu visible à l’adhérent dans son espace.',
+      name: 'Titre',
+      category: 'Catégorie',
+      categories: {
+        financial_statements: 'États financiers visés',
+        certificate: 'Attestation',
+        other: 'Autre document',
+      },
+      file: 'Fichier PDF',
+      fileHint: 'PDF uniquement.',
+      submit: 'Déposer',
+      done: 'Document déposé',
+    },
+  },
   /** `/cga/imports/adherents` (F-IMP-02, RG-IMP-01 à 03, 03-APPFLOW §4.3). */
   import: {
     title: 'Importer un portefeuille',
@@ -259,6 +357,8 @@ export const membersFr = {
     edit: 'Modifier',
     tabs: {
       identity: 'Identité',
+      finance: 'Honoraires et paiements',
+      documents: 'Documents',
       pieces: 'Pièces',
       accesses: 'Accès en ligne',
       history: 'Historique',
@@ -295,6 +395,15 @@ export const membersFr = {
       radiated: (date: string, outcome: string) => `Radiation validée le ${date} : ${outcome}.`,
       draft: 'Brouillon : l’adhésion n’est pas encore validée.',
       missing: (items: string) => `À compléter avant la validation : ${items}.`,
+      attestationBlocked: (date: string, trigger: string, reason: string) =>
+        `Attestation bloquée le ${date} (${trigger}) : ${reason}`,
+      // 03-APPFLOW §4.3 : bandeau vert après la validation, avec les suites proposées.
+      validated: (number: string) => `Adhésion validée — n° ${number}`,
+      clientCreated: (number: string) => `Dossier client créé — n° ${number}`,
+      produceDocuments: 'Produire le contrat et l’attestation',
+      inviteOnline: 'Inviter l’adhérent en ligne',
+      close: 'Fermer',
+      produced: 'Contrat et attestation en production',
     },
     saved: 'Dossier enregistré',
     pieces: {
@@ -366,6 +475,8 @@ export const membersFr = {
       cabinet: 'Le n° client sera attribué.',
       submit: 'Valider l’adhésion',
       missingIntro: 'Avant de valider, complétez le dossier (« Modifier ») :',
+      entryFeeNext:
+        'Le droit d’adhésion n’est pas encore payé : son paiement sera enregistré, puis l’adhésion validée.',
     },
     regimeDialog: {
       action: 'Changer de régime',
@@ -441,6 +552,38 @@ export const membersFr = {
       reference: 'Référence (facultative)',
       submit: 'Basculer',
       done: (number: string) => `Dossier intégré au portefeuille CGA — n° ${number}`,
+    },
+    blockDialog: {
+      action: 'Bloquer l’attestation',
+      title: 'Bloquer l’attestation',
+      trigger: 'Motif du blocage',
+      triggers: {
+        fees_overdue: 'Honoraires impayés',
+        rsi_overdue: 'Régime réel non radié',
+        manual: 'Décision du gérant',
+      },
+      reason: 'Précision',
+      // RG-DOC-10 : jamais automatique, toujours tracé.
+      effects: [
+        'Aucune attestation ne pourra être produite pour ce dossier, ni par la campagne annuelle.',
+        'Le blocage est tracé avec son motif et se lève par « Débloquer ».',
+      ],
+      submit: 'Bloquer',
+      done: 'Attestation bloquée',
+    },
+    releaseDialog: {
+      action: 'Débloquer l’attestation',
+      title: 'Débloquer l’attestation',
+      reason: 'Motif',
+      submit: 'Débloquer',
+      done: 'Attestation débloquée',
+    },
+    regenerateDialog: {
+      title: 'Régénérer les documents ?',
+      body: 'Ces informations figurent sur le contrat et l’attestation. Les documents déjà émis restent valides tant qu’ils ne sont pas annulés.',
+      later: 'Plus tard',
+      submit: 'Régénérer',
+      done: (count: string) => `${count} document(s) en cours de régénération`,
     },
     deleteDialog: {
       action: 'Supprimer le brouillon',

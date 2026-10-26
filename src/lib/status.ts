@@ -38,6 +38,27 @@ const TONES = {
     done: 'success',
     failed: 'danger',
   },
+  /** Somme due (F-PAY-01) : impayée en rouge (RG-PAY-03), sans sanction automatique. */
+  charge: {
+    due: 'warning',
+    partial: 'warning',
+    paid: 'success',
+    overdue: 'danger',
+    cancelled: 'neutral',
+  },
+  /** Paiement (F-PAY-02, 03) : déclaré par l'adhérent, à confirmer par le CGA. */
+  payment: {
+    pending_confirmation: 'warning',
+    confirmed: 'success',
+    rejected: 'danger',
+  },
+  /** Document émis (RG-DOC-05, F-DOC-03) : en production, valide, annulé, en échec. */
+  document: {
+    generating: 'info',
+    valid: 'success',
+    cancelled: 'danger',
+    failed: 'danger',
+  },
   /** Accès en ligne d'un adhérent ou d'un agent (`memberships.status`). */
   access: {
     invited: 'warning',
