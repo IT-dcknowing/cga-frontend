@@ -37,6 +37,8 @@ import { createTemplatesBackend } from './api-templates';
 import { verificationRoute } from './api-verification';
 import type { createReferentialsBackend } from './api-referentials';
 import { createMembersBackend } from './api-members';
+import { createObligationsBackend } from './api-obligations';
+import { createPlanningBackend } from './api-planning';
 
 /*
  * Backend de la plateforme (`backend/`, `/api/v1`) simulé derrière le **vrai** client `http` :
@@ -276,6 +278,16 @@ export function installApiServer({
   dues = createDuesBackend(),
   campaigns = createCampaignsBackend(),
   networkProfile = createCgaBackend(demoNetworkProfile(), { profileOf: 'network' }),
+  obligations = createObligationsBackend({
+    memberOf: (id) => {
+      const found = members.members().find((member) => member.id === id);
+
+      return found === undefined
+        ? null
+        : { regime: found.regime, employees_count: found.employees_count };
+    },
+  }),
+  planning = createPlanningBackend(),
 }: {
   accounts?: Record<string, ApiAccount>;
   cgas?: Organization[];
@@ -295,6 +307,10 @@ export function installApiServer({
   campaigns?: ReturnType<typeof createCampaignsBackend>;
   /** Fiche du CNCGA (`/network/profile`, étape 6.9). */
   networkProfile?: ReturnType<typeof createCgaBackend>;
+  /** Obligations des adhérents (Lot 4) : catalogue, propositions, échéances. */
+  obligations?: ReturnType<typeof createObligationsBackend>;
+  /** Planning des échéances et obligations du centre (étape 4.7). */
+  planning?: ReturnType<typeof createPlanningBackend>;
 } = {}) {
   const requests: RecordedRequest[] = [];
   const forced = new Map<string, ApiReply[]>();
@@ -817,6 +833,8 @@ export function installApiServer({
             organizationId: activeOrganizationId(),
           })
         : undefined) ??
+      obligations.route(method, path, parsed.searchParams, body, { allows }) ??
+      planning.route(method, path, parsed.searchParams, body, { allows }) ??
       messaging.route(method, path, body, { allows }) ??
       campaigns.route(method, path, body, { allows }) ??
       dues.route(method, path, parsed.searchParams, body, {
@@ -888,6 +906,10 @@ export function installApiServer({
     members,
     /** Imports de portefeuille simulés (`api-imports.ts`). */
     imports,
+    /** Obligations simulées (`api-obligations.ts`). */
+    obligations,
+    /** Planning et obligations du centre simulés (`api-planning.ts`). */
+    planning,
     /** Ouvre une session côté serveur, comme un cookie de session encore valide. */
     signIn(phone: string, activeId: string | null = null) {
       signedIn = { phone: normalizePhone(phone), activeId };

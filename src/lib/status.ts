@@ -127,6 +127,18 @@ const TONES = {
     sent: 'success',
     rejected: 'danger',
   },
+  /** Échéance d'une obligation (RG-OBL-07) : à faire ou à payer en orange, réglée en vert. */
+  obligation: {
+    todo: 'warning',
+    done: 'success',
+    to_pay: 'warning',
+    partially_paid: 'warning',
+    paid: 'success',
+    not_established: 'warning',
+    in_progress: 'info',
+    established: 'success',
+    cancelled: 'neutral',
+  },
 } as const satisfies Record<keyof typeof fr.status, Record<string, Tone>>;
 
 export type StatusDomain = keyof typeof TONES;

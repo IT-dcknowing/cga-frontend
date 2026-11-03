@@ -5,7 +5,8 @@ import { httpAuthApi } from '@/features/auth/api/auth-api';
 import { memberRoutes } from '@/features/members/lib/member';
 import { fr } from '@/lib/i18n/fr';
 import { createMembersBackend } from '@/test/api-members';
-import { apiUrl, demoIds, installApiServer } from '@/test/api-server';
+import { createObligationsBackend } from '@/test/api-obligations';
+import { apiUrl, demoAccounts, demoIds, installApiServer } from '@/test/api-server';
 import {
   demoCommunes,
   demoMemberIds,
@@ -618,5 +619,157 @@ describe('/cga/adherents/nouveau · refus du serveur et sortie', JOURNEY, () => 
     await waitFor(() => {
       expect(router.state.location.pathname).toBe(memberRoutes.list);
     });
+  });
+});
+
+describe('/cga/adherents/nouveau · obligations proposées (4.5, F-OBL-02)', JOURNEY, () => {
+  const proposed = fr.obligations.proposed;
+
+  /** Case d'une obligation du bloc, par le début de son libellé. */
+  function obligation(label: string) {
+    return screen.findByRole('checkbox', { name: (name) => name.startsWith(label) });
+  }
+
+  async function reachActivity(user: User) {
+    await fillIdentification(user);
+    await user.click(screen.getByRole('button', { name: labels.next }));
+    await fillActivity(user);
+  }
+
+  it('RG-OBL-02 · proposées selon le régime et l’effectif, cochées ; décochée → retirée, ajoutée du catalogue → attribuée', async () => {
+    const { user, router } = await openWizard();
+
+    await reachActivity(user);
+    expect(await obligation('Taxe d’État de l’entreprenant')).toBeChecked();
+    expect(
+      screen.queryByRole('checkbox', { name: (name) => name.startsWith('Cotisation CMU') }),
+    ).toBeNull();
+
+    // Deux salariés : CNPS et CMU s'ajoutent aux propositions (RG-OBL-03).
+    await fill(user, fields.employeesCount, '2');
+    await user.click(await obligation('Cotisation CMU'));
+    expect(await obligation('Cotisation CMU')).not.toBeChecked();
+    expect(await obligation('Cotisations sociales CNPS')).toBeChecked();
+
+    await user.click(screen.getByRole('button', { name: proposed.add }));
+    const dialog = await screen.findByRole('dialog', { name: fr.obligations.catalog.title });
+
+    await user.type(within(dialog).getByLabelText(fr.obligations.catalog.search), 'zzz');
+    expect(within(dialog).getByText(fr.obligations.catalog.empty)).toBeVisible();
+    await user.clear(within(dialog).getByLabelText(fr.obligations.catalog.search));
+    await user.type(within(dialog).getByLabelText(fr.obligations.catalog.search), 'pat');
+    await user.click(
+      within(dialog).getByRole('button', { name: fr.obligations.catalog.choose('Patente') }),
+    );
+    expect(await obligation(`Patente (${proposed.added})`)).toBeChecked();
+
+    // Un ajout décoché quitte la liste ; ajouté de nouveau, il y revient.
+    await user.click(await obligation(`Patente (${proposed.added})`));
+    expect(
+      screen.queryByRole('checkbox', { name: (name) => name.startsWith('Patente') }),
+    ).toBeNull();
+    await user.click(screen.getByRole('button', { name: proposed.add }));
+    await user.click(
+      within(await screen.findByRole('dialog', { name: fr.obligations.catalog.title })).getByRole(
+        'button',
+        {
+          name: fr.obligations.catalog.choose('Patente'),
+        },
+      ),
+    );
+
+    await user.click(screen.getByRole('button', { name: labels.saveDraft }));
+    await waitFor(() => {
+      expect(router.state.location.pathname).not.toBe(memberRoutes.create);
+    });
+
+    const memberId = router.state.location.pathname.split('/').pop() ?? '';
+    const statuses = Object.fromEntries(
+      server.obligations.obligations(memberId).map((item) => [item.type.code, item.status]),
+    );
+
+    expect(statuses).toEqual({ TEE: 'active', CNPS: 'active', CMU: 'removed', PAT: 'active' });
+    expect(writes('/obligations/review')).toHaveLength(1);
+  });
+
+  it('propositions indisponibles : message, le dossier s’enregistre ; refus du serveur : toast, dossier conservé', async () => {
+    members = createMembersBackend();
+    const obligations = createObligationsBackend();
+
+    server = installApiServer({
+      members,
+      obligations: {
+        ...obligations,
+        route: (method, path, query, body, context) =>
+          path.endsWith('/obligations') && method === 'GET'
+            ? { status: 500, data: { message: 'Panne', code: 'server_error' } }
+            : obligations.route(method, path, query, body, context),
+      },
+    });
+    server.signIn(...accesses.gerant);
+    const session = await httpAuthApi.currentSession();
+    const user = userEvent.setup({ delay: null });
+    const { router } = renderApp({ api: httpAuthApi, session, entry: memberRoutes.create });
+
+    server.failNext('GET', apiUrl('/cga/obligation-types/suggestions'), { status: 500 });
+    server.failNext('GET', apiUrl('/cga/obligation-types/suggestions'), { status: 500 });
+    await screen.findByRole('heading', { level: 1, name: labels.title });
+    await reachActivity(user);
+    expect(await screen.findByText(proposed.loadError)).toBeVisible();
+
+    await user.click(screen.getByRole('button', { name: labels.saveDraft }));
+
+    // Les toasts des pannes simulées le précèdent : présent, au-delà des trois toasts affichés.
+    expect(await screen.findByText(proposed.failed)).toBeInTheDocument();
+    await waitFor(() => {
+      expect(router.state.location.pathname).not.toBe(memberRoutes.create);
+    });
+  });
+
+  it('sans le droit « Gérer les obligations » (secrétaire) : ni bloc ni appel aux obligations', async () => {
+    members = createMembersBackend();
+    server = installApiServer({
+      members,
+      accounts: {
+        ...demoAccounts,
+        '+2250700000020': {
+          user: {
+            first_name: 'Awa',
+            last_name: 'Secrétaire',
+            phone: '+2250700000020',
+            email: null,
+            notification_preferences: { sms: false, whatsapp: false },
+          },
+          memberships: [
+            {
+              id: '01ms0000000000000000000s20',
+              role: 'cga_secretary',
+              organization: {
+                id: demoIds.dck,
+                type: 'cga',
+                name: 'DC-KNOWING CGA',
+                banking_enabled: false,
+              },
+              member: null,
+              unread_notifications: 0,
+            },
+          ],
+        },
+      },
+    });
+    server.signIn('0700000020', '01ms0000000000000000000s20');
+    const session = await httpAuthApi.currentSession();
+    const user = userEvent.setup({ delay: null });
+    const { router } = renderApp({ api: httpAuthApi, session, entry: memberRoutes.create });
+
+    await screen.findByRole('heading', { level: 1, name: labels.title });
+    await reachActivity(user);
+    expect(screen.queryByRole('group', { name: proposed.title })).toBeNull();
+
+    await user.click(screen.getByRole('button', { name: labels.saveDraft }));
+    await waitFor(() => {
+      expect(router.state.location.pathname).not.toBe(memberRoutes.create);
+    });
+    expect(server.requests.some((request) => request.url.includes('obligation'))).toBe(false);
   });
 });
