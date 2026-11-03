@@ -1,7 +1,7 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { CheckCircle2, Pencil } from 'lucide-react';
 import { useState } from 'react';
-import { Link, useLocation, useNavigate, useParams } from 'react-router';
+import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router';
 import { toast } from 'sonner';
 import { PageHeader } from '@/components/layout/page-header';
 import { ActionMenu, type ActionMenuItem } from '@/components/shared/action-menu';
@@ -43,20 +43,29 @@ import { documentFieldsChanged, memberNumber, memberRoutes } from '@/features/me
 import { ApiBusinessError } from '@/lib/api-errors';
 import { formatTimestampDate } from '@/lib/format';
 import { toastUnexpectedError } from '@/lib/http-error-toast';
+import { ObligationsTab } from '@/features/obligations/components/obligations-tab';
 import { fr } from '@/lib/i18n/fr';
 import { permissionCodes } from '@/lib/reference/permissions';
 
 /*
  * `/cga/adherents/:id` (F-ADH-03, 03-APPFLOW §4.3) : en-tête (raison sociale, n°, ancien n°, badges
  * portefeuille, apporteur, statut), bandeaux (brouillon, reclassement au réel, pièces, radiation),
- * actions selon le bloc `can` du serveur, onglets Identité · Honoraires et paiements · Documents ·
- * Pièces · Accès en ligne · Historique. Après la validation : bandeau vert et suites proposées
+ * actions selon le bloc `can` du serveur, onglets Identité · Obligations · Honoraires et paiements ·
+ * Documents · Pièces · Accès en ligne · Historique (`?onglet=` ouvre l'un d'eux). Après la validation : bandeau vert et suites proposées
  * (produire le contrat et l'attestation, inviter l'adhérent). Les alertes proposent seulement
  * d'ouvrir une modale : la plateforme ne radie ni ne bloque jamais d'elle-même (RG-ADH-18, RG-DOC-10).
  */
 const labels = fr.members.detail;
 
-const TABS = ['identity', 'finance', 'documents', 'pieces', 'accesses', 'history'] as const;
+const TABS = [
+  'identity',
+  'obligations',
+  'finance',
+  'documents',
+  'pieces',
+  'accesses',
+  'history',
+] as const;
 
 type Tab = (typeof TABS)[number];
 
@@ -255,7 +264,12 @@ export function MemberPage() {
   const { can: allows } = useAuth();
   const queryClient = useQueryClient();
   const query = useMember(id);
-  const [tab, setTab] = useState<Tab>('identity');
+  const [searchParams] = useSearchParams();
+  // `?onglet=obligations` : ouvert depuis le planning des échéances (03-APPFLOW §4.3).
+  const requested = searchParams.get('onglet');
+  const [tab, setTab] = useState<Tab>(
+    TABS.find((candidate) => candidate === requested) ?? 'identity',
+  );
   const [dialog, setDialog] = useState<DialogState | null>(null);
   // Bandeau vert : adhésion validée ici, ou par l'assistant d'inscription (état de navigation).
   const [justValidated, setJustValidated] = useState(
@@ -513,6 +527,9 @@ export function MemberPage() {
         </TabsList>
         <TabsContent value="identity">
           <IdentityTab member={member} />
+        </TabsContent>
+        <TabsContent value="obligations">
+          <ObligationsTab member={member} />
         </TabsContent>
         <TabsContent value="finance">
           <FinanceTab member={member} />

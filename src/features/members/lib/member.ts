@@ -5,6 +5,9 @@ export const memberRoutes = {
   list: '/cga/adherents',
   create: '/cga/adherents/nouveau',
   detail: (id: string) => `/cga/adherents/${encodeURIComponent(id)}`,
+  /** Un onglet du dossier (`obligations`…), depuis le planning des échéances. */
+  detailTab: (id: string, tab: string) =>
+    `/cga/adherents/${encodeURIComponent(id)}?onglet=${encodeURIComponent(tab)}`,
   import: '/cga/imports/adherents',
 } as const;
 
