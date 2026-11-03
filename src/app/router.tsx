@@ -16,7 +16,11 @@ import {
   RequireMenuEntry,
   RequireSession,
 } from '@/features/auth/session/guards';
+import { CommunicationsPage } from '@/features/communications/pages/communications-page';
+import { NewCampaignPage } from '@/features/communications/pages/new-campaign-page';
 import { DemoPage } from '@/features/demo/pages/demo-page';
+import { CgaDuesPage } from '@/features/dues/pages/cga-dues-page';
+import { NetworkDuesPage } from '@/features/dues/pages/network-dues-page';
 import { ErrorScreen, RouteErrorPage } from '@/features/errors/pages/error-screen';
 import { memberRoutes } from '@/features/members/lib/member';
 import { cgaPermissionRoutes, cgaSettingsRoutes } from '@/features/cga-settings/lib/routes';
@@ -80,10 +84,16 @@ const cncgaScreens: Record<string, MenuScreen> = {
     children: [{ path: ':id', element: <OrganizationPage /> }],
   },
   [cncgaSettingsRoutes.root]: { element: <CncgaSettingsPage /> },
+  '/cncga/cotisations': { element: <NetworkDuesPage /> },
 };
 
 const cgaScreens: Record<string, MenuScreen> = {
   '/cga/factures': { element: <InvoicesPage /> },
+  '/cga/cotisation': { element: <CgaDuesPage /> },
+  '/cga/communications': {
+    element: <CommunicationsPage />,
+    children: [{ path: 'nouveau', element: <NewCampaignPage /> }],
+  },
   [cgaSettingsRoutes.root]: {
     element: <CgaSettingsPage />,
     children: [

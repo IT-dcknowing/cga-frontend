@@ -72,4 +72,8 @@ export const config = {
   importPollMs: integer(import.meta.env.VITE_IMPORT_POLL_MS, 2000),
   /** Intervalle de relecture d'un document en cours de production (RG-DOC-05), en millisecondes. */
   documentPollMs: integer(import.meta.env.VITE_DOCUMENT_POLL_MS, 3000),
+  /** Notifications montrées dans le panneau de la cloche (les plus récentes, 03-APPFLOW §7). */
+  notificationsPanelSize: integer(import.meta.env.VITE_NOTIFICATIONS_PANEL_SIZE, 10),
+  /** Années proposées par le suivi des cotisations du CNCGA, de l'année en cours vers le passé. */
+  duesYearsShown: integer(import.meta.env.VITE_DUES_YEARS_SHOWN, 5),
 } as const;

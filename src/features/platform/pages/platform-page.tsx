@@ -7,6 +7,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/features/auth/session/auth-context';
 import { RolesList } from '@/features/permissions/components/roles-list';
+import { MessagingPanel } from '@/features/platform/components/messaging-panel';
 import { NetworkUsersList } from '@/features/platform/components/network-users-list';
 import { ReferenceDataPanel } from '@/features/reference-data/components/reference-data-panel';
 import { TemplatesPanel } from '@/features/templates/components/templates-panel';
@@ -21,7 +22,7 @@ import { oneOf } from '@/lib/list-params';
  */
 const labels = fr.platform;
 
-const TABS = ['droits', 'utilisateurs', 'reseau', 'donnees', 'modeles'] as const;
+const TABS = ['droits', 'utilisateurs', 'reseau', 'envois', 'donnees', 'modeles'] as const;
 
 type Tab = (typeof TABS)[number];
 
@@ -29,6 +30,7 @@ const RIGHTS: Record<Tab, string> = {
   droits: 'network_permissions.manage',
   utilisateurs: 'network_user_permissions.manage',
   reseau: 'platform.settings.manage',
+  envois: 'platform.messaging.manage',
   donnees: 'referentials.manage',
   modeles: 'platform.templates.manage',
 };
@@ -52,6 +54,7 @@ export function PlatformPage() {
   const screens: Partial<Record<Tab, ReactNode>> = {
     droits: <RolesList level="network" detailPath={platformRoutes.role} />,
     utilisateurs: <NetworkUsersList />,
+    envois: <MessagingPanel />,
     donnees: <ReferenceDataPanel />,
     modeles: <TemplatesPanel />,
   };

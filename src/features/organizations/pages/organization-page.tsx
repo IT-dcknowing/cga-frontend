@@ -13,6 +13,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import type { Organization } from '@/features/organizations/api/organizations-api';
 import { useOrganization } from '@/features/organizations/api/queries';
 import { IdentityTab } from '@/features/organizations/components/identity-tab';
+import { OrganizationDuesTab } from '@/features/dues/components/organization-dues-tab';
+import { useAuth } from '@/features/auth/session/auth-context';
+import { permissionCodes } from '@/lib/reference/permissions';
 import {
   InviteManagerDialog,
   ReactivateDialog,
@@ -39,7 +42,7 @@ const labels = fr.organization;
 
 type DialogName = 'subscription' | 'suspend' | 'reactivate' | 'withdraw' | 'invite';
 
-const LATER_TABS = ['dues', 'reports', 'figures', 'concerns'] as const;
+const LATER_TABS = ['reports', 'figures', 'concerns'] as const;
 
 function Breadcrumb() {
   return (
@@ -156,6 +159,7 @@ export function OrganizationPage() {
   const { id = '' } = useParams();
   const query = useOrganization(id);
   const [dialog, setDialog] = useState<DialogName | null>(null);
+  const canSeeDues = useAuth().can(permissionCodes.cncga.dues);
 
   if (query.isPending) {
     return <LoadingFiche />;
@@ -237,6 +241,7 @@ export function OrganizationPage() {
         <TabsList>
           <TabsTrigger value="identity">{labels.tabs.identity}</TabsTrigger>
           <TabsTrigger value="users">{labels.tabs.users}</TabsTrigger>
+          <TabsTrigger value="dues">{labels.tabs.dues}</TabsTrigger>
           {LATER_TABS.map((tab) => (
             <TabsTrigger key={tab} value={tab}>
               {labels.tabs[tab]}
@@ -257,6 +262,17 @@ export function OrganizationPage() {
             organization={organization}
             onInvite={can.invite_manager ? open('invite') : null}
           />
+        </TabsContent>
+        <TabsContent value="dues">
+          {canSeeDues ? (
+            <OrganizationDuesTab organizationId={organization.id} />
+          ) : (
+            <Card>
+              <CardContent>
+                <EmptyState icon={Clock}>{fr.common.comingSoon}</EmptyState>
+              </CardContent>
+            </Card>
+          )}
         </TabsContent>
         {LATER_TABS.map((tab) => (
           <TabsContent key={tab} value={tab}>

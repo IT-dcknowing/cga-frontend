@@ -111,6 +111,22 @@ const TONES = {
     rejected: 'danger',
     cancelled: 'neutral',
   },
+  /** Cotisation d'un CGA au CNCGA (RG-COT-04) : impayée en rouge, sans suspension automatique. */
+  dues: {
+    due: 'warning',
+    partial: 'warning',
+    paid: 'success',
+    unpaid: 'danger',
+  },
+  /** Envoi groupé (F-COM-03, RG-COM-01) : en attente de validation du gérant au-delà du seuil. */
+  campaign: {
+    draft: 'neutral',
+    pending_approval: 'warning',
+    approved: 'info',
+    sending: 'info',
+    sent: 'success',
+    rejected: 'danger',
+  },
 } as const satisfies Record<keyof typeof fr.status, Record<string, Tone>>;
 
 export type StatusDomain = keyof typeof TONES;

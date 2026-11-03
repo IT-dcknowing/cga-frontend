@@ -7,6 +7,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/features/auth/session/auth-context';
 import { AgentsPanel } from '@/features/cga-settings/components/agents-panel';
+import { CentreTab } from '@/features/cga-settings/components/centre-tab';
 import { ReferentialPanel } from '@/features/referentials/components/referential-panel';
 import {
   communesDef,
@@ -29,11 +30,21 @@ import { permissionCodes } from '@/lib/reference/permissions';
 const labels = fr.cncgaSettings;
 const cncga = permissionCodes.cncga;
 
-const TABS = ['utilisateurs', 'secteurs', 'territoire', 'references', 'feries', 'reseau'] as const;
+const TABS = [
+  'utilisateurs',
+  'secteurs',
+  'territoire',
+  'references',
+  'feries',
+  'reseau',
+  'identite',
+] as const;
 
 type Tab = (typeof TABS)[number];
 
 const RIGHTS: Record<Tab, string> = {
+  // Fiche du CNCGA, émetteur des reçus et factures de cotisation (étape 6.9).
+  identite: cncga.profile,
   utilisateurs: cncga.users,
   secteurs: cncga.referentials,
   territoire: cncga.referentials,
@@ -60,6 +71,7 @@ export function CncgaSettingsPage() {
   const manages = can(cncga.referentials);
 
   const screens: Record<Tab, ReactNode> = {
+    identite: <CentreTab scope="network" />,
     utilisateurs: <AgentsPanel scope="network" />,
     secteurs: (
       <div className="grid gap-2">

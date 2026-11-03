@@ -61,15 +61,19 @@ describe('Menus des espaces (03-APPFLOW §3.1, §4.1, §5.1)', () => {
     const labels = (permissions: readonly string[]) =>
       visibleEntries(cgaMenu, grants(permissions), manager).map((entry) => entry.label);
     // Un gérant à qui l'on aurait retiré la fiche du centre et les utilisateurs ne voit plus les
-    // paramètres (ni la cotisation, qui suit la fiche du centre).
+    // paramètres ; sans le droit de la cotisation du centre (Lot 6), plus la cotisation.
     const adjusted = defaultRolePermissions.cga_manager.filter(
       (permission) =>
         permission !== permissionCodes.cga.profile && permission !== permissionCodes.cga.users,
     );
+    const withoutDues = defaultRolePermissions.cga_manager.filter(
+      (permission) => permission !== permissionCodes.cga.dues,
+    );
 
     expect(labels(defaultRolePermissions.cga_manager)).toContain(nav.settings);
     expect(labels(adjusted)).not.toContain(nav.settings);
-    expect(labels(adjusted)).not.toContain(nav.dues);
+    expect(labels(defaultRolePermissions.cga_manager)).toContain(nav.dues);
+    expect(labels(withoutDues)).not.toContain(nav.dues);
   });
 
   it('le tableau de bord reste ouvert à tous les rôles de l’espace, même sans droit', () => {

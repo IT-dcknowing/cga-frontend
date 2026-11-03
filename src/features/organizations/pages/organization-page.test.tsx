@@ -140,12 +140,7 @@ describe('/cncga/membres/:id · fiche d’un CGA (F-ORG-04)', () => {
     // Le CGA a déjà son gérant : pas de seconde invitation.
     expect(users.queryByRole('button', { name: labels.invite.action })).not.toBeInTheDocument();
 
-    for (const tab of [
-      labels.tabs.dues,
-      labels.tabs.reports,
-      labels.tabs.figures,
-      labels.tabs.concerns,
-    ]) {
+    for (const tab of [labels.tabs.reports, labels.tabs.figures, labels.tabs.concerns]) {
       await user.click(screen.getByRole('tab', { name: tab }));
 
       expect(

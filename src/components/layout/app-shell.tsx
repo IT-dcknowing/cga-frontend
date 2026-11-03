@@ -1,4 +1,4 @@
-import { Bell, ChevronDown, Menu, MoreHorizontal, X } from 'lucide-react';
+import { ChevronDown, Menu, MoreHorizontal, X } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { Link, NavLink } from 'react-router';
 import { ShellContext } from '@/components/layout/shell-context';
@@ -15,6 +15,7 @@ import {
   visibleEntries,
   type MenuEntry,
 } from '@/features/navigation/menu';
+import { NotificationBell } from '@/features/notifications/components/notification-bell';
 import { fr } from '@/lib/i18n/fr';
 import { roleLabel } from '@/lib/reference/roles';
 import { cn } from '@/lib/utils';
@@ -313,19 +314,8 @@ export function AppShell({ children }: { children: ReactNode }) {
           </p>
 
           <div className="ml-auto flex items-center gap-1">
-            {/* Compteur seul : le panneau des notifications (NotificationBell) arrive au Lot 6. */}
-            <span className="relative flex size-11 items-center justify-center">
-              <Bell className="size-5" aria-hidden="true" />
-              <span className="sr-only">{fr.shell.notifications(String(unread))}</span>
-              {unread > 0 ? (
-                <span
-                  aria-hidden="true"
-                  className="absolute top-1.5 right-1.5 flex min-w-4 items-center justify-center rounded-full bg-accent px-1 text-[0.625rem] font-bold text-white"
-                >
-                  {unread}
-                </span>
-              ) : null}
-            </span>
+            {/* Une cloche par espace : le compteur et la liste suivent l'espace actif. */}
+            <NotificationBell key={activeMembership.id} initialUnread={unread} />
 
             <UserMenu firstName={session.user.first_name} onSignOut={signOut} />
           </div>
