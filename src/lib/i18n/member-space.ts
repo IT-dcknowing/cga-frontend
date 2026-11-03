@@ -26,6 +26,20 @@ export const memberSpaceFr = {
     feesIntro: 'Vos échéances, vos paiements et vos reçus ; déclarez ici un paiement fait au CGA.',
     feesLink: 'Voir mes honoraires',
     documentsLink: 'Voir mes documents',
+    // Accueil complet (F-DSH-03, étape 4.8), sans période.
+    next: 'Prochaine échéance',
+    nextNone: 'Aucune échéance à venir.',
+    nextLine: (label: string, date: string) => `${label} — le ${date}`,
+    overdue: (count: string) => `${count} échéance(s) en retard`,
+    seeObligations: 'Voir mes obligations',
+    dues: 'Ce que je dois',
+    taxesDue: 'Impôts dus',
+    socialDue: 'CNPS et CMU dus',
+    month: 'Échéances du mois',
+    monthNone: 'Aucune autre échéance ce mois-ci.',
+    feesBalance: (amount: string) => `Reste à payer : ${amount}`,
+    recentDocuments: 'Documents récents',
+    noDocuments: 'Aucun document pour l’instant.',
   },
   /** `/adherent/documents` (RG-DOC-04 : PDF seulement). */
   documents: {

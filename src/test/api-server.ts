@@ -37,6 +37,7 @@ import { createTemplatesBackend } from './api-templates';
 import { verificationRoute } from './api-verification';
 import type { createReferentialsBackend } from './api-referentials';
 import { createMembersBackend } from './api-members';
+import { createCatalogBackend } from './api-catalog';
 import { createObligationsBackend } from './api-obligations';
 import { createPlanningBackend } from './api-planning';
 
@@ -288,6 +289,7 @@ export function installApiServer({
     },
   }),
   planning = createPlanningBackend(),
+  catalog = createCatalogBackend(),
 }: {
   accounts?: Record<string, ApiAccount>;
   cgas?: Organization[];
@@ -311,6 +313,8 @@ export function installApiServer({
   obligations?: ReturnType<typeof createObligationsBackend>;
   /** Planning des échéances et obligations du centre (étape 4.7). */
   planning?: ReturnType<typeof createPlanningBackend>;
+  /** Catalogue national des obligations (étape 4.9). */
+  catalog?: ReturnType<typeof createCatalogBackend>;
 } = {}) {
   const requests: RecordedRequest[] = [];
   const forced = new Map<string, ApiReply[]>();
@@ -833,8 +837,12 @@ export function installApiServer({
             organizationId: activeOrganizationId(),
           })
         : undefined) ??
-      obligations.route(method, path, parsed.searchParams, body, { allows }) ??
+      obligations.route(method, path, parsed.searchParams, body, {
+        allows,
+        memberId: activeMemberId(),
+      }) ??
       planning.route(method, path, parsed.searchParams, body, { allows }) ??
+      catalog.route(method, path, body, { allows }) ??
       messaging.route(method, path, body, { allows }) ??
       campaigns.route(method, path, body, { allows }) ??
       dues.route(method, path, parsed.searchParams, body, {
@@ -910,6 +918,8 @@ export function installApiServer({
     obligations,
     /** Planning et obligations du centre simulés (`api-planning.ts`). */
     planning,
+    /** Catalogue national simulé (`api-catalog.ts`). */
+    catalog,
     /** Ouvre une session côté serveur, comme un cookie de session encore valide. */
     signIn(phone: string, activeId: string | null = null) {
       signedIn = { phone: normalizePhone(phone), activeId };

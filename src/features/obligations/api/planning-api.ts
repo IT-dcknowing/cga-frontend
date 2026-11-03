@@ -6,7 +6,8 @@ import type { ObligationCategory } from './obligations-api';
 /*
  * Planning des échéances du portefeuille (F-OBL-06, `/cga/obligation-planning`) : lignes regroupées
  * par date et par obligation (adhérents, faites, à faire), indicateur « échéances sous n jours »,
- * adhérents d'une ligne ; obligations du centre lui-même (F-OBL-07, `/cga/center-obligations`).
+ * adhérents d'une ligne, mobilisation des recettes ; obligations du centre lui-même (F-OBL-07,
+ * `/cga/center-obligations`).
  */
 export type PlanningLine = {
   due_date: string;
@@ -51,6 +52,24 @@ export type PlanningMember = {
   };
 };
 
+/** Montants d'une ligne de la mobilisation des recettes (RG-OBL-08). */
+export type RevenueAmounts = {
+  amount_due: number;
+  amount_paid: number;
+  balance: number;
+  recovery_rate: number | null;
+  amounts_to_enter: number;
+};
+
+export type Revenue = {
+  from: string;
+  to: string;
+  totals: RevenueAmounts;
+  natures: (RevenueAmounts & { tax_nature: string; tax_nature_label: string })[];
+  members: (RevenueAmounts & { member: PlanningMember['member'] })[];
+  members_total: number;
+};
+
 export const CENTER_OBLIGATION_KINDS = [
   'tax',
   'cnps',
@@ -91,6 +110,7 @@ export const planningKeys = {
   members: (line: PlanningLine) =>
     ['planning', 'members', line.due_date, line.kind, line.obligation_type_id, line.label] as const,
   center: ['planning', 'center'] as const,
+  revenue: (from: string, to: string) => ['planning', 'revenue', from, to] as const,
 };
 
 function blank(value: string): string | undefined {
@@ -126,6 +146,15 @@ export const planningApi = {
         },
       },
     );
+
+    return data.data;
+  },
+
+  /** Mobilisation des recettes : par nature d'impôt et par contribuable, sur la période. */
+  async revenue(period: { from: string; to: string }): Promise<Revenue> {
+    const { data } = await http.get<ApiItem<Revenue>>('/cga/obligation-planning/revenue', {
+      params: { from: blank(period.from), to: blank(period.to) },
+    });
 
     return data.data;
   },

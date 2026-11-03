@@ -157,6 +157,27 @@ export const obligationsFr = {
       remindHint: (count: string) => `${count} adhérent(s) n’ont pas encore fait le nécessaire.`,
     },
   },
+  revenue: {
+    from: 'Échéances du',
+    to: 'Au',
+    period: (from: string, to: string) => `Échéances de paiement du ${from} au ${to}`,
+    loadError: 'La mobilisation des recettes n’a pas pu être chargée.',
+    empty: 'Aucune échéance de paiement sur cette période.',
+    totals: 'Ensemble du portefeuille',
+    due: 'Dû',
+    paid: 'Payé',
+    balance: 'Reste à recouvrer',
+    rate: 'Taux de recouvrement',
+    noRate: '—',
+    toEnter: (count: string) => `${count} montant(s) dû(s) à saisir, non comptés`,
+    natures: 'Par nature d’impôt',
+    members: 'Par contribuable',
+    membersNote: (shown: string, total: string) =>
+      `Les ${shown} plus gros restes à recouvrer, sur ${total} contribuable(s).`,
+    line: (due: string, paid: string, balance: string) =>
+      `Dû ${due} · payé ${paid} · reste ${balance}`,
+    open: (name: string) => `Ouvrir les obligations de ${name}`,
+  },
   center: {
     tab: 'Obligations du centre',
     caption: 'Obligations du centre',
@@ -191,6 +212,73 @@ export const obligationsFr = {
       submit: 'Enregistrer',
       created: 'Obligation du centre ajoutée.',
       updated: 'Obligation du centre mise à jour.',
+    },
+  },
+  /** Espace adhérent : `/adherent/obligations` (F-OBL-05, RG-OBL-09). */
+  member: {
+    title: 'Mes obligations',
+    loadError: 'Vos obligations n’ont pas pu être chargées.',
+    empty: 'Aucune échéance dans ce bloc.',
+    amountPending: 'Montant dû communiqué par votre CGA',
+    amounts: (due: string, balance: string) => `Montant dû ${due} · reste ${balance}`,
+    pending: 'Déclaré — en attente de confirmation par votre CGA',
+    rejected: (reason: string) => `Votre CGA n’a pas retenu votre déclaration : ${reason}`,
+    declarePaid: 'Signaler comme payé',
+    declareDone: 'Signaler comme fait',
+    payTitle: (label: string) => `Signaler le paiement : ${label}`,
+    doneTitle: (label: string) => `Signaler comme fait : ${label}`,
+    dialogIntro: 'Votre CGA confirmera votre déclaration ou la corrigera.',
+    doneConfirm: 'Vous confirmez avoir fait cette déclaration ?',
+    proofHint: 'Facultative : reçu, quittance ou capture du paiement (PDF, JPEG ou PNG).',
+    submit: 'Signaler',
+    declared: 'Déclaration envoyée : en attente de confirmation par votre CGA.',
+  },
+  /** `/cncga/parametres`, onglet « Catalogue des obligations » (étape 4.9, RG-DATA-01, 04). */
+  catalogVersions: {
+    title: 'Versions du catalogue national',
+    loadError: 'Les versions du catalogue n’ont pas pu être chargées.',
+    empty: 'Aucune version du catalogue chargée.',
+    version: (version: string) => `Version ${version}`,
+    inForce: 'en vigueur',
+    count: (count: string) => `${count} obligation(s)`,
+    loadedAt: (date: string) => `chargée le ${date}`,
+    validatedAt: (date: string) => `validée le ${date}`,
+    validate: (version: string) => `Valider la version ${version}`,
+    validateShort: 'Valider',
+    validateBody: (count: string) =>
+      `${count} obligation(s) provisoire(s) passeront au statut « validé ». Les dossiers ne changent pas.`,
+    validated: (version: string, count: string) =>
+      `Version ${version} validée : ${count} obligation(s).`,
+    importTitle: 'Importer une nouvelle version',
+    importIntro:
+      'Déposez le fichier du catalogue (JSON). L’aperçu montre, en nombres, les effets sur les dossiers de tous les centres ; rien n’est appliqué avant votre confirmation.',
+    file: 'Fichier du catalogue',
+    fileHint: 'Format JSON du catalogue des obligations.',
+    fileRequired: 'Choisissez le fichier du catalogue.',
+    analyse: 'Analyser',
+    apply: (version: string) => `Appliquer la version ${version}`,
+    applied: (version: string, loaded: string, suggested: string) =>
+      `Version ${version} appliquée : ${loaded} obligation(s) chargée(s), ${suggested} proposition(s) faite(s) aux dossiers.`,
+    confirm: {
+      title: (version: string) => `Appliquer la version ${version} ?`,
+      body: (members: string) =>
+        `${members} dossier(s) suivis seront mis à jour : propositions, retraits et échéances recalculées.`,
+    },
+    preview: {
+      title: (version: string) => `Aperçu de la version ${version}`,
+      added: (count: string, codes: string) =>
+        `Obligations ajoutées : ${count}${codes === '' ? '' : ` (${codes})`}`,
+      removed: (count: string, codes: string) =>
+        `Obligations retirées : ${count}${codes === '' ? '' : ` (${codes})`}`,
+      changed: (count: string, detail: string) =>
+        `Obligations modifiées : ${count}${detail === '' ? '' : ` — ${detail}`}`,
+      unchanged: (count: string) => `Inchangées : ${count}`,
+      members: (members: string, organizations: string) =>
+        `Dossiers concernés : ${members}, dans ${organizations} centre(s)`,
+      suggested: (count: string) => `Nouvelles propositions : ${count}`,
+      withdrawn: (count: string) => `Propositions retirées : ${count}`,
+      ended: (count: string) => `Obligations arrêtées : ${count}`,
+      rescheduled: (count: string) => `Échéances recalculées : ${count}`,
     },
   },
   catalog: {
