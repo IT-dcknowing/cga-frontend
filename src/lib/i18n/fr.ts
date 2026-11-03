@@ -1,7 +1,11 @@
 import { cgaSettingsFr } from './cga-settings';
+import { communicationsFr } from './communications';
+import { duesFr } from './dues';
 import { memberSpaceFr } from './member-space';
 import { invoicesFr } from './invoices';
 import { membersFr } from './members';
+import { messagingFr } from './messaging';
+import { notificationsFr } from './notifications';
 import { permissionsFr } from './permissions';
 import { referenceDataFr } from './reference-data';
 import { referentialsFr } from './referentials';
@@ -135,6 +139,20 @@ export const fr = {
       certified: 'Certifiée',
       rejected: 'Rejetée',
       cancelled: 'Annulée',
+    },
+    dues: {
+      due: 'À régler',
+      partial: 'Partielle',
+      paid: 'À jour',
+      unpaid: 'Impayée',
+    },
+    campaign: {
+      draft: 'Brouillon',
+      pending_approval: 'En attente de validation',
+      approved: 'Validé',
+      sending: 'Envoi en cours',
+      sent: 'Envoyé',
+      rejected: 'Refusé',
     },
   },
   errors: {
@@ -530,12 +548,17 @@ export const fr = {
   referenceData: referenceDataFr,
   templates: templatesFr,
   invoices: invoicesFr,
+  notifications: notificationsFr,
+  dues: duesFr,
+  communications: communicationsFr,
+  messaging: messagingFr,
   /** `/plateforme` (03-APPFLOW §6). */
   platform: {
     tabs: {
       droits: 'Droits du réseau',
       utilisateurs: 'Utilisateurs CNCGA',
       reseau: 'Paramètres réseau',
+      envois: 'Envois',
       donnees: 'Données de référence',
       modeles: 'Modèles de documents',
     },
@@ -555,6 +578,7 @@ export const fr = {
       references: 'Références nationales',
       feries: 'Jours fériés',
       reseau: 'Paramètres réseau',
+      identite: 'Identité du CNCGA',
     },
   },
   demo: {

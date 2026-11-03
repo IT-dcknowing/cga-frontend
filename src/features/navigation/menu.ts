@@ -89,7 +89,7 @@ export const cncgaMenu: MenuEntry[] = [
     path: '/cncga/parametres',
     label: fr.nav.settings,
     icon: Settings,
-    permissions: [cncga.referentials, cncga.users, cncga.settings],
+    permissions: [cncga.referentials, cncga.users, cncga.settings, cncga.profile],
   },
 ];
 
@@ -134,9 +134,8 @@ export const cgaMenu: MenuEntry[] = [
     icon: Megaphone,
     permissions: [cga.communications],
   },
-  // Le catalogue n'a pas encore de droit propre à la cotisation du centre (Lot 6) : l'entrée suit
-  // la fiche du centre, ouverte au gérant et à l'expert-comptable, comme le veut 03-APPFLOW §4.1.
-  { path: '/cga/cotisation', label: fr.nav.dues, icon: Wallet, permissions: [cga.profile] },
+  // Cotisation du centre au CNCGA (F-COT-06) : gérant et expert-comptable (03-APPFLOW §4.1).
+  { path: '/cga/cotisation', label: fr.nav.dues, icon: Wallet, permissions: [cga.dues] },
   {
     path: '/cga/gestion-interne',
     label: fr.nav.internal,

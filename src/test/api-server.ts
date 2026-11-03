@@ -23,10 +23,14 @@ import {
   type ApiReply,
   type Input,
 } from './api-replies';
-import { createCgaBackend } from './api-cga';
+import { createCgaBackend, demoNetworkProfile } from './api-cga';
 import { createImportsBackend } from './api-imports';
 import { createInvoicesBackend } from './api-invoices';
 import { createMemberFinanceBackend } from './api-member-finance';
+import { createCampaignsBackend } from './api-campaigns';
+import { createDuesBackend } from './api-dues';
+import { createMessagingBackend } from './api-messaging';
+import { createNotificationsBackend } from './api-notifications';
 import { createPermissionsBackend } from './api-permissions';
 import { createReferenceDataBackend } from './api-reference-data';
 import { createTemplatesBackend } from './api-templates';
@@ -267,6 +271,11 @@ export function installApiServer({
   memberFinance = createMemberFinanceBackend(),
   templates = createTemplatesBackend(),
   invoices = createInvoicesBackend(),
+  notifications = createNotificationsBackend(),
+  messaging = createMessagingBackend(),
+  dues = createDuesBackend(),
+  campaigns = createCampaignsBackend(),
+  networkProfile = createCgaBackend(demoNetworkProfile(), { profileOf: 'network' }),
 }: {
   accounts?: Record<string, ApiAccount>;
   cgas?: Organization[];
@@ -280,6 +289,12 @@ export function installApiServer({
   memberFinance?: ReturnType<typeof createMemberFinanceBackend>;
   templates?: ReturnType<typeof createTemplatesBackend>;
   invoices?: ReturnType<typeof createInvoicesBackend>;
+  notifications?: ReturnType<typeof createNotificationsBackend>;
+  messaging?: ReturnType<typeof createMessagingBackend>;
+  dues?: ReturnType<typeof createDuesBackend>;
+  campaigns?: ReturnType<typeof createCampaignsBackend>;
+  /** Fiche du CNCGA (`/network/profile`, étape 6.9). */
+  networkProfile?: ReturnType<typeof createCgaBackend>;
 } = {}) {
   const requests: RecordedRequest[] = [];
   const forced = new Map<string, ApiReply[]>();
@@ -793,6 +808,21 @@ export function installApiServer({
     const path = parsed.pathname.replace(/^.*\/api\/v1/, '');
 
     return (
+      notifications.route(method, path, parsed.searchParams, {
+        membershipId: signedIn?.activeId ?? null,
+      }) ??
+      (path.startsWith('/network/profile')
+        ? networkProfile.route(method, path, parsed.searchParams, body, {
+            allows,
+            organizationId: activeOrganizationId(),
+          })
+        : undefined) ??
+      messaging.route(method, path, body, { allows }) ??
+      campaigns.route(method, path, body, { allows }) ??
+      dues.route(method, path, parsed.searchParams, body, {
+        allows,
+        organizationId: activeOrganizationId(),
+      }) ??
       imports.route(method, path, body, { allows }) ??
       rights.route(method, path, parsed.searchParams, body, { allows }) ??
       referenceData.route(method, path, body, { allows }) ??

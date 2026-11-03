@@ -84,9 +84,19 @@ function agentPath(scope: AgentScope, id?: string, action?: string): string {
     .join('/');
 }
 
+/**
+ * Fiche de l'organisation de l'espace actif : celle d'un CGA (`/cga/profile`, F-ORG-03) ou celle du CNCGA
+ * (`/network/profile`, étape 6.9), émetteur des reçus et factures de cotisation.
+ */
+export type ProfileScope = 'cga' | 'network';
+
+function profilePath(scope: ProfileScope): string {
+  return scope === 'network' ? '/network/profile' : '/cga/profile';
+}
+
 export const cgaApi = {
-  async profile(): Promise<CgaProfile> {
-    const { data } = await http.get<ApiItem<CgaProfile>>('/cga/profile', {
+  async profile(scope: ProfileScope = 'cga'): Promise<CgaProfile> {
+    const { data } = await http.get<ApiItem<CgaProfile>>(profilePath(scope), {
       // Lu par la coque pour ses bandeaux : un agent sans le droit ne voit simplement rien.
       skipErrorToast: [403],
     });
@@ -94,17 +104,17 @@ export const cgaApi = {
     return data.data;
   },
 
-  updateProfile: (input: CgaProfileInput) =>
+  updateProfile: (input: Partial<CgaProfileInput>, scope: ProfileScope = 'cga') =>
     withApiErrors(async () => {
-      const { data } = await http.put<ApiItem<CgaProfile>>('/cga/profile', input);
+      const { data } = await http.put<ApiItem<CgaProfile>>(profilePath(scope), input);
 
       return data.data;
     }),
 
-  uploadImage: (kind: ImageKind, image: File) =>
+  uploadImage: (kind: ImageKind, image: File, scope: ProfileScope = 'cga') =>
     withApiErrors(async () => {
       const { data } = await http.post<ApiItem<CgaProfile>>(
-        `/cga/profile/images/${kind}`,
+        `${profilePath(scope)}/images/${kind}`,
         toFormData({ image }),
       );
 
