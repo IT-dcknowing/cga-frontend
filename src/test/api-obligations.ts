@@ -26,7 +26,8 @@ import {
  * (faite, montant dû, paiement, diligence, déclaration de l'adhérent à confirmer ou rejeter, autre
  * administration). Droits : `members.view` (lecture), `obligations.manage` (gestion).
  */
-type Context = { allows: (permission: string) => boolean };
+/** `memberId` : dossier de l'accès adhérent actif (`TenantContext::memberId()`). */
+type Context = { allows: (permission: string) => boolean; memberId?: string | null };
 
 /** Ce que le moteur lit du dossier : régime et effectif. */
 export type MemberFacts = { regime: string; employees_count: number | null };
@@ -48,6 +49,7 @@ export const demoInstanceIds = {
   cnps: '01oin00000000000000000cnps',
   cmu: '01oin000000000000000000cmu',
   visit: '01oin0000000000000000visit',
+  cnpsDeclaration: '01oin00000000000000000cnpd',
 };
 
 const CATEGORY_LABELS: Record<ObligationCategory, string> = {
@@ -302,6 +304,17 @@ export function demoInstances(): ObligationInstance[] {
       ],
     }),
     instance({
+      id: demoInstanceIds.cnpsDeclaration,
+      label: 'Déclaration CNPS — octobre 2026',
+      category: 'cnps',
+      kind: 'declaration',
+      platform: 'e-CNPS',
+      period_label: '2026-10',
+      period_start: '2026-10-01',
+      period_end: '2026-10-31',
+      due_date: '2026-11-15',
+    }),
+    instance({
       id: demoInstanceIds.cmu,
       label: 'CMU — octobre 2026',
       category: 'cmu',
@@ -456,6 +469,129 @@ export function createObligationsBackend({
         review_declaration: live && item.member_declared_status !== null,
       },
     };
+  }
+
+  /** Ligne vue de l'espace adhérent : seule action, « Signaler comme fait / payé » (RG-OBL-09). */
+  function memberView(item: ObligationInstance): ObligationInstance {
+    const declarable =
+      item.member_declared_status === null &&
+      ((item.kind === 'declaration' && item.status === 'todo') ||
+        (item.kind === 'payment' && ['to_pay', 'partially_paid'].includes(item.status)));
+
+    return { ...item, status_label: STATUS_LABELS[item.status], can: { declare: declarable } };
+  }
+
+  function memberRoute(method: string, path: string, body: unknown, context: Context): ApiReply {
+    if (
+      !context.allows('member.obligations.view') ||
+      context.memberId === null ||
+      context.memberId === undefined
+    ) {
+      return forbidden;
+    }
+    const memberId = context.memberId;
+    const list = (schedules.get(memberId) ?? []).filter((item) => item.status !== 'cancelled');
+
+    if (method === 'GET' && path === '/member/obligations') {
+      return { status: 200, data: { data: list.map(memberView), summary: summaryOf(list) } };
+    }
+    const target = list.find(
+      (item) => item.id === /^\/member\/obligations\/([^/]+)\/declare$/.exec(path)?.[1],
+    );
+
+    if (method !== 'POST' || target === undefined) {
+      return notFound;
+    }
+    if (!context.allows('member.obligations.declare')) {
+      return forbidden;
+    }
+    if (target.member_declared_status !== null) {
+      return conflict(
+        'member_declaration_pending',
+        'Une déclaration attend déjà la confirmation de votre CGA.',
+      );
+    }
+    if (target.kind === 'diligence') {
+      return conflict('instance_not_declarable', 'Cette échéance ne se déclare pas.');
+    }
+    const declared = {
+      member_declared_at: `${TODAY}T10:00:00Z`,
+      member_declaration_rejection: null,
+    };
+
+    if (target.kind === 'declaration') {
+      if (target.status !== 'todo') {
+        return conflict('instance_already_done', 'Cette déclaration est déjà faite.');
+      }
+
+      return ok(
+        memberView(
+          saveRaw(memberId, {
+            ...target,
+            ...declared,
+            member_declared_status: 'done',
+            member_declared_status_label: 'Déclarée faite',
+          }),
+        ),
+      );
+    }
+    const input = formInput(body);
+    const amount = integer(input, 'amount');
+
+    if (amount === null || Number.isNaN(amount) || amount < 1) {
+      return invalid({ amount: 'Le montant doit être un entier positif.' });
+    }
+    if (text(input, 'paid_on') === '') {
+      return invalid({ paid_on: 'Le champ date du paiement est obligatoire.' });
+    }
+    if (target.balance !== null && amount > target.balance) {
+      return conflict(
+        'obligation_payment_exceeds_balance',
+        `Le paiement dépasse le reste dû (${String(target.balance)} F CFA).`,
+      );
+    }
+
+    return ok(
+      memberView(
+        saveRaw(memberId, {
+          ...target,
+          ...declared,
+          member_declared_status: 'paid',
+          member_declared_status_label: 'Déclarée payée',
+          payments: [
+            ...target.payments,
+            {
+              id: nextId('01opy'),
+              amount,
+              paid_on: text(input, 'paid_on'),
+              source: 'member_declaration',
+              source_label: 'Déclaration de l’adhérent',
+              status: 'pending_confirmation',
+              status_label: 'À confirmer',
+              confirmed_at: null,
+              proof:
+                input.proof instanceof File
+                  ? {
+                      id: nextId('01fil'),
+                      name: input.proof.name,
+                      url: `https://files.test/${input.proof.name}`,
+                    }
+                  : null,
+            },
+          ],
+        }),
+      ),
+    );
+  }
+
+  /** Enregistre la ligne telle quelle (déclaration de l'adhérent : montants inchangés). */
+  function saveRaw(memberId: string, updated: ObligationInstance): ObligationInstance {
+    schedules.set(
+      memberId,
+      (schedules.get(memberId) ?? []).map((item) => (item.id === updated.id ? updated : item)),
+    );
+
+    return updated;
   }
 
   function saveInstance(memberId: string, updated: ObligationInstance): ObligationInstance {
@@ -856,6 +992,9 @@ export function createObligationsBackend({
     body: unknown,
     context: Context,
   ): ApiReply | undefined {
+    if (path.startsWith('/member/obligations')) {
+      return memberRoute(method, path, body, context);
+    }
     if (path.startsWith('/cga/obligation-types')) {
       if (!context.allows('members.view') && !context.allows('obligations.manage')) {
         return forbidden;

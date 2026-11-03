@@ -2,6 +2,7 @@ import type {
   CenterObligation,
   PlanningLine,
   PlanningMember,
+  Revenue,
 } from '@/features/obligations/api/planning-api';
 import { demoObligationTypeIds } from './api-obligations';
 import { forbidden, invalid, notFound, ok, text, type ApiReply, type Input } from './api-replies';
@@ -17,7 +18,9 @@ type Context = { allows: (permission: string) => boolean };
 
 const KINDS = { declaration: 'Déclaration', payment: 'Paiement', diligence: 'Diligence' };
 
-function line(overrides: Partial<PlanningLine> & Pick<PlanningLine, 'due_date' | 'label'>): PlanningLine {
+function line(
+  overrides: Partial<PlanningLine> & Pick<PlanningLine, 'due_date' | 'label'>,
+): PlanningLine {
   return {
     obligation_type_id: null,
     category: 'tax',
@@ -77,8 +80,18 @@ export function demoPlanningLines(): PlanningLine[] {
   ];
 }
 
-function member(id: string, name: string, number: string, status: string, declared: string | null = null): PlanningMember {
-  const labels: Record<string, string> = { to_pay: 'À payer', paid: 'Payé', not_established: 'Non établie' };
+function member(
+  id: string,
+  name: string,
+  number: string,
+  status: string,
+  declared: string | null = null,
+): PlanningMember {
+  const labels: Record<string, string> = {
+    to_pay: 'À payer',
+    paid: 'Payé',
+    not_established: 'Non établie',
+  };
 
   return {
     instance_id: `01oin9${id.slice(-20)}`,
@@ -103,6 +116,55 @@ const MEMBERS: Record<string, PlanningMember[]> = {
     member(demoMemberIds.bamba, 'QUINCAILLERIE BAMBA', '2026-DCK-0002', 'paid'),
   ],
 };
+
+function amounts(due: number, paid: number, toEnter = 0) {
+  return {
+    amount_due: due,
+    amount_paid: paid,
+    balance: due - paid,
+    recovery_rate: due > 0 ? Math.round((paid / due) * 1000) / 10 : null,
+    amounts_to_enter: toEnter,
+  };
+}
+
+/** Mobilisation des recettes (`RevenueMobilization`) : TEE, CNPS ; trois contribuables. */
+export function demoRevenue(from: string, to: string): Revenue {
+  // Sans échéance de paiement après le 1er octobre 2026.
+  if (from >= '2026-10-01') {
+    return { from, to, totals: amounts(0, 0), natures: [], members: [], members_total: 0 };
+  }
+
+  return {
+    from,
+    to,
+    totals: amounts(120_000, 75_000, 1),
+    natures: [
+      { tax_nature: 'tee', tax_nature_label: 'TEE', ...amounts(75_000, 30_000, 1) },
+      { tax_nature: 'cnps', tax_nature_label: 'CNPS', ...amounts(45_000, 45_000) },
+    ],
+    members: [
+      {
+        member: {
+          id: demoMemberIds.adjoua,
+          company_name: 'BOULANGERIE ADJOUA',
+          membership_number: '2026-DCK-0001',
+          client_number: null,
+        },
+        ...amounts(60_000, 20_000),
+      },
+      {
+        member: {
+          id: demoMemberIds.bamba,
+          company_name: 'QUINCAILLERIE BAMBA',
+          membership_number: '2026-DCK-0002',
+          client_number: null,
+        },
+        ...amounts(15_000, 10_000, 1),
+      },
+    ],
+    members_total: 3,
+  };
+}
 
 const CENTER_KINDS: Record<string, string> = {
   tax: 'Impôts du centre',
@@ -206,7 +268,11 @@ export function createPlanningBackend({
     }
     const amount = input.amount;
 
-    if (amount !== null && amount !== undefined && (!Number.isInteger(amount) || (amount as number) < 0)) {
+    if (
+      amount !== null &&
+      amount !== undefined &&
+      (!Number.isInteger(amount) || (amount as number) < 0)
+    ) {
       errors.amount = 'Le montant doit être un entier positif.';
     }
 
@@ -263,7 +329,13 @@ export function createPlanningBackend({
     return ok(updated);
   }
 
-  function route(method: string, path: string, query: URLSearchParams, body: unknown, context: Context): ApiReply | undefined {
+  function route(
+    method: string,
+    path: string,
+    query: URLSearchParams,
+    body: unknown,
+    context: Context,
+  ): ApiReply | undefined {
     if (path.startsWith('/cga/center-obligations')) {
       return centerRoute(method, path, body, context);
     }
@@ -275,6 +347,14 @@ export function createPlanningBackend({
     }
     if (path === '/cga/obligation-planning') {
       return planning(query);
+    }
+    if (path === '/cga/obligation-planning/revenue') {
+      const from = query.get('from') ?? '2026-01-01';
+      const to = query.get('to') ?? '2026-11-03';
+
+      return to < from
+        ? invalid({ to: 'La date de fin doit être postérieure ou égale à la date de début.' })
+        : ok(demoRevenue(from, to));
     }
     if (path === '/cga/obligation-planning/members') {
       for (const field of ['due_date', 'kind', 'label']) {

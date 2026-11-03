@@ -590,6 +590,7 @@ export const fr = {
       utilisateurs: 'Utilisateurs CNCGA',
       secteurs: 'Secteurs',
       territoire: 'DR, CDI et communes',
+      catalogue: 'Catalogue des obligations',
       references: 'Références nationales',
       feries: 'Jours fériés',
       reseau: 'Paramètres réseau',
