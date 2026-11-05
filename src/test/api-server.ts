@@ -40,6 +40,7 @@ import { createMembersBackend } from './api-members';
 import { createCatalogBackend } from './api-catalog';
 import { createObligationsBackend } from './api-obligations';
 import { createPlanningBackend } from './api-planning';
+import { createPermanentProfileBackend } from './api-permanent-profile';
 
 /*
  * Backend de la plateforme (`backend/`, `/api/v1`) simulé derrière le **vrai** client `http` :
@@ -290,6 +291,7 @@ export function installApiServer({
   }),
   planning = createPlanningBackend(),
   catalog = createCatalogBackend(),
+  permanentProfile = createPermanentProfileBackend(),
 }: {
   accounts?: Record<string, ApiAccount>;
   cgas?: Organization[];
@@ -315,6 +317,7 @@ export function installApiServer({
   planning?: ReturnType<typeof createPlanningBackend>;
   /** Catalogue national des obligations (étape 4.9). */
   catalog?: ReturnType<typeof createCatalogBackend>;
+  permanentProfile?: ReturnType<typeof createPermanentProfileBackend>;
 } = {}) {
   const requests: RecordedRequest[] = [];
   const forced = new Map<string, ApiReply[]>();
@@ -831,6 +834,7 @@ export function installApiServer({
       notifications.route(method, path, parsed.searchParams, {
         membershipId: signedIn?.activeId ?? null,
       }) ??
+      permanentProfile.route(method, path, input, allows) ??
       (path.startsWith('/network/profile')
         ? networkProfile.route(method, path, parsed.searchParams, body, {
             allows,
@@ -920,6 +924,8 @@ export function installApiServer({
     planning,
     /** Catalogue national simulé (`api-catalog.ts`). */
     catalog,
+    /** Fiche permanente du CGA (étape 5.7). */
+    permanentProfile,
     /** Ouvre une session côté serveur, comme un cookie de session encore valide. */
     signIn(phone: string, activeId: string | null = null) {
       signedIn = { phone: normalizePhone(phone), activeId };
