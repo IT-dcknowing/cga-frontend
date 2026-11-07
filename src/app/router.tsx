@@ -1,4 +1,4 @@
-import { Upload, Wallet } from 'lucide-react';
+import { CalendarCheck, Upload, Wallet } from 'lucide-react';
 import type { ComponentType, ReactNode } from 'react';
 import { createBrowserRouter, Navigate, Outlet, type RouteObject } from 'react-router';
 import { authRoutes, spaces, type SpaceKind } from '@/features/auth/lib/destination';
@@ -16,6 +16,8 @@ import {
   RequireMenuEntry,
   RequireSession,
 } from '@/features/auth/session/guards';
+import { ClosingPage } from '@/features/closing/pages/closing-page';
+import { MemberClosingPage } from '@/features/closing/pages/member-closing-page';
 import { CommunicationsPage } from '@/features/communications/pages/communications-page';
 import { NewCampaignPage } from '@/features/communications/pages/new-campaign-page';
 import { DemoPage } from '@/features/demo/pages/demo-page';
@@ -93,6 +95,7 @@ const cncgaScreens: Record<string, MenuScreen> = {
 const cgaScreens: Record<string, MenuScreen> = {
   '/cga/echeances': { element: <PlanningPage /> },
   '/cga/gestion-interne': { element: <InternalPage /> },
+  '/cga/cloture': { element: <ClosingPage /> },
   '/cga/factures': { element: <InvoicesPage /> },
   '/cga/cotisation': { element: <CgaDuesPage /> },
   '/cga/communications': {
@@ -147,6 +150,22 @@ const memberPages: RouteObject[] = [
         }}
       >
         <MemberFeesPage />
+      </RequireMenuEntry>
+    ),
+  },
+  {
+    // Ouvert depuis les rappels de la campagne de clôture (03-APPFLOW §5.2), hors du menu §5.1.
+    path: memberSpaceRoutes.closing,
+    element: (
+      <RequireMenuEntry
+        entry={{
+          path: memberSpaceRoutes.closing,
+          label: fr.closing.memberSpace.title,
+          icon: CalendarCheck,
+          permissions: [permissionCodes.member.closing],
+        }}
+      >
+        <MemberClosingPage />
       </RequireMenuEntry>
     ),
   },

@@ -4,4 +4,6 @@ export const memberSpaceRoutes = {
   documents: '/adherent/documents',
   /** Depuis la carte Honoraires de l'accueil : hors du menu. */
   fees: '/adherent/honoraires',
+  /** Depuis les rappels de la campagne de clôture : hors du menu. */
+  closing: '/adherent/cloture',
 } as const;

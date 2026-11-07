@@ -45,6 +45,8 @@ export const permissionCodes = {
     obligations: 'obligations.manage',
     feeReminders: 'fees.remind',
     closing: 'closing.view',
+    /** Marquer une étape faite, livrable et agent d'un dossier, actions groupées (F-OBL-08). */
+    closingManage: 'closing.manage',
     reports: 'reports.prepare',
     invoices: 'invoices.issue',
     payments: 'member_payments.manage',
@@ -76,6 +78,8 @@ export const permissionCodes = {
     payments: 'member.payments.declare',
     obligations: 'member.obligations.view',
     documents: 'member.documents.view',
+    /** `/adherent/cloture` : étapes de l'exercice et pièces attendues (F-OBL-08). */
+    closing: 'member.closing.view',
     concerns: 'member.concerns.write',
     trainings: 'member.trainings.register',
     bankability: 'member.banking.view',

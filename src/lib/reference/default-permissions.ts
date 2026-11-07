@@ -240,5 +240,6 @@ export const defaultRolePermissions: Record<string, readonly string[]> = {
     'platform.messaging.manage',
     'platform.templates.manage',
     'platform.logs.view',
+    'platform.queues.manage',
   ],
 };

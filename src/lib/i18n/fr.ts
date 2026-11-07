@@ -1,4 +1,5 @@
 import { cgaSettingsFr } from './cga-settings';
+import { closingFr } from './closing';
 import { communicationsFr } from './communications';
 import { duesFr } from './dues';
 import { memberSpaceFr } from './member-space';
@@ -43,7 +44,11 @@ export const fr = {
     emptyPeople: 'Aucun dirigeant ou membre du personnel renseigné.',
     noAccess: 'Vous pouvez consulter cette fiche, mais pas la modifier.',
     kind: 'Catégorie',
-    kinds: { director: 'Dirigeant', employee: 'Salarié permanent', occasional: 'Personnel occasionnel' },
+    kinds: {
+      director: 'Dirigeant',
+      employee: 'Salarié permanent',
+      occasional: 'Personnel occasionnel',
+    },
     name: 'Nom et prénoms',
     nationality: 'Nationalité',
     profession: 'Profession',
@@ -605,6 +610,7 @@ export const fr = {
   communications: communicationsFr,
   messaging: messagingFr,
   obligations: obligationsFr,
+  closing: closingFr,
   /** `/plateforme` (03-APPFLOW §6). */
   platform: {
     tabs: {
