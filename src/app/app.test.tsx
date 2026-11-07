@@ -233,10 +233,11 @@ describe('Droits et erreurs (03-APPFLOW §4.1, §7)', () => {
   });
 
   it('les écrans pas encore construits s’affichent dans la coque, avec leur titre', async () => {
-    // « Formations » (étape 7.5) n'est pas encore construit ; « Messages » l'est depuis l'étape 7.4.
-    await renderSignedIn('adherent@inc.ci', '/adherent/formations');
+    // Le tableau de bord du centre (étape 8.4) n'est pas encore construit ; « Formations » l'est
+    // depuis l'étape 7.5.
+    await renderSignedIn('gerant@dc-knowing.ci', '/cga/tableau-de-bord');
 
-    expect(screen.getByRole('heading', { level: 1, name: fr.nav.trainings })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 1, name: fr.nav.dashboard })).toBeInTheDocument();
     expect(screen.getByText(fr.pending.body)).toBeInTheDocument();
   });
 });

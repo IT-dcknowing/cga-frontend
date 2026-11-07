@@ -1,6 +1,7 @@
 import { cgaSettingsFr } from './cga-settings';
 import { closingFr } from './closing';
 import { concernsFr } from './concerns';
+import { trainingsFr } from './trainings';
 import { communicationsFr } from './communications';
 import { duesFr } from './dues';
 import { memberSpaceFr } from './member-space';
@@ -192,6 +193,24 @@ export const fr = {
       in_review: 'En examen',
       resolved: 'Traitée',
       rejected: 'Rejetée',
+    },
+    training: {
+      draft: 'Brouillon',
+      published: 'Publiée',
+      cancelled: 'Annulée',
+      completed: 'Terminée',
+    },
+    trainingRegistration: {
+      pending_approval: 'En attente de validation',
+      registered: 'Inscrit',
+      waitlisted: 'En liste d’attente',
+      cancelled: 'Désinscrit',
+      rejected: 'Refusée',
+    },
+    trainingPayment: {
+      not_applicable: 'Gratuite',
+      to_pay: 'À payer',
+      paid: 'Payée',
     },
     networkReport: {
       acknowledged: 'Accusé reçu',
@@ -636,6 +655,7 @@ export const fr = {
   settings: settingsFr,
   reports: reportsFr,
   concerns: concernsFr,
+  trainings: trainingsFr,
   /** `/plateforme` (03-APPFLOW §6). */
   platform: {
     tabs: {

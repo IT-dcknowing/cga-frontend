@@ -61,6 +61,15 @@ import { reportRoutes } from '@/features/reports/lib/routes';
 import { NetworkReportsPage } from '@/features/reports/pages/network-reports-page';
 import { ReportPage } from '@/features/reports/pages/report-page';
 import { ReportsPage } from '@/features/reports/pages/reports-page';
+import { MemberTrainingsPage } from '@/features/trainings/pages/member-trainings-page';
+import { NetworkTrainingPage } from '@/features/trainings/pages/network-training-page';
+import { TrainingPage } from '@/features/trainings/pages/training-page';
+import {
+  CgaTrainingsPage,
+  EditTrainingPage,
+  NetworkTrainingsPage,
+  NewTrainingPage,
+} from '@/features/trainings/pages/trainings-pages';
 import { fr } from '@/lib/i18n/fr';
 import { permissionCodes } from '@/lib/reference/permissions';
 
@@ -105,6 +114,14 @@ const cncgaScreens: Record<string, MenuScreen> = {
     element: <NetworkConcernsPage />,
     children: [{ path: ':id', element: <ConcernPage space="network" /> }],
   },
+  '/cncga/formations': {
+    element: <NetworkTrainingsPage />,
+    children: [
+      { path: 'nouvelle', element: <NewTrainingPage space="network" /> },
+      { path: ':id', element: <TrainingPage space="network" /> },
+      { path: ':id/modifier', element: <EditTrainingPage space="network" /> },
+    ],
+  },
 };
 
 const cgaScreens: Record<string, MenuScreen> = {
@@ -114,6 +131,15 @@ const cgaScreens: Record<string, MenuScreen> = {
   '/cga/preoccupations': {
     element: <CgaConcernsPage />,
     children: [{ path: ':id', element: <ConcernPage space="cga" /> }],
+  },
+  '/cga/formations': {
+    element: <CgaTrainingsPage />,
+    children: [
+      { path: 'nouvelle', element: <NewTrainingPage space="cga" /> },
+      { path: 'reseau/:id', element: <NetworkTrainingPage /> },
+      { path: ':id', element: <TrainingPage space="cga" /> },
+      { path: ':id/modifier', element: <EditTrainingPage space="cga" /> },
+    ],
   },
   [reportRoutes.list]: {
     element: <ReportsPage />,
@@ -161,6 +187,7 @@ const memberScreens: Record<string, MenuScreen> = {
     element: <MemberMessagesPage />,
     children: [{ path: ':id', element: <ConcernPage space="member" /> }],
   },
+  '/adherent/formations': { element: <MemberTrainingsPage /> },
 };
 
 /** Écrans de l'espace adhérent hors de son menu (honoraires, depuis l'accueil), sous leur droit. */

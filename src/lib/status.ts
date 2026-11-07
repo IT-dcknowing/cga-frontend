@@ -141,6 +141,27 @@ const TONES = {
     resolved: 'success',
     rejected: 'danger',
   },
+  /** Formation (F-FOR-01) : brouillon en gris, publiée en bleu, terminée en vert, annulée en rouge. */
+  training: {
+    draft: 'neutral',
+    published: 'info',
+    cancelled: 'danger',
+    completed: 'success',
+  },
+  /** Inscription (RG-FOR-03, 05) : à valider ou en liste d'attente en orange, refusée en rouge. */
+  trainingRegistration: {
+    pending_approval: 'warning',
+    registered: 'success',
+    waitlisted: 'warning',
+    cancelled: 'neutral',
+    rejected: 'danger',
+  },
+  /** Paiement d'une formation payante (RG-FOR-06) : à payer en orange, encaissement hors plateforme. */
+  trainingPayment: {
+    not_applicable: 'neutral',
+    to_pay: 'warning',
+    paid: 'success',
+  },
   /** Rapport vu du réseau (RG-RPT-04, RG-RPT-07) : retard en orange, hors délai réglementaire en rouge. */
   networkReport: {
     acknowledged: 'success',
