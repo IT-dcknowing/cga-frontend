@@ -127,6 +127,13 @@ const TONES = {
     sent: 'success',
     rejected: 'danger',
   },
+  /** Rapport trimestriel (F-RPT-04) : Brouillon → Généré → Transmis → Accusé reçu. */
+  report: {
+    draft: 'neutral',
+    generated: 'info',
+    transmitted: 'success',
+    acknowledged: 'success',
+  },
   /** Échéance d'une obligation (RG-OBL-07) : à faire ou à payer en orange, réglée en vert. */
   obligation: {
     todo: 'warning',

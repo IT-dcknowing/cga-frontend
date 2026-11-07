@@ -11,6 +11,7 @@ import { obligationsFr } from './obligations';
 import { permissionsFr } from './permissions';
 import { referenceDataFr } from './reference-data';
 import { referentialsFr } from './referentials';
+import { reportsFr } from './reports';
 import { settingsFr } from './settings';
 import { templatesFr } from './templates';
 
@@ -178,6 +179,12 @@ export const fr = {
     dataStatus: {
       provisional: 'Provisoire',
       validated: 'Validé',
+    },
+    report: {
+      draft: 'Brouillon',
+      generated: 'Généré',
+      transmitted: 'Transmis',
+      acknowledged: 'Accusé reçu',
     },
     invoice: {
       draft: 'Brouillon',
@@ -613,6 +620,7 @@ export const fr = {
   obligations: obligationsFr,
   closing: closingFr,
   settings: settingsFr,
+  reports: reportsFr,
   /** `/plateforme` (03-APPFLOW §6). */
   platform: {
     tabs: {

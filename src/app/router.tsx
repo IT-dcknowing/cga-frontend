@@ -51,6 +51,9 @@ import { PlanningPage } from '@/features/obligations/pages/planning-page';
 import { MemberObligationsPage } from '@/features/member-space/pages/member-obligations-page';
 import { platformRoutes } from '@/features/platform/lib/routes';
 import { PlatformPage } from '@/features/platform/pages/platform-page';
+import { reportRoutes } from '@/features/reports/lib/routes';
+import { ReportPage } from '@/features/reports/pages/report-page';
+import { ReportsPage } from '@/features/reports/pages/reports-page';
 import { fr } from '@/lib/i18n/fr';
 import { permissionCodes } from '@/lib/reference/permissions';
 
@@ -96,6 +99,10 @@ const cgaScreens: Record<string, MenuScreen> = {
   '/cga/echeances': { element: <PlanningPage /> },
   '/cga/gestion-interne': { element: <InternalPage /> },
   '/cga/cloture': { element: <ClosingPage /> },
+  [reportRoutes.list]: {
+    element: <ReportsPage />,
+    children: [{ path: ':id', element: <ReportPage /> }],
+  },
   '/cga/factures': { element: <InvoicesPage /> },
   '/cga/cotisation': { element: <CgaDuesPage /> },
   '/cga/communications': {
