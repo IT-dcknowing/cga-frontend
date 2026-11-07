@@ -159,6 +159,38 @@ function report(overrides: Partial<Stored> & Pick<Stored, 'id' | 'year' | 'quart
   };
 }
 
+/** Graphiques du rapport modernisé (`ReportCharts`) : un de chaque type. */
+export const demoReportCharts = {
+  chart_regimes: {
+    type: 'pie',
+    title: 'Portefeuille CGA par régime',
+    categories: ['TEE', 'RME'],
+    series: { Adhérents: [4, 1] },
+    value_axis: null,
+  },
+  chart_trend: {
+    type: 'line',
+    title: 'Adhérents actifs par trimestre',
+    categories: ['T2 2026', 'T3 2026'],
+    series: { 'Adhérents actifs': [4, 5] },
+    value_axis: 'Adhérents',
+  },
+  chart_movements: {
+    type: 'column',
+    title: 'Nouveaux adhérents et résiliations du trimestre',
+    categories: ['TEE', 'RME'],
+    series: { Nouveaux: [1, 0], Résiliés: [0, 0] },
+    value_axis: 'Adhérents',
+  },
+  chart_rme_natures: {
+    type: 'bar',
+    title: 'Paiements des adhérents RME par nature',
+    categories: ['Patente', 'TVA'],
+    series: { 'Montant (FCFA)': [150000, 1250000] },
+    value_axis: 'Montant (FCFA)',
+  },
+} as const;
+
 export const demoReportStates: ReportStates = {
   period: { year: 2026, quarter: 3, start: '2026-07-01', end: '2026-09-30' },
   sheets: {
@@ -530,6 +562,7 @@ export function createReportsBackend() {
           synthesis:
             'Au 30/09/2026, le portefeuille compte 5 adhérents actifs (+1 sur le trimestre).',
           qualitative_analysis: item.qualitative_analysis,
+          charts: demoReportCharts,
         });
       }
       if (method === 'GET' && action === 'versions') {

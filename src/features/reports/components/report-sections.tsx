@@ -9,6 +9,8 @@ import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Textarea } from '@/components/ui/textarea';
 import { memberRoutes } from '@/features/members/lib/member';
+import { ReportCharts } from '@/features/reports/components/report-charts';
+import { SourceTag } from '@/features/reports/components/report-indicators';
 import {
   reportKeys,
   reportsApi,
@@ -272,6 +274,23 @@ export function SummaryTable({ summary }: { summary: SummarySheet }) {
   );
 }
 
+/** Graphiques des états (section 5), préparés avec l'aperçu du rapport modernisé. */
+function StatesCharts({ reportId }: { reportId: string }) {
+  const query = useQuery({
+    queryKey: reportKeys.preview(reportId),
+    queryFn: () => reportsApi.preview(reportId),
+  });
+
+  if (query.isPending) {
+    return <Skeleton className="h-40 w-full" />;
+  }
+  if (query.isError) {
+    return <p className="text-note text-muted">{labels.charts.loadError}</p>;
+  }
+
+  return <ReportCharts charts={query.data.charts} />;
+}
+
 /** Section 5 : états du portefeuille CGA, en lecture. */
 export function StatesSection({ reportId }: { reportId: string }) {
   const text = labels.states;
@@ -296,7 +315,9 @@ export function StatesSection({ reportId }: { reportId: string }) {
   return (
     <div className="grid gap-4">
       <p className="text-note text-muted">{text.intro}</p>
+      <SourceTag sources={query.data.sources} />
       <SummaryTable summary={sheets.summary} />
+      <StatesCharts reportId={reportId} />
       <ul aria-label={text.sheetsCaption} className="grid gap-1 sm:grid-cols-2">
         {Object.entries(text.sheets).map(([sheet, title]) => {
           const groups = (sheets[sheet] ?? []) as StateGroup[];

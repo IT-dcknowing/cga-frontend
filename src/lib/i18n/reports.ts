@@ -187,6 +187,37 @@ export const reportsFr = {
   acknowledgement: (date: string, reference: string) =>
     `Accusé reçu le ${date} · référence ${reference}`,
   acknowledgementFile: 'Accusé scanné',
+  /** Graphiques des états et du rapport modernisé (étape 5.12). */
+  charts: {
+    title: 'Graphiques du rapport',
+    category: 'Catégorie',
+    loadError: 'Les graphiques n’ont pas pu être préparés.',
+  },
+  /** Indicateur de source des données (RG-RPT-12, étape 5.12). */
+  sources: {
+    flow: 'Source : Compta Flow',
+    manual: 'Source : saisie et import',
+    detail: (revenues: string, payments: string) =>
+      `Chiffres d’affaires : ${revenues}. Paiements du trimestre : ${payments}.`,
+    item: (count: string, source: string) => `${count} de source « ${source} »`,
+    none: 'aucune donnée',
+    kinds: {
+      entry: 'saisie',
+      report: 'rapport',
+      import: 'import',
+      compta_flow: 'Compta Flow',
+      cga_entry: 'saisie du CGA',
+      member_declaration: 'déclaration de l’adhérent',
+      manual: 'saisie',
+    } as Record<string, string>,
+  },
+  /** Synthèse pré-rédigée de l'analyse qualitative (RG-RPT-09, étape 5.12). */
+  synthesis: {
+    propose: 'Proposer la synthèse chiffrée',
+    proposed: 'Synthèse chiffrée reprise : vous pouvez la modifier.',
+    error: 'La synthèse n’a pas pu être préparée.',
+    hint: 'La plateforme rédige une synthèse chiffrée (variations par rapport au trimestre précédent) que vous pouvez modifier.',
+  },
   /** `/cncga/rapports` et onglet « Rapports » de la fiche d'un CGA (étape 5.9, RG-RPT-04). */
   network: {
     title: 'Rapports trimestriels',
@@ -212,7 +243,8 @@ export const reportsFr = {
     summaryHint: 'Feuille Résumé agrégée par CDI, sans aucun nom d’adhérent (RG-RPT-04).',
     summaryError: 'Le tableau de synthèse n’a pas pu être chargé.',
     transmittedOn: (date: string) => `Transmis le ${date}`,
-    tabIntro: 'État de transmission des rapports trimestriels de ce CGA et tableau de synthèse de chaque rapport transmis.',
+    tabIntro:
+      'État de transmission des rapports trimestriels de ce CGA et tableau de synthèse de chaque rapport transmis.',
   },
   versions: {
     title: 'Versions',

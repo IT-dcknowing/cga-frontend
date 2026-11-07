@@ -1,5 +1,5 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Download, Eye, FileCheck2, Send, Stamp, Undo2 } from 'lucide-react';
+import { Download, Eye, FileCheck2, Send, Sparkles, Stamp, Undo2 } from 'lucide-react';
 import { useState } from 'react';
 import { Link, useParams } from 'react-router';
 import { toast } from 'sonner';
@@ -29,6 +29,7 @@ import {
   StatesSection,
   VersionsList,
 } from '@/features/reports/components/report-sections';
+import { DeadlineBanner } from '@/features/reports/components/report-indicators';
 import { reportRoutes } from '@/features/reports/lib/routes';
 import { ApiBusinessError, ApiValidationError } from '@/lib/api-errors';
 import { formatDate, formatTimestampDate } from '@/lib/format';
@@ -54,6 +55,7 @@ function ReportView({ report }: { report: ReportDetail }) {
   const [dialog, setDialog] = useState<Dialog | null>(null);
   const [saveState, setSaveState] = useState<SaveState>('idle');
   const [generating, setGenerating] = useState(false);
+  const [proposing, setProposing] = useState(false);
   const disabled = !report.can.update;
 
   async function save(changes: ReportChanges) {
@@ -73,6 +75,25 @@ function ReportView({ report }: { report: ReportDetail }) {
       } else {
         toastUnexpectedError(error);
       }
+    }
+  }
+
+  async function proposeSynthesis() {
+    setProposing(true);
+    try {
+      const preview = await queryClient.fetchQuery({
+        queryKey: reportKeys.preview(report.id),
+        queryFn: () => reportsApi.preview(report.id),
+      });
+
+      if (preview.synthesis !== null) {
+        await save({ qualitative_analysis: { synthesis: preview.synthesis } });
+        toast.success(labels.synthesis.proposed);
+      }
+    } catch {
+      toast.error(labels.synthesis.error);
+    } finally {
+      setProposing(false);
     }
   }
 
@@ -130,22 +151,14 @@ function ReportView({ report }: { report: ReportDetail }) {
     );
   }
 
-  const deadlineTone = report.is_legally_late ? 'danger' : report.is_late ? 'warning' : 'success';
-
   return (
     <div className="grid gap-4">
-      <Banner tone={deadlineTone} role="status">
-        <span className="grid gap-0.5">
-          <span>
-            {labels.deadline(formatDate(report.deadline), formatDate(report.legal_deadline))}
-          </span>
-          {report.is_legally_late ? (
-            <span className="font-semibold">{labels.legallyLate}</span>
-          ) : report.is_late ? (
-            <span className="font-semibold">{labels.late}</span>
-          ) : null}
-        </span>
-      </Banner>
+      <DeadlineBanner
+        deadline={report.deadline}
+        legalDeadline={report.legal_deadline}
+        isLate={report.is_late}
+        isLegallyLate={report.is_legally_late}
+      />
 
       <Card>
         <CardContent className="grid gap-4">
@@ -299,7 +312,22 @@ function ReportView({ report }: { report: ReportDetail }) {
         <div className="grid gap-3 sm:grid-cols-2">
           {labels.sectionFields.section_6.map((key) => contentField(key))}
         </div>
-        <p className="font-semibold">{labels.qualitative.title}</p>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <p className="font-semibold">{labels.qualitative.title}</p>
+          {disabled ? null : (
+            <Button
+              type="button"
+              size="sm"
+              variant="secondary"
+              disabled={proposing}
+              onClick={() => void proposeSynthesis()}
+            >
+              <Sparkles aria-hidden="true" />
+              {labels.synthesis.propose}
+            </Button>
+          )}
+        </div>
+        {disabled ? null : <p className="text-note text-muted">{labels.synthesis.hint}</p>}
         <div className="grid gap-3">
           {(['synthesis', 'highlights', 'outlook'] as const).map((key) => (
             <ReportField

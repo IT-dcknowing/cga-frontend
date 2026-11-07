@@ -5,8 +5,8 @@ import { httpAuthApi } from '@/features/auth/api/auth-api';
 import { memberRoutes } from '@/features/members/lib/member';
 import { reportRoutes } from '@/features/reports/lib/routes';
 import { fr } from '@/lib/i18n/fr';
-import { demoReportIds } from '@/test/api-reports';
-import { conflict, invalid } from '@/test/api-replies';
+import { demoReportIds, demoReportStates } from '@/test/api-reports';
+import { conflict, invalid, ok } from '@/test/api-replies';
 import {
   apiUrl,
   demoAccounts,
@@ -221,7 +221,7 @@ describe(
       });
 
       expect(await within(preview).findByText('DC-KNOWING CGA')).toBeVisible();
-      expect(within(preview).getByText(/le portefeuille compte 5 adhérents actifs/)).toBeVisible();
+      expect(within(preview).getByText('Le portefeuille progresse de 3 adhérents.')).toBeVisible();
       await user.click(
         within(preview).getAllByRole('button', { name: fr.common.close }).at(-1) as HTMLElement,
       );
@@ -333,13 +333,15 @@ describe('/cga/rapports · refus du serveur (5.8)', { timeout: 30_000 }, () => {
     );
     await user.type(screen.getByLabelText(labels.fields.promotion), 'Néant');
     await user.tab();
-    expect(await screen.findByText('Ce rapport n’est plus modifiable.')).toBeVisible();
+    // Notification éphémère : présente, même pendant son animation d'entrée.
+    expect(await screen.findByText('Ce rapport n’est plus modifiable.')).toBeInTheDocument();
     expect(screen.getByText(labels.saveError)).toBeVisible();
 
     server.failNext('PATCH', path, invalid({ 'content.tools': 'Le texte est trop long.' }));
     await user.type(screen.getByLabelText(labels.fields.tools), ' et tableurs');
     await user.tab();
-    expect(await screen.findByText('Le texte est trop long.')).toBeVisible();
+    // Notification éphémère : présente, même pendant son animation d'entrée.
+    expect(await screen.findByText('Le texte est trop long.')).toBeInTheDocument();
 
     await user.type(screen.getByLabelText(labels.fields.meetings_partners), ' ');
     await user.clear(screen.getByLabelText(labels.fields.promotion));
@@ -354,7 +356,8 @@ describe('/cga/rapports · refus du serveur (5.8)', { timeout: 30_000 }, () => {
       conflict('report_incomplete', 'Le rapport n’est pas complet.'),
     );
     await user.click(screen.getByRole('button', { name: labels.actions.generate }));
-    expect(await screen.findByText('Le rapport n’est pas complet.')).toBeVisible();
+    // Notification éphémère : présente, même pendant son animation d'entrée.
+    expect(await screen.findByText('Le rapport n’est pas complet.')).toBeInTheDocument();
   });
 
   it('transmission refusée (409 puis 422) et aperçu indisponible', async () => {
@@ -404,7 +407,116 @@ describe('/cga/rapports · refus du serveur (5.8)', { timeout: 30_000 }, () => {
     );
     await user.click(await screen.findByRole('button', { name: labels.prepare('4', '2026') }));
 
-    expect(await screen.findByText('Ce rapport existe déjà.')).toBeVisible();
+    // Notification éphémère : présente, même pendant son animation d'entrée.
+    expect(await screen.findByText('Ce rapport existe déjà.')).toBeInTheDocument();
     expect(router.state.location.pathname).toBe(reportRoutes.list);
   });
 });
+
+describe(
+  '/cga/rapports/:id · rapport modernisé (5.12, RG-RPT-09, RG-RPT-12)',
+  { timeout: 30_000 },
+  () => {
+    it('RG-RPT-12 · indicateur de source des données et graphiques des états avec leurs valeurs', async () => {
+      await open(reportRoutes.detail(demoReportIds.q3));
+
+      expect(await screen.findByText(labels.sources.manual)).toBeVisible();
+      expect(
+        screen.getByText(
+          labels.sources.detail(
+            labels.sources.item('4', 'saisie'),
+            labels.sources.item('6', 'saisie'),
+          ),
+        ),
+      ).toBeVisible();
+
+      const charts = await screen.findByRole('region', { name: labels.charts.title });
+      const regimes = within(charts).getByRole('figure', { name: 'Portefeuille CGA par régime' });
+
+      expect(
+        within(regimes).getByRole('table', { name: 'Portefeuille CGA par régime' }),
+      ).toHaveTextContent('TEE4');
+      expect(
+        within(charts).getByRole('figure', { name: 'Adhérents actifs par trimestre' }),
+      ).toBeInTheDocument();
+      expect(
+        within(charts).getByRole('figure', { name: 'Paiements des adhérents RME par nature' }),
+      ).toBeInTheDocument();
+    });
+
+    it('RG-RPT-12 · données Compta Flow signalées', async () => {
+      const { user } = await open(reportRoutes.list);
+
+      server.failNext(
+        'GET',
+        apiUrl(`/cga/quarterly-reports/${demoReportIds.q3}/states`),
+        ok({
+          ...demoReportStates,
+          sources: { revenues: { compta_flow: 3 }, payments: { compta_flow: 2, entry: 1 } },
+        }),
+      );
+      await user.click(
+        await screen.findByRole('link', { name: labels.open('Rapport du 3e trimestre 2026') }),
+      );
+
+      expect(await screen.findByText(labels.sources.flow)).toBeVisible();
+      expect(
+        screen.getByText(
+          labels.sources.detail(
+            labels.sources.item('3', 'Compta Flow'),
+            `${labels.sources.item('2', 'Compta Flow')}, ${labels.sources.item('1', 'saisie')}`,
+          ),
+        ),
+      ).toBeVisible();
+    });
+
+    it('RG-RPT-09 · synthèse chiffrée proposée par la plateforme, reprise puis modifiable ; aperçu du rapport modernisé', async () => {
+      const { user } = await open(reportRoutes.detail(demoReportIds.q3));
+
+      await user.click(await screen.findByRole('button', { name: labels.synthesis.propose }));
+
+      expect(await screen.findByText(labels.synthesis.proposed)).toBeVisible();
+      expect(lastPatch()).toEqual({
+        qualitative_analysis: {
+          synthesis:
+            'Au 30/09/2026, le portefeuille compte 5 adhérents actifs (+1 sur le trimestre).',
+        },
+      });
+      await waitFor(() => {
+        expect(screen.getByLabelText(new RegExp(labels.qualitative.synthesis))).toHaveValue(
+          'Au 30/09/2026, le portefeuille compte 5 adhérents actifs (+1 sur le trimestre).',
+        );
+      });
+
+      await user.click(screen.getByRole('button', { name: labels.actions.preview }));
+      const preview = await screen.findByRole('dialog', {
+        name: labels.preview.title('Rapport du 3e trimestre 2026'),
+      });
+
+      expect(
+        await within(preview).findByRole('table', { name: labels.states.summaryCaption }),
+      ).toBeVisible();
+      expect(
+        within(preview).getByRole('region', { name: labels.charts.title }),
+      ).toBeInTheDocument();
+      expect(within(preview).getByText(labels.qualitative.title)).toBeVisible();
+    });
+
+    it('synthèse indisponible : message, aucun enregistrement', async () => {
+      const { user } = await open(reportRoutes.detail(demoReportIds.q3));
+
+      // Les graphiques de la section 5 ont chargé l'aperçu ; la demande de synthèse le relit.
+      await screen.findByRole('region', { name: labels.charts.title });
+      for (let attempt = 0; attempt < 2; attempt++) {
+        server.failNext('GET', apiUrl(`/cga/quarterly-reports/${demoReportIds.q3}/preview`), {
+          status: 500,
+          data: { message: 'panne' },
+        });
+      }
+      await user.click(screen.getByRole('button', { name: labels.synthesis.propose }));
+
+      expect(await screen.findByText(labels.synthesis.error, {}, { timeout: 5_000 })).toBeVisible();
+      expect(server.requests.some((request) => request.method === 'PATCH')).toBe(false);
+    });
+  },
+);

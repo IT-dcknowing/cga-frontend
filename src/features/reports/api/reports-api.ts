@@ -136,6 +136,15 @@ export type ReportStates = {
   sources: { revenues: Record<string, number>; payments: Record<string, number> };
 };
 
+/** Graphique préparé par le serveur (`ReportCharts`, 02-TRD §8.4). */
+export type ReportChart = {
+  type: 'pie' | 'column' | 'bar' | 'line';
+  title: string;
+  categories: string[];
+  series: Record<string, number[]>;
+  value_axis: string | null;
+};
+
 /** Aperçu du rapport (données du rapport modernisé avant génération). */
 export type ReportPreview = {
   report: {
@@ -149,6 +158,7 @@ export type ReportPreview = {
   states: ReportStates;
   synthesis: string | null;
   qualitative_analysis: Record<string, string | null>;
+  charts: Record<string, ReportChart>;
 };
 
 export type ReportChanges = {

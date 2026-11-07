@@ -13,6 +13,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { TextField } from '@/components/ui/text-field';
 import { Textarea } from '@/components/ui/textarea';
 import { reportKeys, reportsApi, type ReportDetail } from '@/features/reports/api/reports-api';
+import { ReportCharts } from '@/features/reports/components/report-charts';
+import { SummaryTable } from '@/features/reports/components/report-sections';
 import { ApiBusinessError, ApiValidationError } from '@/lib/api-errors';
 import { formatDate } from '@/lib/format';
 import { toastUnexpectedError } from '@/lib/http-error-toast';
@@ -110,12 +112,24 @@ export function PreviewDialog({ report, onClose }: { report: ReportDetail; onClo
                   ),
                 )}
               </dl>
-              {query.data.synthesis === null ? null : (
-                <div className="grid gap-1">
-                  <p className="text-note font-semibold">{text.synthesis}</p>
-                  <p className="whitespace-pre-line text-body">{query.data.synthesis}</p>
-                </div>
-              )}
+              <SummaryTable summary={query.data.states.sheets.summary} />
+              <ReportCharts charts={query.data.charts} />
+              <div className="grid gap-2">
+                <p className="font-semibold">{labels.qualitative.title}</p>
+                {(['synthesis', 'highlights', 'outlook'] as const).map((key) => {
+                  const value =
+                    key === 'synthesis'
+                      ? (query.data.qualitative_analysis.synthesis ?? query.data.synthesis)
+                      : query.data.qualitative_analysis[key];
+
+                  return value === null || value === undefined || value === '' ? null : (
+                    <div key={key} className="grid gap-0.5">
+                      <p className="text-note font-semibold">{labels.qualitative[key]}</p>
+                      <p className="whitespace-pre-line text-body">{value}</p>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           )}
         </DialogBody>
