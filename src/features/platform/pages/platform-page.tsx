@@ -1,9 +1,6 @@
-import { Clock } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useSearchParams } from 'react-router';
 import { PageHeader } from '@/components/layout/page-header';
-import { EmptyState } from '@/components/shared/empty-state';
-import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/features/auth/session/auth-context';
 import { RolesList } from '@/features/permissions/components/roles-list';
@@ -12,15 +9,17 @@ import { NetworkUsersList } from '@/features/platform/components/network-users-l
 import { ReferenceDataPanel } from '@/features/reference-data/components/reference-data-panel';
 import { TemplatesPanel } from '@/features/templates/components/templates-panel';
 import { platformRoutes } from '@/features/platform/lib/routes';
+import { SettingsPanel } from '@/features/settings/components/settings-panel';
 import { fr } from '@/lib/i18n/fr';
 import { oneOf } from '@/lib/list-params';
 
 /*
  * `/plateforme` (03-APPFLOW §6, administrateur de la plateforme) : un onglet par fonction, chacun
- * selon les droits effectifs de `/me`. Les onglets dont l'écran arrive avec une étape suivante, ou
- * dont l'API manque encore, affichent « Bientôt disponible ». L'onglet ouvert vit dans l'adresse.
+ * selon les droits effectifs de `/me` ; « Paramètres réseau » : relances du rapport et calendrier de
+ * clôture (étape 5.13). L'onglet ouvert vit dans l'adresse.
  */
 const labels = fr.platform;
+const NETWORK_GROUPS = ['report', 'closing'];
 
 const TABS = ['droits', 'utilisateurs', 'reseau', 'envois', 'donnees', 'modeles'] as const;
 
@@ -35,25 +34,25 @@ const RIGHTS: Record<Tab, string> = {
   modeles: 'platform.templates.manage',
 };
 
-function Pending() {
-  return (
-    <Card>
-      <CardContent>
-        <EmptyState icon={Clock}>{fr.common.comingSoon}</EmptyState>
-      </CardContent>
-    </Card>
-  );
-}
-
 export function PlatformPage() {
   const { can } = useAuth();
   const [params, setParams] = useSearchParams();
   const visible = TABS.filter((tab) => can(RIGHTS[tab]));
   const tab = oneOf(visible, params.get('onglet')) ?? visible.at(0) ?? 'droits';
 
-  const screens: Partial<Record<Tab, ReactNode>> = {
+  const screens: Record<Tab, ReactNode> = {
     droits: <RolesList level="network" detailPath={platformRoutes.role} />,
     utilisateurs: <NetworkUsersList />,
+    // Paramètres réseau du rapport et de la clôture (étape 5.13, 03-APPFLOW §6).
+    reseau: (
+      <SettingsPanel
+        space="platform"
+        include={(setting) =>
+          setting.levels.includes('network') && NETWORK_GROUPS.includes(setting.group)
+        }
+        intro={fr.settings.platformNetwork.intro}
+      />
+    ),
     envois: <MessagingPanel />,
     donnees: <ReferenceDataPanel />,
     modeles: <TemplatesPanel />,
@@ -78,7 +77,7 @@ export function PlatformPage() {
         </TabsList>
         {visible.map((key) => (
           <TabsContent key={key} value={key}>
-            {screens[key] ?? <Pending />}
+            {screens[key]}
           </TabsContent>
         ))}
       </Tabs>

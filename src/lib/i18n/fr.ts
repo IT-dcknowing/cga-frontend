@@ -11,6 +11,7 @@ import { obligationsFr } from './obligations';
 import { permissionsFr } from './permissions';
 import { referenceDataFr } from './reference-data';
 import { referentialsFr } from './referentials';
+import { settingsFr } from './settings';
 import { templatesFr } from './templates';
 
 /** Libellés de l'interface (02-TRD §5.2) : aucun texte affiché n'est écrit dans un composant. */
@@ -611,6 +612,7 @@ export const fr = {
   messaging: messagingFr,
   obligations: obligationsFr,
   closing: closingFr,
+  settings: settingsFr,
   /** `/plateforme` (03-APPFLOW §6). */
   platform: {
     tabs: {
@@ -638,6 +640,7 @@ export const fr = {
       references: 'Références nationales',
       feries: 'Jours fériés',
       reseau: 'Paramètres réseau',
+      regles: 'Règles du rapport',
       identite: 'Identité du CNCGA',
     },
   },

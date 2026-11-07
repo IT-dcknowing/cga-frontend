@@ -202,7 +202,7 @@ describe('/cga/parametres · Droits par rôle (1.9, F-ADM-05)', JOURNEY, () => {
 });
 
 describe('/plateforme · Droits du réseau (1.9)', JOURNEY, () => {
-  it('onglets de la plateforme selon les droits ; un onglet d’une étape suivante : « Bientôt disponible »', async () => {
+  it('onglets de la plateforme selon les droits ; « Paramètres réseau » (étape 5.13)', async () => {
     await open(`${platformRoutes.root}?onglet=reseau`, 'admin');
 
     expect(
@@ -211,7 +211,8 @@ describe('/plateforme · Droits du réseau (1.9)', JOURNEY, () => {
     expect(screen.getAllByRole('tab').map((tab) => tab.textContent)).toEqual(
       Object.values(fr.platform.tabs),
     );
-    expect(screen.getByText(fr.common.comingSoon)).toBeVisible();
+    // Tous les onglets ont leur écran : « Paramètres réseau » remplace « Bientôt disponible ».
+    expect(await screen.findByText(fr.settings.platformNetwork.intro)).toBeVisible();
   });
 
   it('l’administrateur : rôles du réseau, interface d’un rôle sans liste nominative, retour aux valeurs par défaut', async () => {

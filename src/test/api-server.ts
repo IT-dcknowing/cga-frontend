@@ -41,6 +41,7 @@ import { createCatalogBackend } from './api-catalog';
 import { createObligationsBackend } from './api-obligations';
 import { createPlanningBackend } from './api-planning';
 import { createClosingBackend } from './api-closing';
+import { createSettingsBackend } from './api-settings';
 import { createPermanentProfileBackend } from './api-permanent-profile';
 
 /*
@@ -292,6 +293,7 @@ export function installApiServer({
   }),
   planning = createPlanningBackend(),
   closing = createClosingBackend(),
+  settings = createSettingsBackend(),
   catalog = createCatalogBackend(),
   permanentProfile = createPermanentProfileBackend(),
 }: {
@@ -319,6 +321,8 @@ export function installApiServer({
   planning?: ReturnType<typeof createPlanningBackend>;
   /** Campagne de clôture (étape 4.11). */
   closing?: ReturnType<typeof createClosingBackend>;
+  /** Paramètres du réseau et de la plateforme (étapes 5.6b et 5.13). */
+  settings?: ReturnType<typeof createSettingsBackend>;
   /** Catalogue national des obligations (étape 4.9). */
   catalog?: ReturnType<typeof createCatalogBackend>;
   permanentProfile?: ReturnType<typeof createPermanentProfileBackend>;
@@ -850,6 +854,7 @@ export function installApiServer({
         memberId: activeMemberId(),
       }) ??
       planning.route(method, path, parsed.searchParams, body, { allows }) ??
+      settings.route(method, path, body, { allows }) ??
       closing.route(method, path, parsed.searchParams, body, {
         allows,
         memberId: activeMemberId(),
@@ -932,6 +937,8 @@ export function installApiServer({
     planning,
     /** Campagne de clôture simulée (`api-closing.ts`). */
     closing,
+    /** Paramètres simulés (`api-settings.ts`). */
+    settings,
     /** Catalogue national simulé (`api-catalog.ts`). */
     catalog,
     /** Fiche permanente du CGA (étape 5.7). */

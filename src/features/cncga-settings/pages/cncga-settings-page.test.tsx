@@ -89,7 +89,8 @@ describe('/cncga/parametres · onglets et utilisateurs (1.7)', JOURNEY, () => {
 
     expect(await screen.findByRole('heading', { level: 1, name: fr.nav.settings })).toBeVisible();
     expect(screen.getAllByRole('tab').map((tab) => tab.textContent)).toEqual(Object.values(tabs));
-    expect(screen.getByText(fr.common.comingSoon)).toBeVisible();
+    // Paramètres réseau (étape 5.13) : l'écran des paramètres remplace « Bientôt disponible ».
+    expect(await screen.findByRole('heading', { name: 'Cotisation CNCGA' })).toBeVisible();
     president.unmount();
     server.restore();
 
