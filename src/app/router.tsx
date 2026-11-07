@@ -19,6 +19,12 @@ import {
 import { ClosingPage } from '@/features/closing/pages/closing-page';
 import { MemberClosingPage } from '@/features/closing/pages/member-closing-page';
 import { CommunicationsPage } from '@/features/communications/pages/communications-page';
+import { ConcernPage } from '@/features/concerns/pages/concern-page';
+import {
+  CgaConcernsPage,
+  MemberMessagesPage,
+  NetworkConcernsPage,
+} from '@/features/concerns/pages/concerns-pages';
 import { NewCampaignPage } from '@/features/communications/pages/new-campaign-page';
 import { DemoPage } from '@/features/demo/pages/demo-page';
 import { CgaDuesPage } from '@/features/dues/pages/cga-dues-page';
@@ -95,12 +101,20 @@ const cncgaScreens: Record<string, MenuScreen> = {
   [cncgaSettingsRoutes.root]: { element: <CncgaSettingsPage /> },
   '/cncga/cotisations': { element: <NetworkDuesPage /> },
   '/cncga/rapports': { element: <NetworkReportsPage /> },
+  '/cncga/preoccupations': {
+    element: <NetworkConcernsPage />,
+    children: [{ path: ':id', element: <ConcernPage space="network" /> }],
+  },
 };
 
 const cgaScreens: Record<string, MenuScreen> = {
   '/cga/echeances': { element: <PlanningPage /> },
   '/cga/gestion-interne': { element: <InternalPage /> },
   '/cga/cloture': { element: <ClosingPage /> },
+  '/cga/preoccupations': {
+    element: <CgaConcernsPage />,
+    children: [{ path: ':id', element: <ConcernPage space="cga" /> }],
+  },
   [reportRoutes.list]: {
     element: <ReportsPage />,
     children: [{ path: ':id', element: <ReportPage /> }],
@@ -143,6 +157,10 @@ const memberScreens: Record<string, MenuScreen> = {
   [spaces.member.home]: { element: <MemberHomePage /> },
   [memberSpaceRoutes.documents]: { element: <MemberDocumentsPage /> },
   [memberSpaceRoutes.obligations]: { element: <MemberObligationsPage /> },
+  '/adherent/messages': {
+    element: <MemberMessagesPage />,
+    children: [{ path: ':id', element: <ConcernPage space="member" /> }],
+  },
 };
 
 /** Écrans de l'espace adhérent hors de son menu (honoraires, depuis l'accueil), sous leur droit. */

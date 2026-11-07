@@ -1,5 +1,6 @@
 import { cgaSettingsFr } from './cga-settings';
 import { closingFr } from './closing';
+import { concernsFr } from './concerns';
 import { communicationsFr } from './communications';
 import { duesFr } from './dues';
 import { memberSpaceFr } from './member-space';
@@ -185,6 +186,12 @@ export const fr = {
       generated: 'Généré',
       transmitted: 'Transmis',
       acknowledged: 'Accusé reçu',
+    },
+    concern: {
+      open: 'Ouverte',
+      in_review: 'En examen',
+      resolved: 'Traitée',
+      rejected: 'Rejetée',
     },
     networkReport: {
       acknowledged: 'Accusé reçu',
@@ -628,6 +635,7 @@ export const fr = {
   closing: closingFr,
   settings: settingsFr,
   reports: reportsFr,
+  concerns: concernsFr,
   /** `/plateforme` (03-APPFLOW §6). */
   platform: {
     tabs: {

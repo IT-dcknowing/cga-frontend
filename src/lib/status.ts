@@ -134,6 +134,13 @@ const TONES = {
     transmitted: 'success',
     acknowledged: 'success',
   },
+  /** Préoccupation (PRD M10) : ouverte ou en examen à traiter, traitée en vert, rejetée en rouge. */
+  concern: {
+    open: 'warning',
+    in_review: 'info',
+    resolved: 'success',
+    rejected: 'danger',
+  },
   /** Rapport vu du réseau (RG-RPT-04, RG-RPT-07) : retard en orange, hors délai réglementaire en rouge. */
   networkReport: {
     acknowledged: 'success',

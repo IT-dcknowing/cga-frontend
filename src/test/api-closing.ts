@@ -23,7 +23,8 @@ import { demoMemberIds } from './demo-members';
  * `board` / `report`, `ClosingItemResource`, `ClosingAgentResource`) et `MemberClosingController`,
  * avec les règles de la décision 0006 : étapes dans l'ordre (409 `closing_step_out_of_order`), dépôt
  * légal avec référence et accusé, campagne close en lecture seule. Droits : `closing.view`,
- * `closing.manage`, `member.closing.view`, `member.concerns.write`. Aujourd'hui : 2027-03-10.
+ * `closing.manage`, `member.closing.view` ; le dépôt de pièces passe par les préoccupations (`api-concerns.ts`).
+ * Aujourd’hui : 2027-03-10.
  */
 type Context = { allows: (permission: string) => boolean; memberId?: string | null };
 
@@ -161,7 +162,6 @@ export function createClosingBackend() {
     campaign(demoClosingIds.campaign2025, 2025, 'closed'),
   ];
   const items = demoItems();
-  const deposits: Input[] = [];
 
   function campaignOf(id: string): ClosingCampaign | undefined {
     return campaigns.find((candidate) => candidate.id === id);
@@ -442,7 +442,6 @@ export function createClosingBackend() {
 
   return {
     items: () => items,
-    deposits: () => deposits,
     route(
       method: string,
       path: string,
@@ -476,22 +475,6 @@ export function createClosingBackend() {
             .filter((item) => item.memberId === context.memberId)
             .map((item) => resource(item, false, true)),
         );
-      }
-
-      if (path === '/member/concerns' && method === 'POST') {
-        if (!context.allows('member.concerns.write')) {
-          return forbidden;
-        }
-        const files = Object.values((input.attachments ?? {}) as Input).filter(
-          (value) => value instanceof File,
-        );
-
-        if (text(input, 'subject') === '' || text(input, 'message') === '' || files.length === 0) {
-          return invalid({ attachments: 'Joignez au moins une pièce.' });
-        }
-        deposits.push(input);
-
-        return ok({ id: '01cnc000000000000000000001', category: text(input, 'category') }, 201);
       }
 
       if (!path.startsWith('/cga/closing-campaigns')) {

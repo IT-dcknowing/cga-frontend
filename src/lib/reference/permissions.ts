@@ -51,6 +51,8 @@ export const permissionCodes = {
     invoices: 'invoices.issue',
     payments: 'member_payments.manage',
     concerns: 'concerns.reply',
+    /** « Écrire au CNCGA » et « Transmettre au CNCGA » (F-PRE-03) : gérant, expert-comptable. */
+    concernsNetwork: 'concerns.network.write',
     trainings: 'trainings.cga.manage',
     communications: 'communications.bulk.send',
     /** Valider un envoi groupé au-delà du seuil (RG-COM-01) : le gérant. */

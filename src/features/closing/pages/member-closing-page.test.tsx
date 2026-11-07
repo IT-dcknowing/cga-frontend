@@ -66,14 +66,14 @@ describe('/adherent/cloture (4.11)', { timeout: 30_000 }, () => {
     await user.click(within(dialog).getByRole('button', { name: labels.submit }));
 
     expect(await screen.findByText(labels.sent)).toBeVisible();
+    // Préoccupation « Pièces de clôture » créée chez le CGA, avec son premier message.
     await waitFor(() => {
-      expect(server.closing.deposits()).toHaveLength(1);
+      expect(server.concerns.concerns()[0]).toMatchObject({
+        category: 'closing_pieces',
+        subject: labels.defaultSubject('2026'),
+      });
     });
-    expect(server.closing.deposits()[0]).toMatchObject({
-      category: 'closing_pieces',
-      subject: labels.defaultSubject('2026'),
-      message: 'Grand livre et relevés.',
-    });
+    expect(server.concerns.concerns()[0].messages[0].body).toBe('Grand livre et relevés.');
   });
 
   it('dépôt refusé par le serveur : fichier refusé (422) puis conflit (409) affichés dans la modale', async () => {
@@ -107,7 +107,9 @@ describe('/adherent/cloture (4.11)', { timeout: 30_000 }, () => {
     expect(
       await within(dialog).findByText('Votre dossier est en consultation seule.'),
     ).toBeVisible();
-    expect(server.closing.deposits()).toHaveLength(0);
+    expect(
+      server.concerns.concerns().some((concern) => concern.category === 'closing_pieces'),
+    ).toBe(false);
   });
 
   it('clôture indisponible : bandeau d’erreur', async () => {

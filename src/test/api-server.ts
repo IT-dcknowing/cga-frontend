@@ -43,6 +43,7 @@ import { createPlanningBackend } from './api-planning';
 import { createClosingBackend } from './api-closing';
 import { createSettingsBackend } from './api-settings';
 import { createReportsBackend } from './api-reports';
+import { createConcernsBackend } from './api-concerns';
 import { createPermanentProfileBackend } from './api-permanent-profile';
 
 /*
@@ -296,6 +297,7 @@ export function installApiServer({
   closing = createClosingBackend(),
   settings = createSettingsBackend(),
   reports = createReportsBackend(),
+  concerns = createConcernsBackend(),
   catalog = createCatalogBackend(),
   permanentProfile = createPermanentProfileBackend(),
 }: {
@@ -327,6 +329,8 @@ export function installApiServer({
   settings?: ReturnType<typeof createSettingsBackend>;
   /** Rapports trimestriels du centre (étape 5.8). */
   reports?: ReturnType<typeof createReportsBackend>;
+  /** Préoccupations (étape 7.4). */
+  concerns?: ReturnType<typeof createConcernsBackend>;
   /** Catalogue national des obligations (étape 4.9). */
   catalog?: ReturnType<typeof createCatalogBackend>;
   permanentProfile?: ReturnType<typeof createPermanentProfileBackend>;
@@ -860,6 +864,10 @@ export function installApiServer({
       planning.route(method, path, parsed.searchParams, body, { allows }) ??
       settings.route(method, path, body, { allows }) ??
       reports.route(method, path, parsed.searchParams, body, { allows }) ??
+      concerns.route(method, path, parsed.searchParams, body, {
+        allows,
+        memberId: activeMemberId(),
+      }) ??
       closing.route(method, path, parsed.searchParams, body, {
         allows,
         memberId: activeMemberId(),
@@ -946,6 +954,8 @@ export function installApiServer({
     settings,
     /** Rapports trimestriels simulés (`api-reports.ts`). */
     reports,
+    /** Préoccupations simulées (`api-concerns.ts`). */
+    concerns,
     /** Catalogue national simulé (`api-catalog.ts`). */
     catalog,
     /** Fiche permanente du CGA (étape 5.7). */
