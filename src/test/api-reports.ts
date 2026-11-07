@@ -234,6 +234,108 @@ export const demoReportStates: ReportStates = {
   sources: { revenues: { manual: 4 }, payments: { manual: 6 } },
 };
 
+/** CGA du registre simulé et état de transmission de leurs rapports 2026 (RG-RPT-04, RG-RPT-07). */
+export const demoNetworkReports = {
+  cgas: [
+    { id: '01cga000000000000000000001', name: 'DC-KNOWING CGA', sigle: 'DCK' },
+    { id: '01cga000000000000000000002', name: 'CGA Démo Bouaké', sigle: 'DEMOB' },
+    { id: '01cga000000000000000000003', name: 'CGA Démo Suspendu', sigle: 'DEMOS' },
+  ],
+  statuses: {
+    '01cga000000000000000000001': ['transmitted', 'legally_late', 'late', 'not_transmitted'],
+    '01cga000000000000000000002': ['acknowledged', 'transmitted', 'transmitted', 'not_transmitted'],
+    '01cga000000000000000000003': [
+      'not_transmitted',
+      'not_transmitted',
+      'not_transmitted',
+      'not_transmitted',
+    ],
+  } as Record<string, string[]>,
+};
+
+const NETWORK_LABELS: Record<string, string> = {
+  acknowledged: 'Accusé reçu',
+  transmitted: 'Transmis',
+  legally_late: 'Hors délai réglementaire',
+  late: 'En retard',
+  not_transmitted: 'Non transmis',
+};
+
+/** `/network/quarterly-reports` : état par CGA pour un trimestre, et tableau de synthèse d'un rapport transmis. */
+function networkRoute(
+  method: string,
+  path: string,
+  query: URLSearchParams,
+  context: Context,
+): ApiReply | undefined {
+  if (!path.startsWith('/network/quarterly-reports') || method !== 'GET') {
+    return undefined;
+  }
+  if (!context.allows('reports.network.view')) {
+    return forbidden;
+  }
+  const year = Number(query.get('year'));
+  const quarter = Number(query.get('quarter'));
+  const status = (cgaId: string) =>
+    year === 2026
+      ? (demoNetworkReports.statuses[cgaId]?.[quarter - 1] ?? 'not_transmitted')
+      : 'not_transmitted';
+  const summary = /^\/network\/quarterly-reports\/([^/]+)\/summary$/.exec(path);
+
+  if (summary !== null) {
+    const cga = demoNetworkReports.cgas.find((candidate) => candidate.id === summary[1]);
+
+    if (cga === undefined || !['transmitted', 'acknowledged'].includes(status(cga.id))) {
+      return notFound;
+    }
+
+    return ok({
+      cga: { id: cga.id, name: cga.name },
+      year,
+      quarter,
+      transmitted_at: `${year}-0${quarter * 3}-28T09:00:00Z`,
+      summary: demoReportStates.sheets.summary,
+    });
+  }
+
+  const rows = demoNetworkReports.cgas.map((cga) => {
+    const value = status(cga.id);
+    const sent = value === 'transmitted' || value === 'acknowledged';
+
+    return {
+      cga,
+      status: value,
+      status_label: NETWORK_LABELS[value],
+      version: sent ? 1 : null,
+      transmitted_at: sent ? `${year}-0${quarter * 3}-28T09:00:00Z` : null,
+      acknowledged_at: value === 'acknowledged' ? `${year}-0${quarter * 3}-30` : null,
+    };
+  });
+  const deadlines: Record<number, [string, string]> = {
+    1: [`${year}-04-30`, `${year}-05-15`],
+    2: [`${year}-07-31`, `${year}-08-15`],
+    3: [`${year}-10-31`, `${year}-11-15`],
+    4: [`${year + 1}-01-31`, `${year + 1}-02-15`],
+  };
+
+  return {
+    status: 200,
+    data: {
+      data: rows,
+      meta: {
+        year,
+        quarter,
+        deadline: deadlines[quarter][0],
+        legal_deadline: deadlines[quarter][1],
+        counts: rows.reduce<Record<string, number>>(
+          (counts, row) => ({ ...counts, [row.status]: (counts[row.status] ?? 0) + 1 }),
+          {},
+        ),
+      },
+    },
+  };
+}
+
 export function createReportsBackend() {
   const reports: Stored[] = [
     report({
@@ -340,7 +442,16 @@ export function createReportsBackend() {
 
   return {
     reports: () => reports,
-    route(method: string, path: string, body: unknown, context: Context): ApiReply | undefined {
+    route(
+      method: string,
+      path: string,
+      query: URLSearchParams,
+      body: unknown,
+      context: Context,
+    ): ApiReply | undefined {
+      if (path.startsWith('/network/quarterly-reports')) {
+        return networkRoute(method, path, query, context);
+      }
       if (!path.startsWith('/cga/quarterly-reports')) {
         return undefined;
       }

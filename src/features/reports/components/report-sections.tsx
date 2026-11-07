@@ -16,6 +16,7 @@ import {
   type ReportDetail,
   type ReportDocument,
   type StateGroup,
+  type SummarySheet,
 } from '@/features/reports/api/reports-api';
 import { formatDate, formatTimestampDate } from '@/lib/format';
 import { fr } from '@/lib/i18n/fr';
@@ -220,6 +221,57 @@ export function PeopleTaxesTable({
   );
 }
 
+const SUMMARY_COLUMNS = ['active_tee', 'active_rme', 'new_total', 'terminated_total'] as const;
+
+/** Feuille Résumé : totaux par CDI, sans nom d'adhérent (section 5, et tableau de synthèse du CNCGA). */
+export function SummaryTable({ summary }: { summary: SummarySheet }) {
+  const text = labels.states;
+
+  return (
+    <div className="overflow-x-auto">
+      <table className="w-full text-table">
+        <caption className="text-left font-semibold">{text.summaryCaption}</caption>
+        <thead>
+          <tr className="border-b border-border text-left text-muted">
+            <th scope="col" className="py-2 pr-3">
+              {text.columns.office}
+            </th>
+            {SUMMARY_COLUMNS.map((column) => (
+              <th key={column} scope="col" className="py-2 pr-3 text-right">
+                {text.columns[column]}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {summary.rows.map((row) => (
+            <tr key={row.tax_office?.id ?? 'none'} className="border-b border-border">
+              <th scope="row" className="py-2 pr-3 text-left font-normal">
+                {row.tax_office?.name ?? text.noOffice}
+              </th>
+              {SUMMARY_COLUMNS.map((column) => (
+                <td key={column} className="py-2 pr-3 text-right">
+                  {row[column]}
+                </td>
+              ))}
+            </tr>
+          ))}
+          <tr className="font-semibold">
+            <th scope="row" className="py-2 pr-3 text-left">
+              {text.total}
+            </th>
+            {SUMMARY_COLUMNS.map((column) => (
+              <td key={column} className="py-2 pr-3 text-right">
+                {summary.totals[column]}
+              </td>
+            ))}
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
 /** Section 5 : états du portefeuille CGA, en lecture. */
 export function StatesSection({ reportId }: { reportId: string }) {
   const text = labels.states;
@@ -240,53 +292,11 @@ export function StatesSection({ reportId }: { reportId: string }) {
   }
 
   const { sheets, anomalies } = query.data;
-  const summary = sheets.summary;
-  const columns = ['active_tee', 'active_rme', 'new_total', 'terminated_total'] as const;
 
   return (
     <div className="grid gap-4">
       <p className="text-note text-muted">{text.intro}</p>
-      <div className="overflow-x-auto">
-        <table className="w-full text-table">
-          <caption className="text-left font-semibold">{text.summaryCaption}</caption>
-          <thead>
-            <tr className="border-b border-border text-left text-muted">
-              <th scope="col" className="py-2 pr-3">
-                {text.columns.office}
-              </th>
-              {columns.map((column) => (
-                <th key={column} scope="col" className="py-2 pr-3 text-right">
-                  {text.columns[column]}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {summary.rows.map((row) => (
-              <tr key={row.tax_office?.id ?? 'none'} className="border-b border-border">
-                <th scope="row" className="py-2 pr-3 text-left font-normal">
-                  {row.tax_office?.name ?? text.noOffice}
-                </th>
-                {columns.map((column) => (
-                  <td key={column} className="py-2 pr-3 text-right">
-                    {row[column]}
-                  </td>
-                ))}
-              </tr>
-            ))}
-            <tr className="font-semibold">
-              <th scope="row" className="py-2 pr-3 text-left">
-                {text.total}
-              </th>
-              {columns.map((column) => (
-                <td key={column} className="py-2 pr-3 text-right">
-                  {summary.totals[column]}
-                </td>
-              ))}
-            </tr>
-          </tbody>
-        </table>
-      </div>
+      <SummaryTable summary={sheets.summary} />
       <ul aria-label={text.sheetsCaption} className="grid gap-1 sm:grid-cols-2">
         {Object.entries(text.sheets).map(([sheet, title]) => {
           const groups = (sheets[sheet] ?? []) as StateGroup[];

@@ -134,6 +134,14 @@ const TONES = {
     transmitted: 'success',
     acknowledged: 'success',
   },
+  /** Rapport vu du réseau (RG-RPT-04, RG-RPT-07) : retard en orange, hors délai réglementaire en rouge. */
+  networkReport: {
+    acknowledged: 'success',
+    transmitted: 'success',
+    legally_late: 'danger',
+    late: 'warning',
+    not_transmitted: 'neutral',
+  },
   /** Échéance d'une obligation (RG-OBL-07) : à faire ou à payer en orange, réglée en vert. */
   obligation: {
     todo: 'warning',

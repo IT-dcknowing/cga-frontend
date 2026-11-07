@@ -859,7 +859,7 @@ export function installApiServer({
       }) ??
       planning.route(method, path, parsed.searchParams, body, { allows }) ??
       settings.route(method, path, body, { allows }) ??
-      reports.route(method, path, body, { allows }) ??
+      reports.route(method, path, parsed.searchParams, body, { allows }) ??
       closing.route(method, path, parsed.searchParams, body, {
         allows,
         memberId: activeMemberId(),

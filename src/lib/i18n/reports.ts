@@ -187,6 +187,33 @@ export const reportsFr = {
   acknowledgement: (date: string, reference: string) =>
     `Accusé reçu le ${date} · référence ${reference}`,
   acknowledgementFile: 'Accusé scanné',
+  /** `/cncga/rapports` et onglet « Rapports » de la fiche d'un CGA (étape 5.9, RG-RPT-04). */
+  network: {
+    title: 'Rapports trimestriels',
+    year: 'Année',
+    filter: 'Afficher',
+    filters: {
+      '': 'Tous les CGA',
+      late: 'En retard ou hors délai',
+      not_transmitted: 'Non transmis',
+    } as Record<string, string>,
+    caption: (year: string) => `Transmission des rapports ${year} par CGA`,
+    cga: 'CGA',
+    quarter: (quarter: string) => `T${quarter}`,
+    quarterHeader: (quarter: string, deadline: string, legal: string) =>
+      `T${quarter} — date limite ${deadline}, échéance ${legal}`,
+    loadError: 'L’état des rapports n’a pas pu être chargé.',
+    empty: 'Aucun CGA ne correspond à ce filtre.',
+    openSummary: (cga: string, quarter: string) => `Tableau de synthèse de ${cga}, T${quarter}`,
+    counts: (quarter: string, transmitted: string, total: string) =>
+      `T${quarter} : ${transmitted} / ${total} transmis`,
+    summaryTitle: (cga: string, quarter: string, year: string) =>
+      `Tableau de synthèse — ${cga}, T${quarter} ${year}`,
+    summaryHint: 'Feuille Résumé agrégée par CDI, sans aucun nom d’adhérent (RG-RPT-04).',
+    summaryError: 'Le tableau de synthèse n’a pas pu être chargé.',
+    transmittedOn: (date: string) => `Transmis le ${date}`,
+    tabIntro: 'État de transmission des rapports trimestriels de ce CGA et tableau de synthèse de chaque rapport transmis.',
+  },
   versions: {
     title: 'Versions',
     empty: 'Aucune version générée.',

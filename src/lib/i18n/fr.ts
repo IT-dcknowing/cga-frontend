@@ -186,6 +186,13 @@ export const fr = {
       transmitted: 'Transmis',
       acknowledged: 'Accusé reçu',
     },
+    networkReport: {
+      acknowledged: 'Accusé reçu',
+      transmitted: 'Transmis',
+      legally_late: 'Hors délai réglementaire',
+      late: 'En retard',
+      not_transmitted: 'Non transmis',
+    },
     invoice: {
       draft: 'Brouillon',
       pending_certification: 'En attente de certification',
