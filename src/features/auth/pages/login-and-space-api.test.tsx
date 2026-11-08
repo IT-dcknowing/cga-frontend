@@ -224,7 +224,14 @@ describe('Session gardée par le cookie (02-TRD §6.1, 03-APPFLOW §7)', () => {
     const banner = await screen.findByRole('banner');
     expect(within(banner).getByText('CGA Démo Bouaké')).toBeInTheDocument();
     expect(router.state.location.pathname).toBe(spaceRoutes.cga);
-    expect(calls()).toEqual([`GET ${apiUrl('/me')}`]);
+    // La page d'arrivée charge ses propres chiffres (tableau de bord, étape 8.4) ; la session n'est
+    // relue que par /me, sans nouveau choix d'espace ni autre appel.
+    await waitFor(() => {
+      expect(calls()).toContain(`GET ${apiUrl('/cga/dashboard')}?period=month`);
+    });
+    expect(calls().filter((call) => !call.includes('/cga/dashboard'))).toEqual([
+      `GET ${apiUrl('/me')}`,
+    ]);
   });
 
   it('sans session (401 sur /me), retour à la connexion avec la page demandée', async () => {

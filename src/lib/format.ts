@@ -41,3 +41,29 @@ export function formatTimestamp(timestamp: string): string {
 
   return `${dateFormatter.format(moment)} à ${timeFormatter.format(moment)}`;
 }
+
+const compactFormatter = new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 1 });
+const BILLION = 1_000_000_000;
+const MILLION = 1_000_000;
+
+/**
+ * Grand montant d'un indicateur (04-UX-UI §3) : 4 800 000 → « 4,8 M F », 15 300 000 000 →
+ * « 15,3 Mds F » ; sous le million, le montant entier (`formatAmount`).
+ */
+export function formatCompactAmount(amount: number): string {
+  const size = Math.abs(amount);
+
+  if (size >= BILLION) {
+    return `${compactFormatter.format(amount / BILLION)}${NO_BREAK_SPACE}Mds${NO_BREAK_SPACE}F`;
+  }
+  if (size >= MILLION) {
+    return `${compactFormatter.format(amount / MILLION)}${NO_BREAK_SPACE}M${NO_BREAK_SPACE}F`;
+  }
+
+  return formatAmount(amount);
+}
+
+/** Part entre 0 et 1 → « 58 % » ; une décimale au plus (« 0,4 % »). */
+export function formatRate(rate: number): string {
+  return `${compactFormatter.format(rate * 100)}${NO_BREAK_SPACE}%`;
+}

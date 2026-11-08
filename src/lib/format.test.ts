@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import {
   formatAmount,
+  formatCompactAmount,
   formatDate,
   formatNumber,
+  formatRate,
   formatTimestamp,
   formatTimestampDate,
 } from '@/lib/format';
@@ -49,5 +51,21 @@ describe('formatTimestampDate (RG-GEN-02)', () => {
 
   it('donne la date et l’heure à Abidjan d’un moment de l’API (journal)', () => {
     expect(formatTimestamp('2026-01-14T09:05:00Z')).toBe('14/01/2026 à 09:05');
+  });
+});
+
+describe('formatCompactAmount et formatRate (04-UX-UI §3)', () => {
+  const normal = (text: string) => text.replace(/\s/g, ' ');
+
+  it('grands montants en millions et milliards, avec « F »', () => {
+    expect(normal(formatCompactAmount(4_800_000))).toBe('4,8 M F');
+    expect(normal(formatCompactAmount(15_300_000_000))).toBe('15,3 Mds F');
+    expect(normal(formatCompactAmount(-2_000_000))).toBe('-2 M F');
+    expect(normal(formatCompactAmount(950_000))).toBe('950 000 F');
+  });
+
+  it('parts en pourcentage, une décimale au plus', () => {
+    expect(normal(formatRate(0.58))).toBe('58 %');
+    expect(normal(formatRate(0.004))).toBe('0,4 %');
   });
 });

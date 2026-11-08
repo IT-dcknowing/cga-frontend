@@ -71,6 +71,14 @@ import {
   NewTrainingPage,
 } from '@/features/trainings/pages/trainings-pages';
 import { NetworkCommunicationsPage } from '@/features/announcements/pages/announcements-pages';
+import {
+  CgaDashboardPage,
+  NetworkDashboardPage,
+} from '@/features/statistics/pages/dashboard-pages';
+import {
+  CgaStatisticsPage,
+  NetworkStatisticsPage,
+} from '@/features/statistics/pages/statistics-pages';
 import { fr } from '@/lib/i18n/fr';
 import { permissionCodes } from '@/lib/reference/permissions';
 
@@ -115,6 +123,8 @@ const cncgaScreens: Record<string, MenuScreen> = {
     element: <NetworkConcernsPage />,
     children: [{ path: ':id', element: <ConcernPage space="network" /> }],
   },
+  '/cncga/tableau-de-bord': { element: <NetworkDashboardPage /> },
+  '/cncga/statistiques': { element: <NetworkStatisticsPage /> },
   '/cncga/communications': { element: <NetworkCommunicationsPage /> },
   '/cncga/formations': {
     element: <NetworkTrainingsPage />,
@@ -127,6 +137,8 @@ const cncgaScreens: Record<string, MenuScreen> = {
 };
 
 const cgaScreens: Record<string, MenuScreen> = {
+  '/cga/tableau-de-bord': { element: <CgaDashboardPage /> },
+  '/cga/statistiques': { element: <CgaStatisticsPage /> },
   '/cga/echeances': { element: <PlanningPage /> },
   '/cga/gestion-interne': { element: <InternalPage /> },
   '/cga/cloture': { element: <ClosingPage /> },

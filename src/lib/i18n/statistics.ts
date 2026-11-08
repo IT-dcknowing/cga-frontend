@@ -1,0 +1,132 @@
+/*
+ * Tableaux de bord et statistiques (PRD M15, 03-APPFLOW §3.2 et §4.3, étapes 8.4 et 8.5) :
+ * `/cncga/tableau-de-bord`, `/cga/tableau-de-bord`, `/cncga/statistiques`, `/cga/statistiques`.
+ * Dans `fr.statistics`.
+ */
+export const statisticsFr = {
+  period: {
+    label: 'Période',
+    types: { day: 'Jour', month: 'Mois', year: 'Année', custom: 'Période' } as Record<
+      string,
+      string
+    >,
+    from: 'Du',
+    to: 'Au',
+    view: (label: string) => `Vue : ${label}`,
+    custom: (from: string, to: string) => `du ${from} au ${to}`,
+    computedAt: (date: string) => `Chiffres calculés le ${date}`,
+    notComputed: 'Chiffres pas encore calculés',
+    refresh: 'Actualiser',
+    refreshed: 'Actualisation demandée : les chiffres seront à jour dans quelques minutes',
+  },
+  variation: {
+    up: (value: string) => `+${value} sur un an`,
+    down: (value: string) => `${value} sur un an`,
+    same: 'Stable sur un an',
+    none: 'Pas de comparaison sur un an',
+  },
+  loadError: 'Les chiffres n’ont pas pu être chargés.',
+  dashboard: {
+    title: 'Tableau de bord',
+    alerts: 'Alertes',
+    noAlert: 'Aucune alerte.',
+    duesChart: (year: string) => `Cotisations ${year} par mois`,
+    collected: 'Recouvré',
+    expected: 'Attendu',
+    month: 'Mois',
+    network: {
+      cgas: 'CGA du réseau',
+      cgasValue: (subscribed: string, total: string) => `${subscribed} / ${total}`,
+      cgasSub: 'abonnés / total',
+      dues: 'Cotisations recouvrées',
+      duesSub: (rate: string, year: string) => `${rate} de l’attendu ${year}`,
+      concerns: 'Préoccupations ouvertes',
+      concernsSub: (count: string) => `${count} déposées sur la période`,
+      members: 'Adhérents du réseau',
+    },
+    cga: {
+      members: 'Adhérents actifs',
+      membersSub: (created: string, radiated: string) =>
+        `${created} nouveaux · ${radiated} radiations`,
+      fees: 'Honoraires de la période',
+      feesSub: (paid: string, unpaid: string) => `Encaissé ${paid} · Impayé ${unpaid}`,
+      upcoming: (days: string) => `Échéances sous ${days} jours`,
+      upcomingSub: (members: string) => `${members} adhérents concernés`,
+      report: (quarter: string, year: string) => `Rapport T${quarter} ${year}`,
+      reportSub: 'avancement du rapport du trimestre',
+      noReport: 'Rapport du trimestre',
+      noReportValue: 'Non commencé',
+    },
+  },
+  national: {
+    title: 'Statistiques',
+    coverage: (label: string) => label,
+    macro: {
+      taxRevenue: 'Impôts payés par les adhérents',
+      memberRevenue: 'Chiffre d’affaires déclaré',
+      budget: 'Contribution aux recettes fiscales',
+      gdp: 'Contribution au PIB',
+      settings: 'Saisir les références',
+    },
+    charts: {
+      byCga: 'Impôts payés par CGA',
+      bySector: 'Adhérents par secteur',
+      byRegime: 'Adhérents par régime',
+      byNature: 'Impôts payés par nature',
+      amount: 'Montant (F)',
+      members: 'Adhérents',
+      unspecified: 'Non renseigné',
+    },
+    map: {
+      title: 'Carte économique — chiffre d’affaires des adhérents par Direction régionale',
+      legend: 'Bulles : chiffre d’affaires des adhérents · étiquette : Direction régionale',
+      caption: 'Directions régionales',
+      directorate: 'Direction régionale',
+      cgas: 'CGA',
+      members: 'Adhérents',
+      revenue: 'Chiffre d’affaires',
+      open: (name: string) => `Adhérents de ${name} par commune`,
+      bubble: (name: string, revenue: string, cgas: string, members: string) =>
+        `${name} : ${revenue}, ${cgas} CGA, ${members} adhérents`,
+      unspecified: 'Direction régionale non renseignée',
+    },
+    communes: {
+      caption: 'Adhérents par commune',
+      commune: 'Commune',
+      members: 'Adhérents',
+      empty: 'Aucune commune pour cette Direction régionale.',
+      close: 'Fermer',
+      loadError: 'Le détail par commune n’a pas pu être chargé.',
+    },
+    brochure: {
+      action: 'Exporter la plaquette PDF',
+      title: 'Plaquette statistique',
+      year: 'Année',
+      submit: 'Produire la plaquette',
+      requested: 'Production de la plaquette en cours ; elle apparaîtra dans la liste',
+      history: 'Plaquettes produites',
+      empty: 'Aucune plaquette produite.',
+      download: (name: string) => `Télécharger ${name}`,
+    },
+  },
+  position: {
+    title: 'Statistiques',
+    caption: 'Position du centre dans le réseau',
+    indicator: 'Indicateur',
+    own: 'Mon centre',
+    network: 'Moyenne du réseau',
+    insufficient: (contributors: string, minimum: string) =>
+      `Moyenne masquée : ${contributors} CGA contributeurs, ${minimum} au minimum pour la publier.`,
+    metrics: {
+      active_members: 'Adhérents actifs',
+      new_members: 'Nouveaux adhérents',
+      radiations: 'Radiations',
+      fees_paid: 'Honoraires encaissés',
+      tax_paid_total: 'Impôts payés par les adhérents',
+      declared_revenue: 'Chiffre d’affaires déclaré',
+      concerns_avg_response_hours: 'Délai moyen de réponse aux préoccupations',
+    } as Record<string, string>,
+    hours: (hours: string) => `${hours} h`,
+    none: '—',
+  },
+};

@@ -233,11 +233,21 @@ describe('Droits et erreurs (03-APPFLOW §4.1, §7)', () => {
   });
 
   it('les écrans pas encore construits s’affichent dans la coque, avec leur titre', async () => {
-    // Le tableau de bord du centre (étape 8.4) n'est pas encore construit ; « Formations » l'est
-    // depuis l'étape 7.5.
-    await renderSignedIn('gerant@dc-knowing.ci', '/cga/tableau-de-bord');
+    // Seule la bancabilité (lot 10, sans API à ce jour) reste à construire : elle n'est ouverte qu'à
+    // un centre qui l'a activée.
+    const api = createFakeAuthApi();
+    const session = await openSession(api, 'gerant@dc-knowing.ci');
+    const banking = {
+      ...session,
+      memberships: session.memberships.map((membership) => ({
+        ...membership,
+        organization: { ...membership.organization, banking_enabled: true },
+      })),
+    };
 
-    expect(screen.getByRole('heading', { level: 1, name: fr.nav.dashboard })).toBeInTheDocument();
+    renderApp({ api, session: banking, entry: '/cga/bancabilite' });
+
+    expect(screen.getByRole('heading', { level: 1, name: fr.nav.bankability })).toBeInTheDocument();
     expect(screen.getByText(fr.pending.body)).toBeInTheDocument();
   });
 });

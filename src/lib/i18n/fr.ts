@@ -3,6 +3,7 @@ import { closingFr } from './closing';
 import { concernsFr } from './concerns';
 import { trainingsFr } from './trainings';
 import { announcementsFr } from './announcements';
+import { statisticsFr } from './statistics';
 import { communicationsFr } from './communications';
 import { duesFr } from './dues';
 import { memberSpaceFr } from './member-space';
@@ -662,6 +663,7 @@ export const fr = {
   concerns: concernsFr,
   trainings: trainingsFr,
   announcements: announcementsFr,
+  statistics: statisticsFr,
   /** `/plateforme` (03-APPFLOW §6). */
   platform: {
     tabs: {
