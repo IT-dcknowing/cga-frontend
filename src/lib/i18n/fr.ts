@@ -2,6 +2,7 @@ import { cgaSettingsFr } from './cga-settings';
 import { closingFr } from './closing';
 import { concernsFr } from './concerns';
 import { trainingsFr } from './trainings';
+import { announcementsFr } from './announcements';
 import { communicationsFr } from './communications';
 import { duesFr } from './dues';
 import { memberSpaceFr } from './member-space';
@@ -211,6 +212,10 @@ export const fr = {
       not_applicable: 'Gratuite',
       to_pay: 'À payer',
       paid: 'Payée',
+    },
+    announcement: {
+      unread: 'Nouveau',
+      read: 'Lu',
     },
     networkReport: {
       acknowledged: 'Accusé reçu',
@@ -656,6 +661,7 @@ export const fr = {
   reports: reportsFr,
   concerns: concernsFr,
   trainings: trainingsFr,
+  announcements: announcementsFr,
   /** `/plateforme` (03-APPFLOW §6). */
   platform: {
     tabs: {

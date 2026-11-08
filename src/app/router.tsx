@@ -70,6 +70,7 @@ import {
   NetworkTrainingsPage,
   NewTrainingPage,
 } from '@/features/trainings/pages/trainings-pages';
+import { NetworkCommunicationsPage } from '@/features/announcements/pages/announcements-pages';
 import { fr } from '@/lib/i18n/fr';
 import { permissionCodes } from '@/lib/reference/permissions';
 
@@ -114,6 +115,7 @@ const cncgaScreens: Record<string, MenuScreen> = {
     element: <NetworkConcernsPage />,
     children: [{ path: ':id', element: <ConcernPage space="network" /> }],
   },
+  '/cncga/communications': { element: <NetworkCommunicationsPage /> },
   '/cncga/formations': {
     element: <NetworkTrainingsPage />,
     children: [

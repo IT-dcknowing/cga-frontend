@@ -18,13 +18,14 @@ import { formatDate } from '@/lib/format';
 import { fr } from '@/lib/i18n/fr';
 import { isScreenError, retryUnlessScreenError } from '@/lib/query';
 import { permissionCodes } from '@/lib/reference/permissions';
+import { MemberMessageCard } from '@/features/announcements/components/announcement-lists';
 
 /*
  * `/adherent/accueil` (03-APPFLOW §5.2, F-DSH-03, étapes 2.11 et 4.8) : message d'accueil, prochaine
  * échéance (carte vers les obligations), ce qu'il doit (impôts, CNPS et CMU), échéances du mois,
  * honoraires et leur reste, documents récents, son dossier, l'identité et les contacts de son CGA ;
  * bandeau de fin d'adhésion après une radiation validée (seuls documents et profil restent ouverts).
- * « Message de mon CGA » arrive avec les annonces (Lot 7). Mobile d'abord : une colonne, deux à
+ * « Message de mon CGA » : la dernière annonce de son CGA ou du réseau (étape 7.6). Mobile d'abord : une colonne, deux à
  * partir de 768 px.
  */
 const labels = fr.memberSpace.home;
@@ -94,6 +95,9 @@ export function MemberHomePage() {
 
       <div className="grid gap-4 md:grid-cols-2">
         {!ended && can(permissionCodes.member.obligations) ? <ObligationCards /> : null}
+
+        {/* « Message de mon CGA » (F-DSH-03) : le fil des annonces est fermé à un accès en lecture seule. */}
+        {!ended ? <MemberMessageCard /> : null}
 
         <Card>
           <CardHeader>

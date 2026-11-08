@@ -162,6 +162,11 @@ const TONES = {
     to_pay: 'warning',
     paid: 'success',
   },
+  /** Annonce reçue (F-COM-01, 02) : nouvelle à lire en orange, lue en gris. */
+  announcement: {
+    unread: 'warning',
+    read: 'neutral',
+  },
   /** Rapport vu du réseau (RG-RPT-04, RG-RPT-07) : retard en orange, hors délai réglementaire en rouge. */
   networkReport: {
     acknowledged: 'success',

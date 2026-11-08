@@ -55,6 +55,8 @@ export const permissionCodes = {
     concernsNetwork: 'concerns.network.write',
     trainings: 'trainings.cga.manage',
     communications: 'communications.bulk.send',
+    /** Publier une annonce aux adhérents du centre (F-COM-02) : gérant, expert-comptable. */
+    announcements: 'announcements.cga.publish',
     /** Valider un envoi groupé au-delà du seuil (RG-COM-01) : le gérant. */
     communicationsApprove: 'communications.bulk.approve',
     internal: 'internal.manage',

@@ -45,6 +45,7 @@ import { createSettingsBackend } from './api-settings';
 import { createReportsBackend } from './api-reports';
 import { createConcernsBackend } from './api-concerns';
 import { createTrainingsBackend } from './api-trainings';
+import { createAnnouncementsBackend } from './api-announcements';
 import { createPermanentProfileBackend } from './api-permanent-profile';
 
 /*
@@ -300,6 +301,7 @@ export function installApiServer({
   reports = createReportsBackend(),
   concerns = createConcernsBackend(),
   trainings = createTrainingsBackend(),
+  announcements = createAnnouncementsBackend(),
   catalog = createCatalogBackend(),
   permanentProfile = createPermanentProfileBackend(),
 }: {
@@ -335,6 +337,8 @@ export function installApiServer({
   concerns?: ReturnType<typeof createConcernsBackend>;
   /** Formations (étape 7.5). */
   trainings?: ReturnType<typeof createTrainingsBackend>;
+  /** Annonces (étape 7.6). */
+  announcements?: ReturnType<typeof createAnnouncementsBackend>;
   /** Catalogue national des obligations (étape 4.9). */
   catalog?: ReturnType<typeof createCatalogBackend>;
   permanentProfile?: ReturnType<typeof createPermanentProfileBackend>;
@@ -872,6 +876,12 @@ export function installApiServer({
         allows,
         memberId: activeMemberId(),
       }) ??
+      announcements.route(method, path, parsed.searchParams, body, {
+        allows,
+        organizationId: activeOrganizationId(),
+        memberId: activeMemberId(),
+        membershipId: signedIn?.activeId ?? null,
+      }) ??
       trainings.route(method, path, parsed.searchParams, body, {
         allows,
         organizationId: activeOrganizationId(),
@@ -968,6 +978,8 @@ export function installApiServer({
     concerns,
     /** Formations simulées (`api-trainings.ts`). */
     trainings,
+    /** Annonces simulées (`api-announcements.ts`). */
+    announcements,
     /** Catalogue national simulé (`api-catalog.ts`). */
     catalog,
     /** Fiche permanente du CGA (étape 5.7). */

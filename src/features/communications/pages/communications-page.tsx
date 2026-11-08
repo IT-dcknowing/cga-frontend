@@ -1,5 +1,5 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Clock, Megaphone, Plus } from 'lucide-react';
+import { Megaphone, Plus } from 'lucide-react';
 import { useState, type FormEvent } from 'react';
 import { Link, useSearchParams } from 'react-router';
 import { toast } from 'sonner';
@@ -19,15 +19,21 @@ import {
   campaignsApi,
   type Campaign,
 } from '@/features/communications/api/campaigns-api';
+import {
+  CgaAnnouncementsTab,
+  NewAnnouncementButton,
+} from '@/features/announcements/pages/announcements-pages';
+import { useAuth } from '@/features/auth/session/auth-context';
 import { communicationsRoutes } from '@/features/communications/lib/routes';
 import { ApiBusinessError, ApiValidationError } from '@/lib/api-errors';
 import { formatNumber, formatTimestamp } from '@/lib/format';
 import { toastUnexpectedError } from '@/lib/http-error-toast';
 import { fr } from '@/lib/i18n/fr';
 import { oneOf } from '@/lib/list-params';
+import { permissionCodes } from '@/lib/reference/permissions';
 
 /*
- * `/cga/communications` (03-APPFLOW §4.3, F-COM-03) : onglets Annonces (Lot 7), Envois groupés
+ * `/cga/communications` (03-APPFLOW §4.3, F-COM-02 et 03) : onglets Annonces (étape 7.6), Envois groupés
  * (« Nouvel envoi », quota SMS restant) et Historique des envois (date, objet, canaux, destinataires,
  * délivrance) ; le gérant y valide ou refuse les envois en attente (RG-COM-01).
  */
@@ -189,8 +195,10 @@ function History({ campaigns, canApprove }: { campaigns: Campaign[]; canApprove:
 }
 
 export function CommunicationsPage() {
+  const { can } = useAuth();
   const [params, setParams] = useSearchParams();
   const tab = oneOf(TABS, params.get('onglet')) ?? 'envois';
+  const [announcing, setAnnouncing] = useState(false);
   const query = useQuery({ queryKey: campaignKeys.history, queryFn: () => campaignsApi.history() });
   const pending =
     query.data?.campaigns.filter((campaign) => campaign.status === 'pending_approval') ?? [];
@@ -200,7 +208,16 @@ export function CommunicationsPage() {
       <PageHeader
         title={labels.title}
         actions={
-          query.data?.can.send === true ? (
+          // Une action principale par écran (04-UX-UI §1) : celle de l'onglet ouvert.
+          tab === 'annonces' ? (
+            can(permissionCodes.cga.announcements) ? (
+              <NewAnnouncementButton
+                onClick={() => {
+                  setAnnouncing(true);
+                }}
+              />
+            ) : null
+          ) : query.data?.can.send === true ? (
             <Button asChild>
               <Link to={communicationsRoutes.create}>
                 <Plus aria-hidden="true" />
@@ -256,11 +273,12 @@ export function CommunicationsPage() {
           </>
         )}
         <TabsContent value="annonces">
-          <Card>
-            <CardContent>
-              <EmptyState icon={Clock}>{fr.common.comingSoon}</EmptyState>
-            </CardContent>
-          </Card>
+          <CgaAnnouncementsTab
+            creating={announcing}
+            onClose={() => {
+              setAnnouncing(false);
+            }}
+          />
         </TabsContent>
       </Tabs>
     </>
