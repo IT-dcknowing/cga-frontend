@@ -5,7 +5,6 @@ import { toast } from 'sonner';
 import { PageHeader } from '@/components/layout/page-header';
 import { Banner } from '@/components/ui/banner';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
@@ -44,11 +43,7 @@ export function NetworkTrainingsPage() {
   return (
     <>
       <PageHeader title={labels.networkTitle} actions={<CreateButton space="network" />} />
-      <Card>
-        <CardContent>
-          <TrainingList source="network" />
-        </CardContent>
-      </Card>
+      <TrainingList source="network" />
     </>
   );
 }
@@ -73,18 +68,10 @@ export function CgaTrainingsPage() {
           <TabsTrigger value="reseau">{labels.tabs.network}</TabsTrigger>
         </TabsList>
         <TabsContent value="mes-formations">
-          <Card>
-            <CardContent>
-              <TrainingList source="cga" />
-            </CardContent>
-          </Card>
+          <TrainingList source="cga" />
         </TabsContent>
         <TabsContent value="reseau">
-          <Card>
-            <CardContent>
-              <TrainingList source="catalog" />
-            </CardContent>
-          </Card>
+          <TrainingList source="catalog" />
         </TabsContent>
       </Tabs>
     </>

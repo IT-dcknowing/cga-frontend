@@ -34,7 +34,7 @@ const TONES = {
   /** Import en file « imports » : en attente, en cours, terminé, échoué. */
   importBatch: {
     queued: 'neutral',
-    processing: 'info',
+    processing: 'warning',
     done: 'success',
     failed: 'danger',
   },
@@ -54,7 +54,7 @@ const TONES = {
   },
   /** Document émis (RG-DOC-05, F-DOC-03) : en production, valide, annulé, en échec. */
   document: {
-    generating: 'info',
+    generating: 'warning',
     valid: 'success',
     cancelled: 'danger',
     failed: 'danger',
@@ -105,7 +105,7 @@ const TONES = {
   },
   /** Statut FNE d'une facture (RG-FNE-01 à 04) : seule une facture certifiée se remet. */
   invoice: {
-    draft: 'neutral',
+    draft: 'warning',
     pending_certification: 'warning',
     certified: 'success',
     rejected: 'danger',
@@ -120,33 +120,33 @@ const TONES = {
   },
   /** Envoi groupé (F-COM-03, RG-COM-01) : en attente de validation du gérant au-delà du seuil. */
   campaign: {
-    draft: 'neutral',
+    draft: 'warning',
     pending_approval: 'warning',
-    approved: 'info',
-    sending: 'info',
+    approved: 'success',
+    sending: 'warning',
     sent: 'success',
     rejected: 'danger',
   },
   /** Rapport trimestriel (F-RPT-04) : Brouillon → Généré → Transmis → Accusé reçu. */
   report: {
-    draft: 'neutral',
-    generated: 'info',
+    draft: 'warning',
+    generated: 'warning',
     transmitted: 'success',
     acknowledged: 'success',
   },
-  /** Préoccupation (PRD M10) : ouverte ou en examen à traiter, traitée en vert, rejetée en rouge. */
+  /** Préoccupation (PRD M10) : ouverte ou en examen à traiter (orange), traitée en vert, rejetée en rouge. */
   concern: {
     open: 'warning',
-    in_review: 'info',
+    in_review: 'warning',
     resolved: 'success',
     rejected: 'danger',
   },
-  /** Formation (F-FOR-01) : brouillon en gris, publiée en bleu, terminée en vert, annulée en rouge. */
+  /** Formation (F-FOR-01) : brouillon en orange, publiée en vert, terminée en gris (« Clôturée »), annulée en rouge. */
   training: {
-    draft: 'neutral',
-    published: 'info',
+    draft: 'warning',
+    published: 'success',
     cancelled: 'danger',
-    completed: 'success',
+    completed: 'neutral',
   },
   /** Inscription (RG-FOR-03, 05) : à valider ou en liste d'attente en orange, refusée en rouge. */
   trainingRegistration: {
@@ -178,7 +178,7 @@ const TONES = {
     partially_paid: 'warning',
     paid: 'success',
     not_established: 'warning',
-    in_progress: 'info',
+    in_progress: 'warning',
     established: 'success',
     cancelled: 'neutral',
   },

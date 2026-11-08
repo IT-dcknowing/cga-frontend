@@ -266,6 +266,7 @@ function OpenTrainings() {
             {training.my_registration === null || training.my_registration === undefined ? (
               <Button
                 size="sm"
+                variant="secondary"
                 onClick={() => {
                   setRegistering(training);
                 }}
@@ -381,6 +382,7 @@ function MyRegistrations() {
                 {canEvaluate ? (
                   <Button
                     size="sm"
+                    variant="secondary"
                     onClick={() => {
                       setDialog({ kind: 'evaluate', registration });
                     }}

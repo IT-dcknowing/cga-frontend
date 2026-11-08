@@ -3,6 +3,7 @@ import {
   BarChart,
   CartesianGrid,
   Cell,
+  LabelList,
   Legend,
   Line,
   LineChart,
@@ -20,15 +21,34 @@ import { fr } from '@/lib/i18n/fr';
 /*
  * Graphiques du rapport modernisé (RG-RPT-09, 02-TRD §8.4, étape 5.12), dessinés avec recharts
  * (02-TRD §5.1) d'après les données préparées par le serveur (`ReportCharts`) : secteurs, colonnes,
- * barres ou courbe. Chaque graphique a son titre et, pour les lecteurs d'écran, le tableau de ses
- * valeurs (le dessin est décoratif).
+ * barres ou courbe, aux couleurs de la charte (04-UX-UI §6 « Charts ») : valeurs en étiquette au-dessus
+ * des barres, info-bulle et graduations formatées, légende sous le graphique. Chaque graphique a son
+ * titre et, pour les lecteurs d'écran, le tableau de ses valeurs (le dessin est décoratif).
+ */
+/**
+ * Palette des graphiques (04-UX-UI §6 « Charts ») : barres `primary`, série secondaire, alerte `accent`,
+ * puis `info`, `accent-text`, `muted` — dans l'ordre de `documents.charts.palette` du serveur, pour que
+ * l'aperçu à l'écran et le document généré se ressemblent.
  */
 const COLORS = [
   'var(--color-primary)',
+  'var(--color-chart-secondary)',
   'var(--color-accent)',
   'var(--color-info)',
-  'var(--color-danger)',
+  'var(--color-accent-text)',
+  'var(--color-muted)',
 ];
+
+/** Axes et grilles en `border`, graduations en `muted`. */
+const AXIS = { stroke: 'var(--color-border)', tick: { fill: 'var(--color-muted)', fontSize: 12 } };
+
+/**
+ * Valeur affichée (étiquette, info-bulle, graduation) : séparateur des milliers à la française. Les
+ * graphiques s'affichent sans animation (04-UX-UI §1 : pas d'animation gratuite).
+ */
+function formatValue(value: unknown): string {
+  return formatNumber(Number(value));
+}
 
 function rowsOf(chart: ReportChart): Record<string, string | number>[] {
   const names = Object.keys(chart.series);
@@ -59,13 +79,20 @@ export function ChartDrawing({
 
     return (
       <PieChart width={width} height={height}>
-        <Pie data={rows} dataKey={name} nameKey="category" outerRadius="80%" label>
+        <Pie
+          data={rows}
+          dataKey={name}
+          nameKey="category"
+          outerRadius="80%"
+          isAnimationActive={false}
+          label={({ value }: { value?: unknown }) => formatValue(value)}
+        >
           {rows.map((row, index) => (
             <Cell key={String(row.category)} fill={COLORS[index % COLORS.length]} />
           ))}
         </Pie>
-        <Tooltip />
-        <Legend />
+        <Tooltip formatter={formatValue} />
+        <Legend verticalAlign="bottom" />
       </PieChart>
     );
   }
@@ -73,13 +100,19 @@ export function ChartDrawing({
   if (chart.type === 'line') {
     return (
       <LineChart width={width} height={height} data={rows}>
-        <CartesianGrid strokeDasharray="3 3" />
-        <XAxis dataKey="category" />
-        <YAxis allowDecimals={false} />
-        <Tooltip />
-        <Legend />
+        <CartesianGrid stroke="var(--color-border)" vertical={false} />
+        <XAxis dataKey="category" {...AXIS} />
+        <YAxis allowDecimals={false} tickFormatter={formatValue} {...AXIS} />
+        <Tooltip formatter={formatValue} />
+        <Legend verticalAlign="bottom" />
         {names.map((name, index) => (
-          <Line key={name} type="monotone" dataKey={name} stroke={COLORS[index % COLORS.length]} />
+          <Line
+            key={name}
+            type="monotone"
+            dataKey={name}
+            stroke={COLORS[index % COLORS.length]}
+            isAnimationActive={false}
+          />
         ))}
       </LineChart>
     );
@@ -94,13 +127,35 @@ export function ChartDrawing({
       data={rows}
       layout={horizontal ? 'vertical' : 'horizontal'}
     >
-      <CartesianGrid strokeDasharray="3 3" />
-      {horizontal ? <XAxis type="number" /> : <XAxis dataKey="category" />}
-      {horizontal ? <YAxis type="category" dataKey="category" width={96} /> : <YAxis />}
-      <Tooltip />
-      <Legend />
+      <CartesianGrid stroke="var(--color-border)" vertical={horizontal} horizontal={!horizontal} />
+      {horizontal ? (
+        <XAxis type="number" tickFormatter={formatValue} {...AXIS} />
+      ) : (
+        <XAxis dataKey="category" {...AXIS} />
+      )}
+      {horizontal ? (
+        <YAxis type="category" dataKey="category" width={96} {...AXIS} />
+      ) : (
+        <YAxis tickFormatter={formatValue} {...AXIS} />
+      )}
+      <Tooltip formatter={formatValue} />
+      <Legend verticalAlign="bottom" />
       {names.map((name, index) => (
-        <Bar key={name} dataKey={name} fill={COLORS[index % COLORS.length]} />
+        <Bar
+          key={name}
+          dataKey={name}
+          fill={COLORS[index % COLORS.length]}
+          isAnimationActive={false}
+        >
+          {/* Valeur en étiquette au-dessus de la barre (à droite pour les barres horizontales). */}
+          <LabelList
+            dataKey={name}
+            position={horizontal ? 'right' : 'top'}
+            formatter={formatValue}
+            fill="var(--color-ink)"
+            fontSize={12}
+          />
+        </Bar>
       ))}
     </BarChart>
   );

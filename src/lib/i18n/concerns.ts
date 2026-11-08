@@ -43,12 +43,20 @@ export const concernsFr = {
     caption: 'Demandes',
     empty: 'Aucune demande.',
     loadError: 'Les demandes n’ont pas pu être chargées.',
-    open: (subject: string) => `Ouvrir la demande « ${subject} »`,
-    line: (category: string, date: string, days: string) => `${category} · ${date} · ${days} j`,
     stale: 'Sans réponse depuis 15 j',
     late: 'Délai de réponse dépassé',
     transferred: 'Transmise au CNCGA',
     fromTransfer: 'Transmise par le CGA',
+  },
+  /** En-têtes du tableau des demandes (04-UX-UI §7, gabarit « Liste »). */
+  columns: {
+    subject: 'Objet',
+    requester: 'Demandeur',
+    cga: 'CGA',
+    category: 'Catégorie',
+    opened: 'Ouverte le',
+    openedValue: (date: string, days: string) => `${date} · ${days} j`,
+    status: 'Statut',
   },
   create: {
     cgaAction: 'Écrire au CNCGA',

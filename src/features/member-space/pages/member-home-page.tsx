@@ -78,7 +78,9 @@ export function MemberHomePage() {
   return (
     <div className="grid gap-4">
       <div>
-        <h1 className="text-page-title font-extrabold text-ink">{labels.greeting(firstName)}</h1>
+        <h1 className="text-page-title-mobile font-extrabold text-ink md:text-page-title">
+          {labels.greeting(firstName)}
+        </h1>
         <p className="mt-1 text-body text-muted">{labels.welcome(organization.name)}</p>
       </div>
 

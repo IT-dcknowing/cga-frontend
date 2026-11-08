@@ -36,6 +36,8 @@
   --color-bg: #f4f6f2;
   --color-card: #ffffff;
   --color-neutral-soft: #eef0ed;
+  /* Série secondaire des graphiques (04-UX-UI §6 « Charts ») et bordure des blocs CMU. */
+  --color-chart-secondary: #4e9273;
 
   --color-primary-foreground: #ffffff;
   --color-destructive: var(--color-danger);
@@ -49,6 +51,9 @@
 
   --text-page-title: 1.5rem;
   --text-page-title--line-height: 2rem;
+  /* Titre de page sous 768 px (04-UX-UI §3 : 20 px sur mobile). */
+  --text-page-title-mobile: 1.25rem;
+  --text-page-title-mobile--line-height: 1.75rem;
   --text-card-title: 1rem;
   --text-card-title--line-height: 1.5rem;
   --text-overline: 0.6875rem;

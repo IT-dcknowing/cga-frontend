@@ -35,12 +35,20 @@ export const trainingsFr = {
     caption: 'Formations',
     empty: 'Aucune formation.',
     loadError: 'Les formations n’ont pas pu être chargées.',
-    open: (title: string) => `Ouvrir la formation « ${title} »`,
+    period: 'Période',
     seats: (registered: string, capacity: string) => `${registered} / ${capacity} inscrits`,
     unlimited: (registered: string) => `${registered} inscrits · places illimitées`,
     waitlisted: (count: string) => `${count} en liste d’attente`,
     pending: (count: string) => `${count} à valider`,
-    organizer: (name: string) => `Organisée par ${name}`,
+  },
+  /** En-têtes du tableau des formations (04-UX-UI §7, gabarit « Liste »). */
+  columns: {
+    title: 'Formation',
+    date: 'Date',
+    format: 'Format',
+    organizer: 'Organisateur',
+    seats: 'Places',
+    status: 'Statut',
   },
   create: {
     action: 'Créer une formation',

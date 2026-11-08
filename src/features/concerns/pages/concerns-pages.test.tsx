@@ -40,10 +40,22 @@ async function open(entry: string, who: keyof typeof WHO = 'manager') {
   return { user, ...view };
 }
 
-async function rows(): Promise<HTMLElement[]> {
-  const list = await screen.findByRole('list', { name: labels.list.caption });
+/** Tableau des demandes (`DataTable`), une fois chargé. */
+async function table(scope: Pick<typeof screen, 'findByRole'> = screen): Promise<HTMLElement> {
+  const found = await scope.findByRole('table', { name: labels.list.caption });
 
-  return within(list).getAllByRole('link');
+  await waitFor(() => {
+    expect(found).not.toHaveAttribute('aria-busy');
+  });
+
+  return found;
+}
+
+/** Lignes du tableau des demandes, sans l'en-tête. */
+async function rows(): Promise<HTMLElement[]> {
+  return within(await table())
+    .getAllByRole('row')
+    .slice(1);
 }
 
 describe('/cga/preoccupations (7.4)', { timeout: 30_000 }, () => {
@@ -67,9 +79,7 @@ describe('/cga/preoccupations (7.4)', { timeout: 30_000 }, () => {
     await user.click(screen.getByRole('tab', { name: labels.tabs.sent }));
     const sent = within(screen.getByRole('tabpanel', { name: labels.tabs.sent }));
 
-    expect(
-      await sent.findByRole('link', { name: labels.list.open('Accès à e-impots') }),
-    ).toBeVisible();
+    expect(within(await table(sent)).getByText('Accès à e-impots')).toBeVisible();
   });
 
   it('F-PRE-02 · fil avec note interne, réponse avec pièce jointe, note interne, rejet avec motif', async () => {
@@ -186,7 +196,7 @@ describe('/cga/preoccupations (7.4)', { timeout: 30_000 }, () => {
 
     expect(await screen.findByText(labels.list.loadError, {}, { timeout: 5_000 })).toBeVisible();
     await user.click(screen.getByRole('button', { name: fr.common.retry }));
-    expect(await screen.findByRole('list', { name: labels.list.caption })).toBeVisible();
+    expect(await table()).toBeVisible();
 
     await view.router.navigate(concernRoutes.detail('cga', demoConcernIds.tee));
     const form = await screen.findByRole('form', { name: labels.reply.label });
@@ -325,12 +335,12 @@ describe('Liste des demandes : filtres et pages (7.4)', { timeout: 30_000 }, () 
     const { router } = renderApp({ api: httpAuthApi, session, entry: concernRoutes.list('cga') });
 
     expect(await rows()).toHaveLength(25);
-    await user.click(screen.getByRole('button', { name: fr.referentials.next }));
+    await user.click(screen.getByRole('button', { name: fr.table.next }));
     await waitFor(async () => {
       expect(await rows()).toHaveLength(7);
     });
     expect(router.state.location.search).toBe('?page=2');
-    await user.click(screen.getByRole('button', { name: fr.referentials.previous }));
+    await user.click(screen.getByRole('button', { name: fr.table.previous }));
     await waitFor(async () => {
       expect(await rows()).toHaveLength(25);
     });
@@ -344,7 +354,7 @@ describe('Liste des demandes : filtres et pages (7.4)', { timeout: 30_000 }, () 
       screen.getByRole('combobox', { name: labels.filters.category }),
       'legal',
     );
-    expect(await screen.findByText(labels.list.empty)).toBeVisible();
+    expect(await within(await table()).findByText(labels.list.empty)).toBeVisible();
     expect(router.state.location.search).toBe('?categorie=legal');
   });
 

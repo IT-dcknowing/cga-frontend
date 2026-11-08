@@ -198,7 +198,9 @@ export function MemberObligationsPage() {
 
   return (
     <div className="grid gap-4">
-      <h1 className="text-page-title font-extrabold text-ink">{labels.title}</h1>
+      <h1 className="text-page-title-mobile font-extrabold text-ink md:text-page-title">
+        {labels.title}
+      </h1>
       {query.isPending ? (
         <Skeleton className="h-32 w-full" />
       ) : query.isError ? (

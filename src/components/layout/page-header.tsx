@@ -17,7 +17,9 @@ export function PageHeader({ title, breadcrumb, actions }: PageHeaderProps) {
       {breadcrumb !== undefined ? <p className="mb-1 text-note text-muted">{breadcrumb}</p> : null}
 
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-page-title font-extrabold text-ink">{title}</h1>
+        <h1 className="text-page-title-mobile font-extrabold text-ink md:text-page-title">
+          {title}
+        </h1>
         {actions}
       </div>
     </div>

@@ -77,18 +77,10 @@ export function CgaConcernsPage() {
           <TabsTrigger value="envoyees">{labels.tabs.sent}</TabsTrigger>
         </TabsList>
         <TabsContent value="recues">
-          <Card>
-            <CardContent>
-              <ConcernList space="cga" level="member_to_cga" />
-            </CardContent>
-          </Card>
+          <ConcernList space="cga" level="member_to_cga" />
         </TabsContent>
         <TabsContent value="envoyees">
-          <Card>
-            <CardContent>
-              <ConcernList space="cga" level="cga_to_cncga" />
-            </CardContent>
-          </Card>
+          <ConcernList space="cga" level="cga_to_cncga" />
         </TabsContent>
       </Tabs>
       {writing ? (
@@ -215,11 +207,7 @@ export function NetworkConcernsPage() {
           <TabsTrigger value="indicateurs">{labels.tabs.indicators}</TabsTrigger>
         </TabsList>
         <TabsContent value="demandes">
-          <Card>
-            <CardContent>
-              <ConcernList space="network" />
-            </CardContent>
-          </Card>
+          <ConcernList space="network" />
         </TabsContent>
         <TabsContent value="indicateurs">
           <IndicatorsTab />
@@ -261,11 +249,7 @@ export function MemberMessagesPage() {
           </div>
         }
       />
-      <Card>
-        <CardContent>
-          <ConcernList space="member" />
-        </CardContent>
-      </Card>
+      <ConcernList space="member" />
       {dialog === 'new' ? (
         <NewConcernDialog
           space="member"

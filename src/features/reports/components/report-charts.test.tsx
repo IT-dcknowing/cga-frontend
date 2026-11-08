@@ -22,6 +22,22 @@ describe('Graphiques du rapport (5.12)', () => {
     expect(container.querySelector('svg')).not.toBeNull();
   });
 
+  it('04-UX-UI · palette de la charte, valeurs formatées au-dessus des barres', () => {
+    const bar = Object.values(charts).find((chart) => chart.type === 'bar') as ReportChart;
+    const column = charts.chart_movements;
+    const drawn = render(<ChartDrawing chart={bar} width={480} height={240} />);
+    const text = (drawn.container.textContent ?? '').replace(/\s/g, ' ');
+
+    expect(text).toContain('1 250 000');
+    expect(drawn.container.querySelector('[fill="var(--color-primary)"]')).not.toBeNull();
+    drawn.unmount();
+
+    const { container } = render(<ChartDrawing chart={column} width={480} height={240} />);
+
+    expect(container.querySelector('[fill="var(--color-chart-secondary)"]')).not.toBeNull();
+    expect(container.querySelector('[fill="var(--color-danger)"]')).toBeNull();
+  });
+
   it('donne le titre et le tableau des valeurs de chaque graphique, séries comprises', () => {
     render(<ChartFigure chart={charts.chart_movements} />);
 

@@ -105,12 +105,15 @@ function RegistrationsTab({
     }
   }
 
+  // Carte sans marge (tableau) : le chargement et l'erreur gardent la marge de la carte.
   if (query.isPending) {
-    return <Skeleton className="h-24 w-full" />;
+    return <Skeleton className="m-4 h-24" />;
   }
   if (query.isError) {
     return (
-      <LoadError message={labels.registrations.loadError} onRetry={() => void query.refetch()} />
+      <div className="p-4">
+        <LoadError message={labels.registrations.loadError} onRetry={() => void query.refetch()} />
+      </div>
     );
   }
 
@@ -459,25 +462,41 @@ function TrainingView({ space, training }: { space: TrainingSpace; training: Tra
           <TabsTrigger value="presence">{labels.tabs.attendance}</TabsTrigger>
           <TabsTrigger value="evaluations">{labels.tabs.evaluations}</TabsTrigger>
         </TabsList>
-        <Card>
-          <CardContent>
-            <TabsContent value="details">
+        <TabsContent value="details">
+          <Card>
+            <CardContent>
               <TrainingDetails training={training} />
-            </TabsContent>
-            <TabsContent value="inscrits">
+            </CardContent>
+          </Card>
+        </TabsContent>
+        <TabsContent value="inscrits">
+          <Card>
+            <CardContent flush>
               <RegistrationsTab space={space} training={training} waitlist={false} />
-            </TabsContent>
-            <TabsContent value="attente">
+            </CardContent>
+          </Card>
+        </TabsContent>
+        <TabsContent value="attente">
+          <Card>
+            <CardContent flush>
               <RegistrationsTab space={space} training={training} waitlist />
-            </TabsContent>
-            <TabsContent value="presence">
+            </CardContent>
+          </Card>
+        </TabsContent>
+        <TabsContent value="presence">
+          <Card>
+            <CardContent>
               <AttendanceTab space={space} training={training} />
-            </TabsContent>
-            <TabsContent value="evaluations">
+            </CardContent>
+          </Card>
+        </TabsContent>
+        <TabsContent value="evaluations">
+          <Card>
+            <CardContent>
               <EvaluationsTab space={space} training={training} />
-            </TabsContent>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </TabsContent>
       </Tabs>
       {dialog === 'register' ? (
         <RegisterPeopleDialog

@@ -54,12 +54,14 @@ function CentreRegistrations({ training }: { training: Training }) {
     }
   }
 
+  // Carte sans marge (tableau) : le chargement et l'erreur gardent la marge de la carte.
   if (query.isPending) {
-    return <Skeleton className="h-24 w-full" />;
+    return <Skeleton className="m-4 h-24" />;
   }
   if (query.isError) {
     return (
       <Banner
+        className="m-4 w-auto"
         tone="danger"
         role="alert"
         action={
@@ -167,7 +169,7 @@ export function NetworkTrainingPage() {
           <CardHeader>
             <CardTitle>{labels.registrations.caption}</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent flush>
             <CentreRegistrations training={training} />
           </CardContent>
         </Card>

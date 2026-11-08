@@ -41,10 +41,17 @@ async function open(entry: string, who: keyof typeof WHO = 'president') {
   return { user, ...view };
 }
 
-async function trainingLinks(): Promise<HTMLElement[]> {
-  const list = await screen.findByRole('list', { name: labels.list.caption });
+/** Lignes du tableau des formations (`DataTable`), une fois chargé, sans l'en-tête. */
+async function trainingLinks(
+  scope: Pick<typeof screen, 'findByRole'> = screen,
+): Promise<HTMLElement[]> {
+  const table = await scope.findByRole('table', { name: labels.list.caption });
 
-  return within(list).getAllByRole('link');
+  await waitFor(() => {
+    expect(table).not.toHaveAttribute('aria-busy');
+  });
+
+  return within(table).getAllByRole('row').slice(1);
 }
 
 /** Champ par son libellé exact, suivi ou non de l'astérisque d'un champ obligatoire. */
@@ -66,7 +73,7 @@ describe('/cncga/formations (7.5)', { timeout: 30_000 }, () => {
     expect(upcoming[0]).toHaveTextContent(labels.list.seats('2', '2'));
     expect(upcoming[1]).toHaveTextContent('Brouillon');
 
-    await user.click(screen.getByRole('button', { name: labels.tabs.past }));
+    await user.click(screen.getByRole('radio', { name: labels.tabs.past }));
     await waitFor(async () => {
       expect(await trainingLinks()).toHaveLength(1);
     });
@@ -295,10 +302,10 @@ describe('/cga/formations (7.5)', { timeout: 30_000 }, () => {
     await user.click(screen.getByRole('tab', { name: labels.tabs.network }));
     expect(router.state.location.search).toBe('?onglet=reseau');
     const panel = within(screen.getByRole('tabpanel', { name: labels.tabs.network }));
-    const network = await panel.findAllByRole('link');
+    const network = await trainingLinks(panel);
 
     expect(network).toHaveLength(2);
-    expect(network[0]).toHaveTextContent(labels.list.organizer('Collectif National'));
+    expect(network[0]).toHaveTextContent('Collectif National des Centres de Gestion Agréés');
     expect(panel.queryByText('Sécurité sociale des dirigeants')).toBeNull();
   });
 
@@ -331,7 +338,7 @@ describe('/cga/formations (7.5)', { timeout: 30_000 }, () => {
     await user.click(within(payment).getByRole('button', { name: labels.payment.submit }));
     expect(await screen.findByText(labels.payment.done('REC-DCK-2030-00001'))).toBeInTheDocument();
     expect(
-      await screen.findByRole('link', {
+      await table.findByRole('link', {
         name: `${labels.registrations.receipt} REC-DCK-2030-00001`,
       }),
     ).toHaveAttribute('href', '/fichiers/recus/REC-DCK-2030-00001.pdf');
@@ -345,7 +352,7 @@ describe('/cga/formations (7.5)', { timeout: 30_000 }, () => {
     await user.type(within(reject).getByLabelText(labels.reject.reason), 'Régime RME');
     await user.click(within(reject).getByRole('button', { name: labels.reject.submit }));
     expect(await screen.findByText(labels.reject.done)).toBeInTheDocument();
-    expect(await screen.findByText('Régime RME')).toBeVisible();
+    expect(await table.findByText('Régime RME')).toBeVisible();
 
     const adjoua = server.trainings
       .registrations()
@@ -388,7 +395,9 @@ describe('/cga/formations (7.5)', { timeout: 30_000 }, () => {
     expect(screen.queryByRole('button', { name: labels.detail.edit })).toBeNull();
 
     await user.click(screen.getByRole('tab', { name: labels.tabs.waitlist }));
-    expect(await screen.findByText(labels.registrations.empty)).toBeVisible();
+    const waitlist = within(await screen.findByRole('table', { name: labels.tabs.waitlist }));
+
+    expect(waitlist.getByText(labels.registrations.empty)).toBeVisible();
   });
 
   it('RG-FOR-03 et RG-FOR-04 · formation du réseau : inscrire ses agents et adhérents, désinscrire, promotion', async () => {
