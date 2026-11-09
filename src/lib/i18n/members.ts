@@ -357,6 +357,7 @@ export const membersFr = {
     edit: 'Modifier',
     tabs: {
       identity: 'Identité',
+      obligations: 'Obligations',
       finance: 'Honoraires et paiements',
       documents: 'Documents',
       pieces: 'Pièces',

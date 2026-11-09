@@ -58,6 +58,8 @@ export const cgaSettingsFr = {
     registryHint:
       'La dénomination, le sigle et le statut d’agrément sont tenus au registre par le CNCGA.',
     readOnly: 'Consultation seule : le gérant complète la fiche du centre.',
+    networkReadOnly:
+      'Consultation seule : la Présidente et le gestionnaire du réseau complètent la fiche du CNCGA.',
     incomplete: (fields: string) =>
       `Fiche incomplète : la production des documents est bloquée. À compléter : ${fields}.`,
     complete: (date: string) => `Fiche complète depuis le ${date}.`,
@@ -112,6 +114,8 @@ export const cgaSettingsFr = {
       title: 'Logo, signature et cachet',
       hint: 'Image PNG ou JPEG, reproduite sur les documents du centre.',
       kinds: { logo: 'Logo', signature: 'Signature du gérant', stamp: 'Cachet' },
+      /** Fiche du CNCGA (étape 6.9) : le reçu de cotisation est signé par la Présidente. */
+      networkKinds: { logo: 'Logo', signature: 'Signature de la Présidente', stamp: 'Cachet' },
       missing: 'Aucune image',
       choose: (kind: string) => `Nouvelle image : ${kind}`,
       alt: (kind: string) => `${kind} du centre`,

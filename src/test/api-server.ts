@@ -23,15 +23,23 @@ import {
   type ApiReply,
   type Input,
 } from './api-replies';
-import { createCgaBackend } from './api-cga';
+import { createCgaBackend, demoNetworkProfile } from './api-cga';
 import { createImportsBackend } from './api-imports';
+import { createInvoicesBackend } from './api-invoices';
 import { createMemberFinanceBackend } from './api-member-finance';
+import { createCampaignsBackend } from './api-campaigns';
+import { createDuesBackend } from './api-dues';
+import { createMessagingBackend } from './api-messaging';
+import { createNotificationsBackend } from './api-notifications';
 import { createPermissionsBackend } from './api-permissions';
 import { createReferenceDataBackend } from './api-reference-data';
 import { createTemplatesBackend } from './api-templates';
 import { verificationRoute } from './api-verification';
 import type { createReferentialsBackend } from './api-referentials';
 import { createMembersBackend } from './api-members';
+import { createCatalogBackend } from './api-catalog';
+import { createObligationsBackend } from './api-obligations';
+import { createPlanningBackend } from './api-planning';
 
 /*
  * Backend de la plateforme (`backend/`, `/api/v1`) simulé derrière le **vrai** client `http` :
@@ -265,6 +273,23 @@ export function installApiServer({
   referenceData = createReferenceDataBackend(),
   memberFinance = createMemberFinanceBackend(),
   templates = createTemplatesBackend(),
+  invoices = createInvoicesBackend(),
+  notifications = createNotificationsBackend(),
+  messaging = createMessagingBackend(),
+  dues = createDuesBackend(),
+  campaigns = createCampaignsBackend(),
+  networkProfile = createCgaBackend(demoNetworkProfile(), { profileOf: 'network' }),
+  obligations = createObligationsBackend({
+    memberOf: (id) => {
+      const found = members.members().find((member) => member.id === id);
+
+      return found === undefined
+        ? null
+        : { regime: found.regime, employees_count: found.employees_count };
+    },
+  }),
+  planning = createPlanningBackend(),
+  catalog = createCatalogBackend(),
 }: {
   accounts?: Record<string, ApiAccount>;
   cgas?: Organization[];
@@ -277,6 +302,19 @@ export function installApiServer({
   referenceData?: ReturnType<typeof createReferenceDataBackend>;
   memberFinance?: ReturnType<typeof createMemberFinanceBackend>;
   templates?: ReturnType<typeof createTemplatesBackend>;
+  invoices?: ReturnType<typeof createInvoicesBackend>;
+  notifications?: ReturnType<typeof createNotificationsBackend>;
+  messaging?: ReturnType<typeof createMessagingBackend>;
+  dues?: ReturnType<typeof createDuesBackend>;
+  campaigns?: ReturnType<typeof createCampaignsBackend>;
+  /** Fiche du CNCGA (`/network/profile`, étape 6.9). */
+  networkProfile?: ReturnType<typeof createCgaBackend>;
+  /** Obligations des adhérents (Lot 4) : catalogue, propositions, échéances. */
+  obligations?: ReturnType<typeof createObligationsBackend>;
+  /** Planning des échéances et obligations du centre (étape 4.7). */
+  planning?: ReturnType<typeof createPlanningBackend>;
+  /** Catalogue national des obligations (étape 4.9). */
+  catalog?: ReturnType<typeof createCatalogBackend>;
 } = {}) {
   const requests: RecordedRequest[] = [];
   const forced = new Map<string, ApiReply[]>();
@@ -790,10 +828,32 @@ export function installApiServer({
     const path = parsed.pathname.replace(/^.*\/api\/v1/, '');
 
     return (
+      notifications.route(method, path, parsed.searchParams, {
+        membershipId: signedIn?.activeId ?? null,
+      }) ??
+      (path.startsWith('/network/profile')
+        ? networkProfile.route(method, path, parsed.searchParams, body, {
+            allows,
+            organizationId: activeOrganizationId(),
+          })
+        : undefined) ??
+      obligations.route(method, path, parsed.searchParams, body, {
+        allows,
+        memberId: activeMemberId(),
+      }) ??
+      planning.route(method, path, parsed.searchParams, body, { allows }) ??
+      catalog.route(method, path, body, { allows }) ??
+      messaging.route(method, path, body, { allows }) ??
+      campaigns.route(method, path, body, { allows }) ??
+      dues.route(method, path, parsed.searchParams, body, {
+        allows,
+        organizationId: activeOrganizationId(),
+      }) ??
       imports.route(method, path, body, { allows }) ??
       rights.route(method, path, parsed.searchParams, body, { allows }) ??
       referenceData.route(method, path, body, { allows }) ??
       templates.route(method, path, body, { allows }) ??
+      invoices.route(method, path, parsed.searchParams, body, { allows }) ??
       memberFinance.route(method, path, body, { allows, memberId: activeMemberId() }) ??
       cga.route(method, path, parsed.searchParams, body, {
         allows,
@@ -854,6 +914,12 @@ export function installApiServer({
     members,
     /** Imports de portefeuille simulés (`api-imports.ts`). */
     imports,
+    /** Obligations simulées (`api-obligations.ts`). */
+    obligations,
+    /** Planning et obligations du centre simulés (`api-planning.ts`). */
+    planning,
+    /** Catalogue national simulé (`api-catalog.ts`). */
+    catalog,
     /** Ouvre une session côté serveur, comme un cookie de session encore valide. */
     signIn(phone: string, activeId: string | null = null) {
       signedIn = { phone: normalizePhone(phone), activeId };

@@ -8,6 +8,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/features/auth/session/auth-context';
 import { httpMemberSpaceApi } from '@/features/member-space/api/member-space-api';
+import {
+  FeesBalance,
+  ObligationCards,
+  RecentDocuments,
+} from '@/features/member-space/components/home-cards';
 import { memberSpaceRoutes } from '@/features/member-space/lib/routes';
 import { formatDate } from '@/lib/format';
 import { fr } from '@/lib/i18n/fr';
@@ -15,10 +20,12 @@ import { isScreenError, retryUnlessScreenError } from '@/lib/query';
 import { permissionCodes } from '@/lib/reference/permissions';
 
 /*
- * `/adherent/accueil`, version minimale (06-IMPLEMENTATION-PLAN étape 2.11, 03-APPFLOW §5.2) :
- * message d'accueil, son dossier, l'identité et les contacts de son CGA ; bandeau de fin d'adhésion
- * après une radiation validée. Les cartes d'échéances et d'honoraires (F-DSH-03) suivent leurs lots.
- * Mobile d'abord : une colonne, deux à partir de 768 px.
+ * `/adherent/accueil` (03-APPFLOW §5.2, F-DSH-03, étapes 2.11 et 4.8) : message d'accueil, prochaine
+ * échéance (carte vers les obligations), ce qu'il doit (impôts, CNPS et CMU), échéances du mois,
+ * honoraires et leur reste, documents récents, son dossier, l'identité et les contacts de son CGA ;
+ * bandeau de fin d'adhésion après une radiation validée (seuls documents et profil restent ouverts).
+ * « Message de mon CGA » arrive avec les annonces (Lot 7). Mobile d'abord : une colonne, deux à
+ * partir de 768 px.
  */
 const labels = fr.memberSpace.home;
 
@@ -62,6 +69,7 @@ export function MemberHomePage() {
   }
 
   const { member, access, organization } = home.data;
+  const ended = member.ended_on !== null;
   const fields = labels.fields;
   const phones = [organization.phone_1, organization.phone_2].filter(
     (phone): phone is string => orNull(phone) !== null,
@@ -83,6 +91,8 @@ export function MemberHomePage() {
       ) : null}
 
       <div className="grid gap-4 md:grid-cols-2">
+        {!ended && can(permissionCodes.member.obligations) ? <ObligationCards /> : null}
+
         <Card>
           <CardHeader>
             <CardTitle>{labels.myFile}</CardTitle>
@@ -105,27 +115,25 @@ export function MemberHomePage() {
                 { label: fields.access, value: access.role_label },
               ]}
             />
-            {can(permissionCodes.member.documents) ? (
-              <Button variant="secondary" size="sm" className="justify-self-start" asChild>
-                <Link to={memberSpaceRoutes.documents}>{labels.documentsLink}</Link>
-              </Button>
-            ) : null}
           </CardContent>
         </Card>
 
-        {can(permissionCodes.member.payments) ? (
-          <Card>
+        {!ended && can(permissionCodes.member.payments) ? (
+          <Card aria-label={labels.feesCard}>
             <CardHeader>
               <CardTitle>{labels.feesCard}</CardTitle>
             </CardHeader>
             <CardContent className="grid gap-3">
               <p className="text-note text-muted">{labels.feesIntro}</p>
+              <FeesBalance />
               <Button size="sm" className="justify-self-start" asChild>
                 <Link to={memberSpaceRoutes.fees}>{labels.feesLink}</Link>
               </Button>
             </CardContent>
           </Card>
         ) : null}
+
+        {can(permissionCodes.member.documents) ? <RecentDocuments /> : null}
 
         <Card>
           <CardHeader>

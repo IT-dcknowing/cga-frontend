@@ -13,6 +13,14 @@ export const permissionCodes = {
     organizationsSuspend: 'organizations.suspend',
     subscription: 'organizations.subscription.manage',
     dues: 'dues.view',
+    /** Confirmer, rejeter ou saisir un paiement de cotisation (F-COT-03, 04). */
+    duesPayments: 'dues.payments.manage',
+    duesRemind: 'dues.remind',
+    /** « Facturer » une cotisation (étape 6.9) : émission des factures au CNCGA. */
+    duesInvoice: 'invoices.issue',
+    /** Fiche d'identité du CNCGA, émetteur des reçus et factures de cotisation (étape 6.9). */
+    profile: 'network_profile.view',
+    profileManage: 'network_profile.manage',
     reports: 'reports.network.view',
     concerns: 'network_concerns.view',
     trainings: 'trainings.network.manage',
@@ -43,10 +51,15 @@ export const permissionCodes = {
     concerns: 'concerns.reply',
     trainings: 'trainings.cga.manage',
     communications: 'communications.bulk.send',
+    /** Valider un envoi groupé au-delà du seuil (RG-COM-01) : le gérant. */
+    communicationsApprove: 'communications.bulk.approve',
     internal: 'internal.manage',
     bankability: 'banking.manage',
     statistics: 'statistics.position.view',
     profile: 'cga.profile.view',
+    /** Cotisation du centre au CNCGA (F-COT-06) et déclaration d'un paiement. */
+    dues: 'dues.own.view',
+    duesDeclare: 'dues.own.declare',
     /** Modifier la fiche du centre, son barème et ses apporteurs (gérant). */
     profileManage: 'cga.profile.manage',
     documentsProduce: 'documents.produce',

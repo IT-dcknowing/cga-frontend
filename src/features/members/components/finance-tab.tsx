@@ -14,6 +14,8 @@ import { FormField } from '@/components/ui/form-field';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Textarea } from '@/components/ui/textarea';
 import { useAuth } from '@/features/auth/session/auth-context';
+import { IssueInvoiceDialog } from '@/features/invoices/components/invoice-dialogs';
+import { InvoiceList } from '@/features/invoices/components/invoice-list';
 import { dossierApi, type Payment } from '@/features/members/api/dossier-api';
 import type { Member } from '@/features/members/api/members-api';
 import { dossierKeys, memberKeys } from '@/features/members/api/queries';
@@ -160,6 +162,8 @@ export function FinanceTab({ member }: { member: Member }) {
   });
   const [recording, setRecording] = useState(false);
   const [reviewing, setReviewing] = useState<Payment | null>(null);
+  const [invoicing, setInvoicing] = useState(false);
+  const invoices = can(permissionCodes.cga.invoices);
   const manages =
     can(permissionCodes.cga.payments) && member.status !== 'radiated' && member.status !== 'closed';
   const failed = charges.isError || payments.isError;
@@ -292,6 +296,35 @@ export function FinanceTab({ member }: { member: Member }) {
         </CardContent>
       </Card>
 
+      {invoices ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>{fr.invoices.memberTitle}</CardTitle>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => {
+                setInvoicing(true);
+              }}
+            >
+              <Plus aria-hidden="true" />
+              {fr.invoices.issue.action}
+            </Button>
+          </CardHeader>
+          <CardContent>
+            <InvoiceList memberId={member.id} showMember={false} />
+          </CardContent>
+        </Card>
+      ) : null}
+
+      {invoicing ? (
+        <IssueInvoiceDialog
+          member={{ id: member.id, company_name: member.company_name }}
+          onClose={() => {
+            setInvoicing(false);
+          }}
+        />
+      ) : null}
       {recording ? (
         <PaymentDialog
           memberId={member.id}

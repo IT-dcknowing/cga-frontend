@@ -129,6 +129,33 @@ export function demoProfile(overrides: Partial<CgaProfile> = {}): CgaProfile {
   };
 }
 
+/** Fiche du CNCGA (étape 6.9) : sans agrément ni expert-comptable, signature et cachet à déposer. */
+export function demoNetworkProfile(overrides: Partial<CgaProfile> = {}): CgaProfile {
+  return demoProfile({
+    id: '01org0000000000000000cncga',
+    name: 'Collectif National des Centres de Gestion Agréés',
+    sigle: 'CNCGA',
+    legal_form: 'Association',
+    share_capital: 0,
+    ncc: '9900000C',
+    agreement_status: 'pending',
+    agreement_status_label: 'En cours',
+    agreement_number: null,
+    agreement_date: null,
+    email: 'contact@cncga.demo',
+    manager_name: 'Aminata Présidente',
+    expert_name: null,
+    signatory_name: 'Aminata Présidente',
+    signatory_title: 'La Présidente',
+    numbering_abbreviation: 'CNCGA',
+    abbreviation_locked: false,
+    images: { logo: image('logo'), signature: null, stamp: null },
+    missing_fields: ['signature_file_id', 'stamp_file_id'],
+    profile_completed_at: null,
+    ...overrides,
+  });
+}
+
 /** Champs requis encore vides (`missingProfileFields`). */
 function missingOf(profile: CgaProfile): string[] {
   const values: Record<(typeof REQUIRED)[number], unknown> = {
@@ -241,10 +268,30 @@ const PERMISSIONS: Record<string, string> = {
   network: 'network_users.manage',
 };
 
+/**
+ * Fiche servie : celle du CGA (`/cga/profile`, droits `cga.profile.*`) ou, avec `profileOf: 'network'`,
+ * celle du CNCGA (`/network/profile`, droits `network_profile.*`), sans agrément ni expert-comptable.
+ */
+const PROFILE_SCOPES = {
+  cga: {
+    path: '/cga/profile',
+    view: 'cga.profile.view',
+    manage: 'cga.profile.manage',
+    exempt: [] as string[],
+  },
+  network: {
+    path: '/network/profile',
+    view: 'network_profile.view',
+    manage: 'network_profile.manage',
+    exempt: ['agreement_number', 'agreement_date', 'expert_name'],
+  },
+};
+
 export function createCgaBackend(
   initial: CgaProfile = demoProfile(),
-  options: { eligible?: number } = {},
+  options: { eligible?: number; profileOf?: keyof typeof PROFILE_SCOPES } = {},
 ) {
+  const scope = PROFILE_SCOPES[options.profileOf ?? 'cga'];
   let profile = initial;
   let schedule = structuredClone(demoFeeSchedule);
   let eligible = options.eligible ?? 12;
@@ -252,7 +299,7 @@ export function createCgaBackend(
   let nextId = 0;
 
   function updateProfile(input: Input, context: Context): ApiReply {
-    if (!context.allows('cga.profile.manage')) {
+    if (!context.allows(scope.manage)) {
       return forbidden;
     }
 
@@ -311,7 +358,7 @@ export function createCgaBackend(
 
   /** Fiche enregistrée : liste des manques et date de complétude recalculées. */
   function saved(): ApiReply {
-    const missing = missingOf(profile);
+    const missing = missingOf(profile).filter((field) => !scope.exempt.includes(field));
 
     profile = {
       ...profile,
@@ -323,7 +370,7 @@ export function createCgaBackend(
   }
 
   function storeImage(kind: string, body: unknown, context: Context): ApiReply {
-    if (!context.allows('cga.profile.manage')) {
+    if (!context.allows(scope.manage)) {
       return forbidden;
     }
 
@@ -529,19 +576,19 @@ export function createCgaBackend(
       return campaign(method, context);
     }
 
-    if (path === '/cga/profile') {
+    if (path === scope.path) {
       if (method === 'GET') {
-        return context.allows('cga.profile.view')
-          ? ok({ ...profile, can: { update: context.allows('cga.profile.manage') } })
+        return context.allows(scope.view)
+          ? ok({ ...profile, can: { update: context.allows(scope.manage) } })
           : forbidden;
       }
 
       return method === 'PUT' ? updateProfile(formInput(body), context) : undefined;
     }
 
-    const imageRoute = /^\/cga\/profile\/images\/(logo|signature|stamp)$/.exec(path);
+    const imageRoute = /^\/(?:cga|network)\/profile\/images\/(logo|signature|stamp)$/.exec(path);
 
-    if (method === 'POST' && imageRoute !== null) {
+    if (method === 'POST' && imageRoute !== null && path.startsWith(scope.path)) {
       return storeImage(imageRoute[1], body, context);
     }
 

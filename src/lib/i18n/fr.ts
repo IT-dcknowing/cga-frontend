@@ -1,6 +1,12 @@
 import { cgaSettingsFr } from './cga-settings';
+import { communicationsFr } from './communications';
+import { duesFr } from './dues';
 import { memberSpaceFr } from './member-space';
+import { invoicesFr } from './invoices';
 import { membersFr } from './members';
+import { messagingFr } from './messaging';
+import { notificationsFr } from './notifications';
+import { obligationsFr } from './obligations';
 import { permissionsFr } from './permissions';
 import { referenceDataFr } from './reference-data';
 import { referentialsFr } from './referentials';
@@ -19,6 +25,7 @@ export const fr = {
     effects: 'Effets de cette action',
     yes: 'Oui',
     no: 'Non',
+    add: 'Ajouter',
   },
   /** 03-APPFLOW §7 : formulaire modifié non enregistré. */
   unsaved: {
@@ -127,6 +134,39 @@ export const fr = {
     dataStatus: {
       provisional: 'Provisoire',
       validated: 'Validé',
+    },
+    invoice: {
+      draft: 'Brouillon',
+      pending_certification: 'En attente de certification',
+      certified: 'Certifiée',
+      rejected: 'Rejetée',
+      cancelled: 'Annulée',
+    },
+    dues: {
+      due: 'À régler',
+      partial: 'Partielle',
+      paid: 'À jour',
+      unpaid: 'Impayée',
+    },
+    campaign: {
+      draft: 'Brouillon',
+      pending_approval: 'En attente de validation',
+      approved: 'Validé',
+      sending: 'Envoi en cours',
+      sent: 'Envoyé',
+      rejected: 'Refusé',
+    },
+    /** Échéance d'une obligation (RG-OBL-07) : statut dérivé, calculé par le serveur. */
+    obligation: {
+      todo: 'À faire',
+      done: 'Faite',
+      to_pay: 'À payer',
+      partially_paid: 'Payé en partie',
+      paid: 'Payé',
+      not_established: 'Non établie',
+      in_progress: 'En cours',
+      established: 'Établie',
+      cancelled: 'Annulée',
     },
   },
   errors: {
@@ -521,12 +561,19 @@ export const fr = {
   },
   referenceData: referenceDataFr,
   templates: templatesFr,
+  invoices: invoicesFr,
+  notifications: notificationsFr,
+  dues: duesFr,
+  communications: communicationsFr,
+  messaging: messagingFr,
+  obligations: obligationsFr,
   /** `/plateforme` (03-APPFLOW §6). */
   platform: {
     tabs: {
       droits: 'Droits du réseau',
       utilisateurs: 'Utilisateurs CNCGA',
       reseau: 'Paramètres réseau',
+      envois: 'Envois',
       donnees: 'Données de référence',
       modeles: 'Modèles de documents',
     },
@@ -543,9 +590,11 @@ export const fr = {
       utilisateurs: 'Utilisateurs CNCGA',
       secteurs: 'Secteurs',
       territoire: 'DR, CDI et communes',
+      catalogue: 'Catalogue des obligations',
       references: 'Références nationales',
       feries: 'Jours fériés',
       reseau: 'Paramètres réseau',
+      identite: 'Identité du CNCGA',
     },
   },
   demo: {

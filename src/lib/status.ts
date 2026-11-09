@@ -103,6 +103,42 @@ const TONES = {
     provisional: 'warning',
     validated: 'success',
   },
+  /** Statut FNE d'une facture (RG-FNE-01 à 04) : seule une facture certifiée se remet. */
+  invoice: {
+    draft: 'neutral',
+    pending_certification: 'warning',
+    certified: 'success',
+    rejected: 'danger',
+    cancelled: 'neutral',
+  },
+  /** Cotisation d'un CGA au CNCGA (RG-COT-04) : impayée en rouge, sans suspension automatique. */
+  dues: {
+    due: 'warning',
+    partial: 'warning',
+    paid: 'success',
+    unpaid: 'danger',
+  },
+  /** Envoi groupé (F-COM-03, RG-COM-01) : en attente de validation du gérant au-delà du seuil. */
+  campaign: {
+    draft: 'neutral',
+    pending_approval: 'warning',
+    approved: 'info',
+    sending: 'info',
+    sent: 'success',
+    rejected: 'danger',
+  },
+  /** Échéance d'une obligation (RG-OBL-07) : à faire ou à payer en orange, réglée en vert. */
+  obligation: {
+    todo: 'warning',
+    done: 'success',
+    to_pay: 'warning',
+    partially_paid: 'warning',
+    paid: 'success',
+    not_established: 'warning',
+    in_progress: 'info',
+    established: 'success',
+    cancelled: 'neutral',
+  },
 } as const satisfies Record<keyof typeof fr.status, Record<string, Tone>>;
 
 export type StatusDomain = keyof typeof TONES;

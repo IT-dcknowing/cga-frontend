@@ -44,6 +44,12 @@ import {
   type MemberField,
   type MemberForm,
 } from '@/features/members/lib/member-form';
+import { ProposedObligations } from '@/features/obligations/components/proposed-obligations';
+import {
+  applyObligationChoice,
+  emptyObligationChoice,
+  type ObligationChoice,
+} from '@/features/obligations/lib/obligation-choice';
 import { ApiBusinessError, ApiValidationError } from '@/lib/api-errors';
 import { toastUnexpectedError } from '@/lib/http-error-toast';
 import { fr } from '@/lib/i18n/fr';
@@ -55,6 +61,7 @@ import { permissionCodes } from '@/lib/reference/permissions';
  * NCC est contrôlé à la sortie du champ (doublon dans le centre, adhérent d'un autre CGA : blocage,
  * sans jamais le nommer). « Enregistrer comme brouillon » ou « Valider l'adhésion » ; ce qui manque
  * à la validation s'affiche en liste, avec un lien vers son étape. Le serveur refait chaque contrôle.
+ * Étape 2 : bloc « Obligations proposées » (étape 4.5), appliqué une fois le dossier enregistré.
  */
 const labels = fr.members.create;
 const STEPS = [labels.steps.identification, labels.steps.activity];
@@ -113,6 +120,7 @@ function NewMemberWizard() {
   const saved = useMemberSaved();
   const seesCabinet = can(permissionCodes.cga.cabinet);
   const seesReferrers = can(permissionCodes.cga.referrers);
+  const managesObligations = can(permissionCodes.cga.obligations);
   const taxOffices = useTaxOffices();
   const communes = useCommunes();
   const sectors = useSectors();
@@ -120,7 +128,11 @@ function NewMemberWizard() {
   const referrers = useReferrers(seesReferrers);
   const form = useForm<MemberForm>({ defaultValues: emptyMemberForm('cga') });
   const { control, getValues, getFieldState, setValue, setError, clearErrors, setFocus } = form;
-  const [portfolio, regime, ncc] = useWatch({ control, name: ['portfolio', 'regime', 'ncc'] });
+  const [portfolio, regime, ncc, sectorId, employees] = useWatch({
+    control,
+    name: ['portfolio', 'regime', 'ncc', 'sector_id', 'employees_count'],
+  });
+  const [obligationChoice, setObligationChoice] = useState<ObligationChoice>(emptyObligationChoice);
   const [step, setStep] = useState<1 | 2>(1);
   const [draft, setDraft] = useState<Member | null>(null);
   const [nccState, setNccState] = useState<NccState>(null);
@@ -333,6 +345,21 @@ function NewMemberWizard() {
     }
   }
 
+  /** Obligations proposées confirmées ou retirées, ajouts attribués (F-OBL-02) ; le dossier reste enregistré. */
+  async function applyObligations(member: Member) {
+    if (!managesObligations) {
+      return;
+    }
+
+    try {
+      await applyObligationChoice(member.id, obligationChoice);
+    } catch (error) {
+      toast.error(fr.obligations.proposed.failed, {
+        description: error instanceof Error ? error.message : undefined,
+      });
+    }
+  }
+
   /** Adhésion validée : toast, puis le dossier avec son bandeau vert et ses suites. */
   async function validated(member: Member, exclusivityConfirmed: boolean) {
     const result = await membersApi.validate(member.id, exclusivityConfirmed);
@@ -374,6 +401,7 @@ function NewMemberWizard() {
     setDraft(member);
     saved(member);
     await uploadContract(member);
+    await applyObligations(member);
 
     if (kind === 'draft') {
       toast.success(labels.draftSaved);
@@ -537,6 +565,16 @@ function NewMemberWizard() {
               contractFile={contractInput}
               withExclusivity
             />
+            {managesObligations ? (
+              <div className="mt-6">
+                <ProposedObligations
+                  criteria={{ regime, sector_id: sectorId, employees_count: employees }}
+                  choice={obligationChoice}
+                  disabled={busy}
+                  onChange={setObligationChoice}
+                />
+              </div>
+            ) : null}
           </div>
 
           <div className="flex flex-wrap justify-between gap-2 border-t border-border pt-4">

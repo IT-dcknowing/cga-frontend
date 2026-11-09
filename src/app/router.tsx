@@ -16,7 +16,11 @@ import {
   RequireMenuEntry,
   RequireSession,
 } from '@/features/auth/session/guards';
+import { CommunicationsPage } from '@/features/communications/pages/communications-page';
+import { NewCampaignPage } from '@/features/communications/pages/new-campaign-page';
 import { DemoPage } from '@/features/demo/pages/demo-page';
+import { CgaDuesPage } from '@/features/dues/pages/cga-dues-page';
+import { NetworkDuesPage } from '@/features/dues/pages/network-dues-page';
 import { ErrorScreen, RouteErrorPage } from '@/features/errors/pages/error-screen';
 import { memberRoutes } from '@/features/members/lib/member';
 import { cgaPermissionRoutes, cgaSettingsRoutes } from '@/features/cga-settings/lib/routes';
@@ -27,6 +31,7 @@ import { memberSpaceRoutes } from '@/features/member-space/lib/routes';
 import { MemberDocumentsPage } from '@/features/member-space/pages/member-documents-page';
 import { MemberFeesPage } from '@/features/member-space/pages/member-fees-page';
 import { MemberHomePage } from '@/features/member-space/pages/member-home-page';
+import { InvoicesPage } from '@/features/invoices/pages/invoices-page';
 import { MemberImportPage } from '@/features/members/pages/member-import-page';
 import { MemberPage } from '@/features/members/pages/member-page';
 import { MembersPage } from '@/features/members/pages/members-page';
@@ -39,6 +44,9 @@ import { PendingPage } from '@/features/pending/pages/pending-page';
 import { RolePermissionsPage } from '@/features/permissions/pages/role-permissions-page';
 import { UserPermissionsPage } from '@/features/permissions/pages/user-permissions-page';
 import { VerificationPage } from '@/features/verification/pages/verification-page';
+import { InternalPage } from '@/features/internal/pages/internal-page';
+import { PlanningPage } from '@/features/obligations/pages/planning-page';
+import { MemberObligationsPage } from '@/features/member-space/pages/member-obligations-page';
 import { platformRoutes } from '@/features/platform/lib/routes';
 import { PlatformPage } from '@/features/platform/pages/platform-page';
 import { fr } from '@/lib/i18n/fr';
@@ -79,9 +87,18 @@ const cncgaScreens: Record<string, MenuScreen> = {
     children: [{ path: ':id', element: <OrganizationPage /> }],
   },
   [cncgaSettingsRoutes.root]: { element: <CncgaSettingsPage /> },
+  '/cncga/cotisations': { element: <NetworkDuesPage /> },
 };
 
 const cgaScreens: Record<string, MenuScreen> = {
+  '/cga/echeances': { element: <PlanningPage /> },
+  '/cga/gestion-interne': { element: <InternalPage /> },
+  '/cga/factures': { element: <InvoicesPage /> },
+  '/cga/cotisation': { element: <CgaDuesPage /> },
+  '/cga/communications': {
+    element: <CommunicationsPage />,
+    children: [{ path: 'nouveau', element: <NewCampaignPage /> }],
+  },
   [cgaSettingsRoutes.root]: {
     element: <CgaSettingsPage />,
     children: [
@@ -113,6 +130,7 @@ const cgaScreens: Record<string, MenuScreen> = {
 const memberScreens: Record<string, MenuScreen> = {
   [spaces.member.home]: { element: <MemberHomePage /> },
   [memberSpaceRoutes.documents]: { element: <MemberDocumentsPage /> },
+  [memberSpaceRoutes.obligations]: { element: <MemberObligationsPage /> },
 };
 
 /** Écrans de l'espace adhérent hors de son menu (honoraires, depuis l'accueil), sous leur droit. */

@@ -20,6 +20,7 @@ import {
   type CgaProfile,
   type CgaProfileInput,
   type ImageKind,
+  type ProfileScope,
 } from '@/features/cga-settings/api/cga-api';
 import { useCgaProfile, useCgaProfileSaved } from '@/features/cga-settings/api/queries';
 import {
@@ -37,7 +38,8 @@ import { fr } from '@/lib/i18n/fr';
  * complétée par le gérant ; logo, signature et cachet téléversés. Tant qu'un champ requis manque,
  * la production des documents est bloquée (RG-ORG-04) : le serveur donne la liste. L'abréviation de
  * numérotation se verrouille au premier numéro attribué (RG-ORG-05). Dénomination, sigle et agrément
- * restent au registre du CNCGA.
+ * restent au registre du CNCGA. Avec `scope="network"`, la même fiche sert au CNCGA (étape 6.9), émetteur
+ * des reçus et factures de cotisation : sans agrément ni expert-comptable référent.
  */
 const labels = fr.cgaSettings.centre;
 const field = labels.fields;
@@ -69,6 +71,18 @@ const TEXT_FIELDS = [
 
 const INTEGER_FIELDS = ['share_capital', 'previous_year_revenue'] as const;
 
+/** Champs propres à un CGA agréé, absents de la fiche du CNCGA (refusés par le serveur). */
+const CGA_ONLY: readonly string[] = [
+  'agreement_number',
+  'agreement_date',
+  'expert_name',
+  'agreement_status',
+];
+
+function inScope(scope: ProfileScope, name: string): boolean {
+  return scope === 'cga' || !CGA_ONLY.includes(name);
+}
+
 function formOf(profile: CgaProfile): ProfileForm {
   const text = (value: string | number | null) => (value === null ? '' : String(value));
 
@@ -98,15 +112,14 @@ function formOf(profile: CgaProfile): ProfileForm {
   };
 }
 
-function inputOf(values: ProfileForm): CgaProfileInput {
+function inputOf(values: ProfileForm, scope: ProfileScope): Partial<CgaProfileInput> {
   const text = (value: string) => (value.trim() === '' ? null : value.trim());
   const integer = (value: string) => (value.trim() === '' ? null : Number.parseInt(value, 10));
 
   return {
-    ...(Object.fromEntries(TEXT_FIELDS.map((name) => [name, text(values[name])])) as Pick<
-      CgaProfileInput,
-      (typeof TEXT_FIELDS)[number]
-    >),
+    ...(Object.fromEntries(
+      TEXT_FIELDS.filter((name) => inScope(scope, name)).map((name) => [name, text(values[name])]),
+    ) as Partial<Pick<CgaProfileInput, (typeof TEXT_FIELDS)[number]>>),
     city: values.city.trim(),
     phone_1: values.phone_1.trim(),
     share_capital: integer(values.share_capital),
@@ -119,19 +132,23 @@ const API_FIELDS = Object.fromEntries(
   [...TEXT_FIELDS, ...INTEGER_FIELDS].map((name) => [name, name]),
 ) as Record<string, keyof ProfileForm>;
 
-function items(profile: CgaProfile): KeyValueItem[] {
+function items(profile: CgaProfile, scope: ProfileScope): KeyValueItem[] {
   const amount = (value: number | null) => (value === null ? null : formatAmount(value));
-
-  return [
+  const all: (KeyValueItem & { name?: string })[] = [
     { label: field.name, value: profile.name },
     { label: field.sigle, value: profile.sigle },
-    { label: field.agreement_status, value: profile.agreement_status_label },
+    {
+      name: 'agreement_status',
+      label: field.agreement_status,
+      value: profile.agreement_status_label,
+    },
     { label: field.legal_form, value: profile.legal_form },
     { label: field.share_capital, value: amount(profile.share_capital) },
     { label: field.ncc, value: profile.ncc },
     { label: field.rccm, value: profile.rccm },
-    { label: field.agreement_number, value: profile.agreement_number },
+    { name: 'agreement_number', label: field.agreement_number, value: profile.agreement_number },
     {
+      name: 'agreement_date',
       label: field.agreement_date,
       value: profile.agreement_date === null ? null : formatDate(profile.agreement_date),
     },
@@ -145,13 +162,17 @@ function items(profile: CgaProfile): KeyValueItem[] {
     { label: field.phone_2, value: profile.phone_2 },
     { label: field.email, value: profile.email },
     { label: field.manager_name, value: profile.manager_name },
-    { label: field.expert_name, value: profile.expert_name },
+    { name: 'expert_name', label: field.expert_name, value: profile.expert_name },
     { label: field.signatory_name, value: profile.signatory_name },
     { label: field.signatory_title, value: profile.signatory_title },
     { label: field.numbering_abbreviation, value: profile.numbering_abbreviation },
     { label: field.previous_year_revenue, value: amount(profile.previous_year_revenue) },
     { label: field.history_text, value: profile.history_text },
   ];
+
+  return all
+    .filter((item) => item.name === undefined || inScope(scope, item.name))
+    .map(({ label, value }) => ({ label, value }));
 }
 
 function Section({ title, children }: { title: string; children: ReactNode }) {
@@ -163,8 +184,16 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
   );
 }
 
-function ProfileFormCard({ profile, onDone }: { profile: CgaProfile; onDone: () => void }) {
-  const saved = useCgaProfileSaved();
+function ProfileFormCard({
+  profile,
+  scope,
+  onDone,
+}: {
+  profile: CgaProfile;
+  scope: ProfileScope;
+  onDone: () => void;
+}) {
+  const saved = useCgaProfileSaved(scope);
   const directorates = useActiveDirectorates();
   const offices = useActiveTaxOffices();
   const communes = useActiveCommunes();
@@ -224,7 +253,7 @@ function ProfileFormCard({ profile, onDone }: { profile: CgaProfile; onDone: () 
     }
 
     try {
-      saved(await cgaApi.updateProfile(inputOf(values)));
+      saved(await cgaApi.updateProfile(inputOf(values, scope), scope));
       toast.success(labels.saved);
       onDone();
     } catch (error) {
@@ -244,14 +273,18 @@ function ProfileFormCard({ profile, onDone }: { profile: CgaProfile; onDone: () 
         {text('share_capital')}
         {text('ncc')}
         {text('rccm')}
-        {text('agreement_number')}
-        <TextField
-          id="centre-agreement_date"
-          type="date"
-          label={field.agreement_date}
-          error={errors.agreement_date?.message}
-          {...register('agreement_date')}
-        />
+        {scope === 'cga' ? (
+          <>
+            {text('agreement_number')}
+            <TextField
+              id="centre-agreement_date"
+              type="date"
+              label={field.agreement_date}
+              error={errors.agreement_date?.message}
+              {...register('agreement_date')}
+            />
+          </>
+        ) : null}
       </Section>
 
       <Section title={labels.sections.attachment}>
@@ -333,7 +366,7 @@ function ProfileFormCard({ profile, onDone }: { profile: CgaProfile; onDone: () 
 
       <Section title={labels.sections.people}>
         {text('manager_name')}
-        {text('expert_name')}
+        {scope === 'cga' ? text('expert_name') : null}
         {text('signatory_name')}
         {text('signatory_title')}
       </Section>
@@ -376,12 +409,20 @@ function ProfileFormCard({ profile, onDone }: { profile: CgaProfile; onDone: () 
   );
 }
 
-function ImageCard({ profile, kind }: { profile: CgaProfile; kind: ImageKind }) {
-  const saved = useCgaProfileSaved();
+function ImageCard({
+  profile,
+  kind,
+  scope,
+}: {
+  profile: CgaProfile;
+  kind: ImageKind;
+  scope: ProfileScope;
+}) {
+  const saved = useCgaProfileSaved(scope);
   const [error, setError] = useState<string | undefined>();
   const [busy, setBusy] = useState(false);
   const image = profile.images[kind];
-  const name = labels.images.kinds[kind];
+  const name = (scope === 'network' ? labels.images.networkKinds : labels.images.kinds)[kind];
 
   async function upload(file: File | null) {
     if (file === null) {
@@ -392,7 +433,7 @@ function ImageCard({ profile, kind }: { profile: CgaProfile; kind: ImageKind }) 
     setError(undefined);
 
     try {
-      saved(await cgaApi.uploadImage(kind, file));
+      saved(await cgaApi.uploadImage(kind, file, scope));
       toast.success(labels.images.uploaded(name));
     } catch (failure) {
       if (
@@ -442,8 +483,8 @@ function ImageCard({ profile, kind }: { profile: CgaProfile; kind: ImageKind }) 
   );
 }
 
-export function CentreTab() {
-  const profile = useCgaProfile();
+export function CentreTab({ scope = 'cga' }: { scope?: ProfileScope }) {
+  const profile = useCgaProfile(true, scope);
   const [editing, setEditing] = useState(false);
 
   if (profile.isPending) {
@@ -466,7 +507,11 @@ export function CentreTab() {
   }
 
   const data = profile.data;
-  const missing = data.missing_fields.map((name) => field[name] ?? name);
+  const missing = data.missing_fields.map((name) =>
+    scope === 'network' && name === 'signature_file_id'
+      ? labels.images.networkKinds.signature
+      : (field[name] ?? name),
+  );
 
   return (
     <div className="grid gap-4">
@@ -477,11 +522,17 @@ export function CentreTab() {
           {labels.complete(formatTimestampDate(data.profile_completed_at))}
         </Banner>
       ) : null}
-      {!data.can.update ? <p className="text-note text-muted">{labels.readOnly}</p> : null}
+      {!data.can.update ? (
+        <p className="text-note text-muted">
+          {scope === 'network' ? labels.networkReadOnly : labels.readOnly}
+        </p>
+      ) : null}
 
       <Card>
         <CardHeader>
-          <CardTitle>{fr.cgaSettings.tabs.centre}</CardTitle>
+          <CardTitle>
+            {scope === 'network' ? fr.cncgaSettings.tabs.identite : fr.cgaSettings.tabs.centre}
+          </CardTitle>
           {data.can.update && !editing ? (
             <Button
               variant="secondary"
@@ -499,12 +550,13 @@ export function CentreTab() {
           {editing ? (
             <ProfileFormCard
               profile={data}
+              scope={scope}
               onDone={() => {
                 setEditing(false);
               }}
             />
           ) : (
-            <KeyValueList items={items(data)} />
+            <KeyValueList items={items(data, scope)} />
           )}
         </CardContent>
       </Card>
@@ -517,7 +569,7 @@ export function CentreTab() {
           <p className="text-note text-muted">{labels.images.hint}</p>
           <div className="grid gap-4 md:grid-cols-3">
             {IMAGE_KINDS.map((kind) => (
-              <ImageCard key={kind} profile={data} kind={kind} />
+              <ImageCard key={kind} profile={data} kind={kind} scope={scope} />
             ))}
           </div>
         </CardContent>
