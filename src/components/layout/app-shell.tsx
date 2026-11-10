@@ -22,24 +22,26 @@ import { cn } from '@/lib/utils';
 import { toastUnexpectedError } from '@/lib/http-error-toast';
 
 /*
- * Coque des espaces (04-UX-UI §5.1) : en-tête `primary-dark` de 56 px, menu latéral de 240 px,
- * contenu sur fond `bg`. Tablette : menu replié en icônes, déplié au survol ou au focus. Mobile :
- * tiroir pour les agents, barre basse pour l'adhérent (§5.2). Le menu affiché vient des droits
- * effectifs de `/me` (RG-ROLE-07). Le titre de l'écran est posé par la page (`PageHeader`).
+ * Coque des espaces (maquette v4.1 & 04-UX-UI §5.1) :
+ * - Bandeau Écosystème (#eco) en haut avec fil CNCGA ▸ CGA ▸ Adhérent
+ * - En-tête applicatif sur fond blanc (bg-card), border-b border-border
+ * - Menu latéral fixe de 212 px (nav#side) sur fond blanc
+ * - Contenu sur fond `bg` (max-w-[1120px])
+ * - Sur mobile : tiroir pour les agents, barre basse pour l'adhérent
  */
 function menuItemClasses(isActive: boolean): string {
   return cn(
-    'flex items-center gap-3 whitespace-nowrap border-l-[3px] px-4 py-2.5 text-table transition-colors',
+    'flex w-full items-center gap-2.5 rounded-control px-3 py-2 text-[13px] font-bold transition-colors mb-0.5',
     isActive
-      ? 'border-l-primary bg-primary-soft font-semibold text-primary-dark'
-      : 'border-l-transparent text-ink hover:bg-primary-soft/40',
+      ? 'bg-primary-soft text-primary-dark'
+      : 'text-muted hover:bg-neutral-soft hover:text-ink',
   );
 }
 
 function SideMenu({ entries, onNavigate }: { entries: MenuEntry[]; onNavigate?: () => void }) {
   return (
-    <nav aria-label={fr.shell.mainMenu} className="py-3">
-      <ul>
+    <nav aria-label={fr.shell.mainMenu} className="p-2">
+      <ul className="space-y-0.5">
         {entries.map((entry) => (
           <li key={entry.path}>
             <NavLink
@@ -87,20 +89,20 @@ function UserMenu({ firstName, onSignOut }: { firstName: string; onSignOut: () =
           type="button"
           aria-haspopup="menu"
           aria-expanded={open}
-          className="flex h-9 items-center gap-1 rounded-control px-2 text-table font-semibold hover:bg-white/10"
+          className="flex h-9 items-center gap-1 rounded-control px-2 text-table font-semibold text-ink hover:bg-neutral-soft cursor-pointer"
           onClick={() => {
             setOpen((previous) => !previous);
           }}
         >
           {firstName}
-          <ChevronDown className="size-4" aria-hidden="true" />
+          <ChevronDown className="size-4 text-muted" aria-hidden="true" />
         </button>
 
         {open ? (
           <div
             role="menu"
             aria-label={fr.shell.userMenu}
-            className="absolute right-0 mt-1 w-56 overflow-hidden rounded-card border border-border bg-card py-1 text-ink shadow-card"
+            className="absolute right-0 mt-1 w-56 overflow-hidden rounded-card border border-border bg-card py-1 text-ink shadow-toast"
           >
             <Link
               role="menuitem"
@@ -121,7 +123,7 @@ function UserMenu({ firstName, onSignOut }: { firstName: string; onSignOut: () =
             <button
               type="button"
               role="menuitem"
-              className="block w-full px-4 py-2 text-left text-table text-danger hover:bg-danger-soft"
+              className="block w-full px-4 py-2 text-left text-table text-danger hover:bg-danger-soft cursor-pointer"
               onClick={() => {
                 close();
                 onSignOut();
@@ -274,13 +276,60 @@ export function AppShell({ children }: { children: ReactNode }) {
   return (
     <ShellContext.Provider value>
       <div className="flex min-h-dvh flex-col bg-bg">
-        <header className="sticky top-0 z-40 flex h-14 shrink-0 items-center gap-3 bg-primary-dark px-4 text-white md:px-6">
+        {/* Bandeau Écosystème (maquette v4.1 #eco) */}
+        <div
+          id="eco"
+          className="flex flex-wrap items-center gap-1.5 bg-ink px-4 py-1.5 text-[12px] font-bold text-eco-text"
+        >
+          <span>Écosystème :</span>
+          <Link
+            to={authRoutes.chooseSpace}
+            className={cn(
+              'rounded-[5px] px-2 py-0.5 text-[12px] font-bold transition-colors',
+              spaceKindOf(activeMembership) === 'cncga'
+                ? 'bg-primary text-white'
+                : 'text-eco-text hover:text-white',
+            )}
+          >
+            CNCGA
+          </Link>
+          <span className="text-eco-sep">▸</span>
+          <Link
+            to={authRoutes.chooseSpace}
+            className={cn(
+              'rounded-[5px] px-2 py-0.5 text-[12px] font-bold transition-colors',
+              spaceKindOf(activeMembership) === 'cga'
+                ? 'bg-primary text-white'
+                : 'text-eco-text hover:text-white',
+            )}
+          >
+            CGA
+          </Link>
+          <span className="text-eco-sep">▸</span>
+          <Link
+            to={authRoutes.chooseSpace}
+            className={cn(
+              'rounded-[5px] px-2 py-0.5 text-[12px] font-bold transition-colors',
+              spaceKindOf(activeMembership) === 'member'
+                ? 'bg-primary text-white'
+                : 'text-eco-text hover:text-white',
+            )}
+          >
+            Adhérent
+          </Link>
+          <span className="ml-auto hidden font-semibold text-eco-text opacity-65 md:inline">
+            CGA Connect v4 · Legal Flow intégré · documents complets · rapport PDF + Word
+          </span>
+        </div>
+
+        {/* En-tête applicatif (maquette v4.1 header.app : fond blanc, border-b) */}
+        <header className="sticky top-0 z-40 flex h-14 shrink-0 items-center gap-3 border-b border-border bg-card px-4 text-ink md:px-6">
           {entries.length > 0 && !memberSpace ? (
             <button
               type="button"
               aria-label={fr.shell.openMenu}
               aria-expanded={drawerOpen}
-              className="-ml-2 flex size-11 items-center justify-center rounded-control hover:bg-white/10 md:hidden"
+              className="-ml-2 flex size-11 items-center justify-center rounded-control hover:bg-neutral-soft md:hidden cursor-pointer"
               onClick={() => {
                 setDrawerOpen(true);
               }}
@@ -292,28 +341,50 @@ export function AppShell({ children }: { children: ReactNode }) {
           <Link
             to={spaceHomeFor(activeMembership)}
             className={cn(
-              'shrink-0 font-extrabold tracking-tight',
+              'shrink-0 text-base font-extrabold tracking-tight text-primary-dark',
               memberSpace && 'hidden md:inline',
             )}
           >
             {fr.public.brand}
           </Link>
 
-          <p className="min-w-0 truncate text-note text-white/85">
+          <span
+            className={cn(
+              'hidden h-4 w-px bg-border md:inline',
+              memberSpace && 'hidden',
+            )}
+            aria-hidden="true"
+          />
+
+          <p className="min-w-0 truncate text-[13.5px]">
             <span
               className={cn(
-                memberSpace && 'font-semibold text-white md:font-normal md:text-white/85',
+                'font-extrabold text-ink',
+                memberSpace && 'font-semibold md:font-extrabold',
               )}
             >
               {spaceNameOf(activeMembership)}
             </span>
-            <span className={cn(memberSpace && 'hidden md:inline')}>
+            <span className={cn('text-[12px] text-muted', memberSpace && 'hidden md:inline')}>
               {' · '}
               {roleLabel(activeMembership.role)}
             </span>
           </p>
 
-          <div className="ml-auto flex items-center gap-1">
+          <div className="ml-auto flex items-center gap-2">
+            {/* Raccourci changement de profil conforme à la maquette */}
+            <Link
+              to={authRoutes.chooseSpace}
+              className="hidden sm:inline-flex"
+            >
+              <button
+                type="button"
+                className="inline-flex items-center justify-center rounded-control border border-border bg-transparent px-2.5 py-1 text-[12px] font-bold text-ink hover:bg-neutral-soft cursor-pointer"
+              >
+                Changer de profil
+              </button>
+            </Link>
+
             {/* Une cloche par espace : le compteur et la liste suivent l'espace actif. */}
             <NotificationBell key={activeMembership.id} initialUnread={unread} />
 
@@ -321,16 +392,14 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
         </header>
 
-        <div className="mx-auto flex w-full max-w-[1280px] flex-1">
+        <div className="flex flex-1">
           {entries.length > 0 ? (
-            <div className="relative hidden w-16 shrink-0 md:block lg:w-60">
-              <div className="absolute inset-y-0 left-0 z-20 w-16 overflow-hidden border-r border-border bg-card transition-[width] duration-150 focus-within:w-60 focus-within:shadow-card hover:w-60 hover:shadow-card lg:static lg:w-60 lg:shadow-none lg:hover:shadow-none">
-                <SideMenu entries={entries} />
-              </div>
-            </div>
+            <aside className="hidden shrink-0 border-r border-border bg-card md:block md:w-[212px]">
+              <SideMenu entries={entries} />
+            </aside>
           ) : null}
 
-          <main className={cn('min-w-0 flex-1 px-4 py-6 md:px-6', memberSpace && 'pb-24 md:pb-6')}>
+          <main className={cn('min-w-0 flex-1 px-4 py-6 md:px-6 max-w-[1120px]', memberSpace && 'pb-24 md:pb-6')}>
             {children}
           </main>
         </div>

@@ -21,15 +21,21 @@ export function PublicLayout({ title, children }: PublicLayoutProps) {
       </p>
 
       <main className="flex flex-1 items-start justify-center px-4 py-8 md:items-center md:px-6">
-        <div className="w-full max-w-[420px]">
-          <p className="text-center text-page-title font-extrabold tracking-tight text-primary-dark">
-            {fr.public.brand}
-          </p>
-          {/* Liseré décoratif sous le titre (04-UX-UI §2 : `accent`, jamais pour du texte). */}
-          <span className="mx-auto mt-2 mb-6 block h-0.5 w-10 rounded-full bg-accent" />
+        <div className="w-full max-w-[440px]">
+          <div className="mb-6 text-center">
+            <span className="inline-block rounded-full bg-primary-soft px-3.5 py-1 text-[11px] font-extrabold uppercase tracking-widest text-primary-dark">
+              {fr.public.banner}
+            </span>
+            <p className="mt-3 text-center text-[32px] font-extrabold tracking-tight text-ink">
+              CGA <span className="text-primary">Connect</span>
+            </p>
+            <p className="mt-1 text-center text-[13px] font-medium text-muted">
+              Plateforme cloud du réseau des Centres de Gestion Agréés
+            </p>
+          </div>
 
-          <Card>
-            <CardContent className="p-6">
+          <Card className="rounded-card border border-border bg-card p-6 shadow-none">
+            <CardContent className="p-0">
               <h1 className="text-page-title-mobile font-extrabold text-ink md:text-page-title">
                 {title}
               </h1>
