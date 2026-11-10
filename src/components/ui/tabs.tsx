@@ -3,8 +3,10 @@ import type { ComponentProps } from 'react';
 import { cn } from '@/lib/utils';
 
 /*
- * 04-UX-UI §6 (Tabs) : soulignement de 2 px `primary` pour l'onglet actif ; défilement horizontal
- * sur mobile. Radix gère les flèches du clavier et les rôles `tablist` / `tab` / `tabpanel` (§9).
+ * Onglets (maquette v4.1 & 04-UX-UI §6) :
+ * - Barre sur fond table-head (#FAFBF9), bordure basse border
+ * - Onglet actif en primary-dark (#144C37) souligné par 2px primary (#1E6A4E)
+ * - Typographie 12.5px / font-800, padding 10x12
  */
 export const Tabs = TabsPrimitive.Root;
 
@@ -12,7 +14,10 @@ export function TabsList({ className, ...props }: ComponentProps<typeof TabsPrim
   return (
     <TabsPrimitive.List
       data-slot="tabs-list"
-      className={cn('flex overflow-x-auto border-b border-border', className)}
+      className={cn(
+        'flex overflow-x-auto border-b border-border bg-table-head px-3 gap-1',
+        className,
+      )}
       {...props}
     />
   );
@@ -23,7 +28,7 @@ export function TabsTrigger({ className, ...props }: ComponentProps<typeof TabsP
     <TabsPrimitive.Trigger
       data-slot="tabs-trigger"
       className={cn(
-        '-mb-px min-h-11 shrink-0 whitespace-nowrap border-b-2 border-transparent px-4 text-table font-semibold text-muted transition-colors duration-150 hover:text-ink md:min-h-10',
+        '-mb-px min-h-10 shrink-0 whitespace-nowrap border-b-2 border-transparent px-3 py-2.5 text-[12.5px] font-extrabold text-muted transition-colors duration-150 hover:text-ink cursor-pointer',
         'data-[state=active]:border-primary data-[state=active]:text-primary-dark',
         className,
       )}

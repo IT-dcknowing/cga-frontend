@@ -6,7 +6,7 @@ import { EmptyState } from '@/components/shared/empty-state';
 import { StatusBadge } from '@/components/shared/status-badge';
 import { Banner } from '@/components/ui/banner';
 import { Button } from '@/components/ui/button';
-import { Card, CardActions, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { CardActions, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/features/auth/session/auth-context';
 import type { Member } from '@/features/members/api/members-api';
@@ -108,8 +108,8 @@ function Line({
   return (
     <li
       className={cn(
-        'flex flex-wrap items-center justify-between gap-3 px-2 py-2.5',
-        declared && 'rounded-card bg-accent-soft',
+        'flex flex-wrap items-center justify-between gap-3 px-3 py-2.5 bg-white/55 first:rounded-t last:rounded-b',
+        declared && 'bg-accent-soft',
       )}
     >
       <span className="grid gap-0.5">
@@ -149,6 +149,33 @@ function Line({
   );
 }
 
+/*
+ * Teintes visuelles par catégorie d'obligation — conformes à la maquette v4.1 (.enc)
+ * Bordure gauche 4px colorée, fond de la carte teinté, en-tête encore plus teinté.
+ */
+const CATEGORY_STYLES = {
+  tax: {
+    wrap: 'border-l-4 border-l-[#1E6A4E] bg-[#EFF7F1] rounded-card',
+    head: 'bg-[#DCEDE2] px-4 py-2.5 flex items-center justify-between gap-2',
+    titleClass: 'text-[0.8125rem] font-extrabold text-primary-dark',
+  },
+  cnps: {
+    wrap: 'border-l-4 border-l-[#2B4C7E] bg-[#EDF2FB] rounded-card',
+    head: 'bg-[#DAE4F6] px-4 py-2.5 flex items-center justify-between gap-2',
+    titleClass: 'text-[0.8125rem] font-extrabold text-[#22406B]',
+  },
+  cmu: {
+    wrap: 'border-l-4 border-l-[#2E8B6E] bg-[#EAF5F1] rounded-card',
+    head: 'bg-[#D5EBE2] px-4 py-2.5 flex items-center justify-between gap-2',
+    titleClass: 'text-[0.8125rem] font-extrabold text-[#1F6A50]',
+  },
+  other: {
+    wrap: 'border-l-4 border-l-[#E5732A] bg-[#FDF1E4] rounded-card',
+    head: 'bg-[#F8E1C8] px-4 py-2.5 flex items-center justify-between gap-2',
+    titleClass: 'text-[0.8125rem] font-extrabold text-[#9A4A12]',
+  },
+} satisfies Record<(typeof OBLIGATION_CATEGORIES)[number], { wrap: string; head: string; titleClass: string }>;
+
 function Block({
   category,
   instances,
@@ -161,6 +188,7 @@ function Block({
   onAction: (action: Action) => void;
 }) {
   const title = fr.obligations.categories[category];
+  const styles = CATEGORY_STYLES[category];
   const notes = [
     labels.summary(formatAmount(summary?.total_due ?? 0)),
     (summary?.amounts_to_enter ?? 0) > 0 ? labels.toEnter(String(summary?.amounts_to_enter)) : null,
@@ -168,25 +196,27 @@ function Block({
   ].filter((note) => note !== null);
 
   return (
-    <Card aria-label={title}>
-      <CardHeader>
-        <CardTitle>{title}</CardTitle>
+    <div role="region" aria-label={title} className={cn('overflow-hidden', styles.wrap)}>
+      {/* En-tête teinté */}
+      <div className={styles.head}>
+        <span className={styles.titleClass}>{title}</span>
         <CardActions>
-          <span className="text-table font-semibold">{notes.join(' · ')}</span>
+          <span className="text-[0.75rem] font-semibold opacity-75">{notes.join(' · ')}</span>
         </CardActions>
-      </CardHeader>
-      <CardContent>
+      </div>
+      {/* Corps */}
+      <CardContent className="p-0">
         {instances.length === 0 ? (
           <EmptyState icon={CalendarCheck}>{labels.empty}</EmptyState>
         ) : (
-          <ul aria-label={title} className="divide-y divide-border">
+          <ul aria-label={title} className="divide-y divide-border/60">
             {instances.map((instance) => (
               <Line key={instance.id} instance={instance} onAction={onAction} />
             ))}
           </ul>
         )}
       </CardContent>
-    </Card>
+    </div>
   );
 }
 

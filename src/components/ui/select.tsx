@@ -1,15 +1,25 @@
 import type { ComponentProps } from 'react';
 import { cn } from '@/lib/utils';
 
-// 04-UX-UI §6 : liste déroulante native, à la hauteur et à la bordure de `Input` ; le navigateur
-// fournit le clavier et le sélecteur adapté au téléphone.
-export function Select({ className, ...props }: ComponentProps<'select'>) {
+/*
+ * Sélecteur (maquette v4.1 & 04-UX-UI §6) :
+ * - Rayon 8px (rounded-[8px]), padding 9×11, texte 13px (ou variante mini 12px/700 rayon 6px)
+ * - Au focus : bordure primary et anneau 2px primary-soft
+ */
+export function Select({
+  className,
+  mini = false,
+  ...props
+}: ComponentProps<'select'> & { mini?: boolean }) {
   return (
     <select
       data-slot="select"
       className={cn(
-        'h-11 w-full rounded-control border border-border bg-card px-3 text-body text-ink md:h-10',
-        'aria-[invalid=true]:border-danger disabled:opacity-50',
+        mini
+          ? 'w-auto rounded-[6px] border border-border bg-card px-2 py-1 text-[12px] font-bold text-ink'
+          : 'w-full rounded-[8px] border border-border bg-card px-3 py-2 text-[13px] text-ink',
+        'focus:border-primary focus:outline-2 focus:outline-primary-soft',
+        'aria-[invalid=true]:border-danger disabled:opacity-50 cursor-pointer',
         className,
       )}
       {...props}

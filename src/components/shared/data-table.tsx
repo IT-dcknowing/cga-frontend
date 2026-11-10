@@ -107,7 +107,7 @@ export function DataTable<TData>({
                   key={header.id}
                   scope="col"
                   aria-sort={ariaSort(header.column)}
-                  className="border-b border-border bg-bg px-3 py-2 text-left text-[0.75rem] font-bold uppercase tracking-[0.04em] text-muted"
+                  className="border-b border-border bg-table-head px-3 py-2 text-left text-[10.5px] font-bold uppercase tracking-[0.04em] text-muted"
                 >
                   {header.isPlaceholder ? null : header.column.getCanSort() ? (
                     <button
@@ -150,14 +150,14 @@ export function DataTable<TData>({
                 key={row.id}
                 {...rowProps(row)}
                 className={cn(
-                  'h-12 border-b border-border last:border-b-0',
-                  onRowClick && 'cursor-pointer hover:bg-primary-soft/40',
+                  'border-b border-border last:border-b-0 transition-colors',
+                  onRowClick && 'cursor-pointer hover:bg-row-hover',
                 )}
               >
                 {row.getVisibleCells().map((cell, index) => (
                   <td
                     key={cell.id}
-                    className={cn('px-3 py-2 align-middle', index === 0 && 'font-semibold')}
+                    className={cn('px-3 py-2.5 align-middle', index === 0 && 'font-semibold')}
                   >
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </td>
