@@ -13,11 +13,8 @@
 }
 
 /*
- * Jetons de la charte (04-UX-UI §2 à §4). Les noms shadcn (primary-foreground, destructive, ring,
- * input, background, foreground, muted-foreground) pointent sur ces jetons.
- * Attention en ajoutant un composant shadcn : chez nous `muted` est une couleur de texte et
- * `accent` l'orange décoratif ; remplacer ses `bg-muted` par `bg-neutral-soft` et ses `bg-accent`
- * (survols) par `bg-primary-soft`.
+ * Jetons de la maquette cga-connect-v4-1.html et de la charte (04-UX-UI §2 à §4).
+ * Mappés sur les variables shadcn (primary, destructive, ring, input, background, foreground, muted).
  */
 @theme {
   --color-primary: #1e6a4e;
@@ -36,9 +33,40 @@
   --color-bg: #f4f6f2;
   --color-card: #ffffff;
   --color-neutral-soft: #eef0ed;
-  /* Série secondaire des graphiques (04-UX-UI §6 « Charts ») et bordure des blocs CMU. */
   --color-chart-secondary: #4e9273;
+  --color-table-head: #fafbf9;
+  --color-row-hover: #f7f9f6;
+  --color-track: #edefea;
 
+  /* Teintes d'obligations (maquette cga-connect-v4-1.html) */
+  --color-ob-imp-bg: #eff7f1;
+  --color-ob-imp-head: #dcede2;
+  --color-ob-imp-border: #1e6a4e;
+  --color-ob-imp-th: #e4f0e8;
+
+  --color-ob-cnps-bg: #edf2fb;
+  --color-ob-cnps-head: #dae4f6;
+  --color-ob-cnps-border: #2b4c7e;
+  --color-ob-cnps-title: #22406b;
+  --color-ob-cnps-th: #e2eaf8;
+
+  --color-ob-cmu-bg: #eaf5f1;
+  --color-ob-cmu-head: #d5ebe2;
+  --color-ob-cmu-border: #2e8b6e;
+  --color-ob-cmu-title: #1f6a50;
+  --color-ob-cmu-th: #dfefe8;
+
+  --color-ob-aut-bg: #fdf1e4;
+  --color-ob-aut-head: #f8e1c8;
+  --color-ob-aut-border: #e5732a;
+  --color-ob-aut-title: #9a4a12;
+  --color-ob-aut-th: #fae8d3;
+
+  /* Bandeau Écosystème */
+  --color-eco-text: #c9d6cf;
+  --color-eco-sep: #4e5b54;
+
+  /* Mappings shadcn */
   --color-primary-foreground: #ffffff;
   --color-destructive: var(--color-danger);
   --color-ring: var(--color-primary);
@@ -49,33 +77,42 @@
 
   --font-sans: 'Archivo', ui-sans-serif, system-ui, sans-serif;
 
+  /* Tailles typographiques */
   --text-page-title: 1.5rem;
   --text-page-title--line-height: 2rem;
-  /* Titre de page sous 768 px (04-UX-UI §3 : 20 px sur mobile). */
   --text-page-title-mobile: 1.25rem;
   --text-page-title-mobile--line-height: 1.75rem;
-  --text-card-title: 1rem;
-  --text-card-title--line-height: 1.5rem;
+  --text-card-title: 0.875rem;
+  --text-card-title--line-height: 1.25rem;
   --text-overline: 0.6875rem;
   --text-overline--line-height: 1rem;
   --text-body: 0.9375rem;
   --text-body--line-height: 1.375rem;
-  --text-table: 0.875rem;
-  --text-table--line-height: 1.25rem;
+  --text-table: 0.8125rem;
+  --text-table--line-height: 1.125rem;
   --text-label: 0.8125rem;
   --text-label--line-height: 1.125rem;
-  --text-note: 0.78125rem;
-  --text-note--line-height: 1.125rem;
-  --text-kpi: 1.625rem;
+  --text-note: 0.75rem;
+  --text-note--line-height: 1rem;
+  --text-kpi: 1.5rem;
   --text-kpi--line-height: 2rem;
   --text-badge: 0.71875rem;
   --text-badge--line-height: 1rem;
 
-  --radius-control: 6px;
-  --radius-card: 8px;
+  /* Rayons conformes maquette : badge 5 · bouton 6 · champ 8 · carte 10 · modale 14 */
   --radius-badge: 5px;
+  --radius-button: 6px;
+  --radius-control: 6px;
+  --radius-field: 8px;
+  --radius-card: 10px;
+  --radius-modal: 14px;
+  --radius-pill: 9999px;
 
-  --shadow-card: 0 1px 2px rgb(23 37 31 / 0.06);
+  /* Style sobre : carte bordée sans ombre par défaut */
+  --shadow-card: none;
+  --shadow-profile-hover: 0 8px 24px rgba(23, 37, 31, 0.08);
+  --shadow-toast: 0 6px 20px rgba(0, 0, 0, 0.25);
+  --shadow-period-active: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 
 @layer base {
