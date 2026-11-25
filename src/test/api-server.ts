@@ -40,6 +40,14 @@ import { createMembersBackend } from './api-members';
 import { createCatalogBackend } from './api-catalog';
 import { createObligationsBackend } from './api-obligations';
 import { createPlanningBackend } from './api-planning';
+import { createClosingBackend } from './api-closing';
+import { createSettingsBackend } from './api-settings';
+import { createReportsBackend } from './api-reports';
+import { createConcernsBackend } from './api-concerns';
+import { createTrainingsBackend } from './api-trainings';
+import { createAnnouncementsBackend } from './api-announcements';
+import { createStatisticsBackend } from './api-statistics';
+import { createPermanentProfileBackend } from './api-permanent-profile';
 
 /*
  * Backend de la plateforme (`backend/`, `/api/v1`) simulé derrière le **vrai** client `http` :
@@ -289,7 +297,15 @@ export function installApiServer({
     },
   }),
   planning = createPlanningBackend(),
+  closing = createClosingBackend(),
+  settings = createSettingsBackend(),
+  reports = createReportsBackend(),
+  concerns = createConcernsBackend(),
+  trainings = createTrainingsBackend(),
+  announcements = createAnnouncementsBackend(),
+  statistics = createStatisticsBackend(),
   catalog = createCatalogBackend(),
+  permanentProfile = createPermanentProfileBackend(),
 }: {
   accounts?: Record<string, ApiAccount>;
   cgas?: Organization[];
@@ -313,8 +329,23 @@ export function installApiServer({
   obligations?: ReturnType<typeof createObligationsBackend>;
   /** Planning des échéances et obligations du centre (étape 4.7). */
   planning?: ReturnType<typeof createPlanningBackend>;
+  /** Campagne de clôture (étape 4.11). */
+  closing?: ReturnType<typeof createClosingBackend>;
+  /** Paramètres du réseau et de la plateforme (étapes 5.6b et 5.13). */
+  settings?: ReturnType<typeof createSettingsBackend>;
+  /** Rapports trimestriels du centre (étape 5.8). */
+  reports?: ReturnType<typeof createReportsBackend>;
+  /** Préoccupations (étape 7.4). */
+  concerns?: ReturnType<typeof createConcernsBackend>;
+  /** Formations (étape 7.5). */
+  trainings?: ReturnType<typeof createTrainingsBackend>;
+  /** Annonces (étape 7.6). */
+  announcements?: ReturnType<typeof createAnnouncementsBackend>;
+  /** Tableaux de bord et statistiques (étapes 8.4 et 8.5). */
+  statistics?: ReturnType<typeof createStatisticsBackend>;
   /** Catalogue national des obligations (étape 4.9). */
   catalog?: ReturnType<typeof createCatalogBackend>;
+  permanentProfile?: ReturnType<typeof createPermanentProfileBackend>;
 } = {}) {
   const requests: RecordedRequest[] = [];
   const forced = new Map<string, ApiReply[]>();
@@ -831,6 +862,7 @@ export function installApiServer({
       notifications.route(method, path, parsed.searchParams, {
         membershipId: signedIn?.activeId ?? null,
       }) ??
+      permanentProfile.route(method, path, input, allows) ??
       (path.startsWith('/network/profile')
         ? networkProfile.route(method, path, parsed.searchParams, body, {
             allows,
@@ -842,6 +874,33 @@ export function installApiServer({
         memberId: activeMemberId(),
       }) ??
       planning.route(method, path, parsed.searchParams, body, { allows }) ??
+      settings.route(method, path, body, { allows }) ??
+      reports.route(method, path, parsed.searchParams, body, { allows }) ??
+      concerns.route(method, path, parsed.searchParams, body, {
+        allows,
+        memberId: activeMemberId(),
+      }) ??
+      statistics.route(method, path, parsed.searchParams, body, {
+        allows,
+        organizationId: activeOrganizationId(),
+        memberId: activeMemberId(),
+      }) ??
+      announcements.route(method, path, parsed.searchParams, body, {
+        allows,
+        organizationId: activeOrganizationId(),
+        memberId: activeMemberId(),
+        membershipId: signedIn?.activeId ?? null,
+      }) ??
+      trainings.route(method, path, parsed.searchParams, body, {
+        allows,
+        organizationId: activeOrganizationId(),
+        memberId: activeMemberId(),
+        membershipId: signedIn?.activeId ?? null,
+      }) ??
+      closing.route(method, path, parsed.searchParams, body, {
+        allows,
+        memberId: activeMemberId(),
+      }) ??
       catalog.route(method, path, body, { allows }) ??
       messaging.route(method, path, body, { allows }) ??
       campaigns.route(method, path, body, { allows }) ??
@@ -918,8 +977,24 @@ export function installApiServer({
     obligations,
     /** Planning et obligations du centre simulés (`api-planning.ts`). */
     planning,
+    /** Campagne de clôture simulée (`api-closing.ts`). */
+    closing,
+    /** Paramètres simulés (`api-settings.ts`). */
+    settings,
+    /** Rapports trimestriels simulés (`api-reports.ts`). */
+    reports,
+    /** Préoccupations simulées (`api-concerns.ts`). */
+    concerns,
+    /** Formations simulées (`api-trainings.ts`). */
+    trainings,
+    /** Annonces simulées (`api-announcements.ts`). */
+    announcements,
+    /** Tableaux de bord et statistiques simulés (`api-statistics.ts`). */
+    statistics,
     /** Catalogue national simulé (`api-catalog.ts`). */
     catalog,
+    /** Fiche permanente du CGA (étape 5.7). */
+    permanentProfile,
     /** Ouvre une session côté serveur, comme un cookie de session encore valide. */
     signIn(phone: string, activeId: string | null = null) {
       signedIn = { phone: normalizePhone(phone), activeId };

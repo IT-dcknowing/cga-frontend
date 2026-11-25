@@ -629,16 +629,43 @@ export function AccessesTab({ member }: { member: Member }) {
 
 /* ---------------------------------------------------------------- Historique */
 
+const HISTORY_VALUE_LABELS: Record<string, string> = {
+  forecast: fr.members.revenueKinds.forecast,
+  actual: fr.members.revenueKinds.actual,
+  monthly: fr.members.periodicities.monthly,
+  quarterly: fr.members.periodicities.quarterly,
+  yearly: fr.members.periodicities.yearly,
+  draft: fr.status.member.draft,
+  pending_approval: fr.status.member.pending_approval,
+  active: fr.status.member.active,
+  radiated: fr.status.member.radiated,
+  entry: 'Inscription',
+  cga: 'Portefeuille CGA',
+  cabinet: 'Portefeuille Cabinet',
+};
+
+const ISO_DATE_PREFIX = /^(\d{4}-\d{2}-\d{2})(?:[ T]\d{2}:\d{2}:\d{2}(?:\.\d+)?Z?)?$/;
+
 function shownValue(value: unknown): string {
   if (value === null || value === undefined || value === '') {
     return fr.table.none;
   }
 
-  return typeof value === 'boolean'
-    ? value
-      ? fr.common.yes
-      : fr.common.no
-    : String(value as string | number);
+  if (typeof value === 'boolean') {
+    return value ? fr.common.yes : fr.common.no;
+  }
+
+  const raw = String(value as string | number);
+  if (Object.prototype.hasOwnProperty.call(HISTORY_VALUE_LABELS, raw)) {
+    return HISTORY_VALUE_LABELS[raw];
+  }
+
+  const dateMatch = ISO_DATE_PREFIX.exec(raw);
+  if (dateMatch !== null) {
+    return formatDate(dateMatch[1]);
+  }
+
+  return raw;
 }
 
 function HistoryItem({ entry }: { entry: HistoryEntry }) {

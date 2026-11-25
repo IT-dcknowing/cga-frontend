@@ -358,6 +358,7 @@ export const membersFr = {
     tabs: {
       identity: 'Identité',
       obligations: 'Obligations',
+      closing: 'Clôture',
       finance: 'Honoraires et paiements',
       documents: 'Documents',
       pieces: 'Pièces',

@@ -1,4 +1,9 @@
 import { cgaSettingsFr } from './cga-settings';
+import { closingFr } from './closing';
+import { concernsFr } from './concerns';
+import { trainingsFr } from './trainings';
+import { announcementsFr } from './announcements';
+import { statisticsFr } from './statistics';
 import { communicationsFr } from './communications';
 import { duesFr } from './dues';
 import { memberSpaceFr } from './member-space';
@@ -10,6 +15,8 @@ import { obligationsFr } from './obligations';
 import { permissionsFr } from './permissions';
 import { referenceDataFr } from './reference-data';
 import { referentialsFr } from './referentials';
+import { reportsFr } from './reports';
+import { settingsFr } from './settings';
 import { templatesFr } from './templates';
 
 /** Libellés de l'interface (02-TRD §5.2) : aucun texte affiché n'est écrit dans un composant. */
@@ -26,6 +33,48 @@ export const fr = {
     yes: 'Oui',
     no: 'Non',
     add: 'Ajouter',
+  },
+  permanentProfile: {
+    tab: 'Fiche permanente',
+    identity: 'Identité du centre',
+    people: 'Dirigeants et personnel',
+    resources: 'Moyens matériels',
+    presentation: 'Présentation et historique',
+    addPerson: 'Ajouter une personne',
+    edit: 'Modifier',
+    save: 'Enregistrer',
+    saved: 'Fiche permanente enregistrée',
+    added: 'Personne ajoutée',
+    updated: 'Personne mise à jour',
+    loadError: 'Impossible de charger la fiche permanente.',
+    emptyPeople: 'Aucun dirigeant ou membre du personnel renseigné.',
+    noAccess: 'Vous pouvez consulter cette fiche, mais pas la modifier.',
+    kind: 'Catégorie',
+    kinds: {
+      director: 'Dirigeant',
+      employee: 'Salarié permanent',
+      occasional: 'Personnel occasionnel',
+    },
+    name: 'Nom et prénoms',
+    nationality: 'Nationalité',
+    profession: 'Profession',
+    diplomas: 'Diplômes',
+    function: 'Fonction dans le CGA',
+    startDate: 'Date de prise de service',
+    practiceStructure: 'Structure de pratique professionnelle',
+    practiceFunction: 'Fonction exercée',
+    practiceYears: 'Années de pratique',
+    cnps: 'Déclaration CNPS',
+    active: 'En activité',
+    endDate: 'Date de fin',
+    yes: 'Oui',
+    no: 'Non',
+    history: 'Présentation et historique',
+    revenue: 'Chiffre d’affaires de l’année précédente (F CFA)',
+    quantity: 'Quantité',
+    description: 'Description',
+    need: 'Besoins',
+    statuses: { active: 'En activité', inactive: 'Parti' },
   },
   /** 03-APPFLOW §7 : formulaire modifié non enregistré. */
   unsaved: {
@@ -134,6 +183,47 @@ export const fr = {
     dataStatus: {
       provisional: 'Provisoire',
       validated: 'Validé',
+    },
+    report: {
+      draft: 'Brouillon',
+      generated: 'Généré',
+      transmitted: 'Transmis',
+      acknowledged: 'Accusé reçu',
+    },
+    concern: {
+      open: 'Ouverte',
+      in_review: 'En examen',
+      resolved: 'Traitée',
+      rejected: 'Rejetée',
+    },
+    training: {
+      draft: 'Brouillon',
+      published: 'Publiée',
+      cancelled: 'Annulée',
+      completed: 'Terminée',
+    },
+    trainingRegistration: {
+      pending_approval: 'En attente de validation',
+      registered: 'Inscrit',
+      waitlisted: 'En liste d’attente',
+      cancelled: 'Désinscrit',
+      rejected: 'Refusée',
+    },
+    trainingPayment: {
+      not_applicable: 'Gratuite',
+      to_pay: 'À payer',
+      paid: 'Payée',
+    },
+    announcement: {
+      unread: 'Nouveau',
+      read: 'Lu',
+    },
+    networkReport: {
+      acknowledged: 'Accusé reçu',
+      transmitted: 'Transmis',
+      legally_late: 'Hors délai réglementaire',
+      late: 'En retard',
+      not_transmitted: 'Non transmis',
     },
     invoice: {
       draft: 'Brouillon',
@@ -464,10 +554,12 @@ export const fr = {
       submit: 'Enregistrer',
       done: 'CGA enregistré',
       openAccess: 'Ouvrir l’accès maintenant',
-      openAccessHint: 'Le gérant reçoit une invitation par SMS pour activer son accès.',
+      openAccessHint: 'Le gérant reçoit une invitation par SMS et/ou e-mail pour activer son accès.',
       managerFirstName: 'Prénom du gérant',
       managerLastName: 'Nom du gérant',
       managerPhone: 'Téléphone du gérant',
+      managerEmail: 'E-mail du gérant',
+      managerChannel: 'Canal d’envoi',
       invited: 'Invitation envoyée au gérant',
       inviteFailed: 'Le CGA est enregistré, mais l’invitation du gérant n’a pas pu être envoyée.',
     },
@@ -522,7 +614,14 @@ export const fr = {
       firstName: 'Prénom',
       lastName: 'Nom',
       phone: 'Téléphone',
-      hint: 'Le gérant reçoit une invitation par SMS pour activer son accès.',
+      email: 'E-mail',
+      channel: 'Canal d’envoi',
+      channels: {
+        sms_email: 'SMS et E-mail (recommandé)',
+        email: 'E-mail uniquement',
+        sms: 'SMS uniquement',
+      } as Record<string, string>,
+      hint: 'Le gérant reçoit une invitation par SMS et/ou e-mail pour activer son accès.',
       submit: 'Envoyer l’invitation',
       done: 'Invitation envoyée',
     },
@@ -567,6 +666,13 @@ export const fr = {
   communications: communicationsFr,
   messaging: messagingFr,
   obligations: obligationsFr,
+  closing: closingFr,
+  settings: settingsFr,
+  reports: reportsFr,
+  concerns: concernsFr,
+  trainings: trainingsFr,
+  announcements: announcementsFr,
+  statistics: statisticsFr,
   /** `/plateforme` (03-APPFLOW §6). */
   platform: {
     tabs: {
@@ -594,6 +700,7 @@ export const fr = {
       references: 'Références nationales',
       feries: 'Jours fériés',
       reseau: 'Paramètres réseau',
+      regles: 'Règles du rapport',
       identite: 'Identité du CNCGA',
     },
   },

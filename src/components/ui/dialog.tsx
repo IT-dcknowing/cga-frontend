@@ -29,7 +29,7 @@ export function DialogContent({
 }: DialogContentProps) {
   return (
     <DialogPrimitive.Portal>
-      <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-ink/40" />
+      <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-ink/45" />
       <DialogPrimitive.Content
         data-slot="dialog"
         // Sans sous-titre, Radix attend un `aria-describedby` explicitement vide.
@@ -39,15 +39,15 @@ export function DialogContent({
         }}
         className={cn(
           'fixed inset-0 z-50 flex flex-col bg-card text-ink',
-          'md:inset-auto md:left-1/2 md:top-1/2 md:max-h-[calc(100vh-4rem)] md:w-[calc(100%-3rem)] md:-translate-x-1/2 md:-translate-y-1/2 md:rounded-card md:border md:border-border md:shadow-card',
-          size === 'form' ? 'md:max-w-[560px]' : 'md:max-w-[720px]',
+          'md:inset-auto md:left-1/2 md:top-1/2 md:max-h-[calc(100vh-4rem)] md:w-[calc(100%-3rem)] md:-translate-x-1/2 md:-translate-y-1/2 md:rounded-[14px] md:border md:border-border',
+          size === 'preview' ? 'md:max-w-[720px]' : 'md:max-w-[560px]',
           className,
         )}
         {...props}
       >
-        <div className="flex items-start justify-between gap-3 border-b border-border px-5 py-4">
+        <div className="flex items-start justify-between gap-3 border-b border-border px-[22px] py-4">
           <div className="min-w-0">
-            <DialogPrimitive.Title className="text-card-title font-bold">
+            <DialogPrimitive.Title className="text-card-title font-extrabold">
               {title}
             </DialogPrimitive.Title>
             {description !== undefined ? (
@@ -58,7 +58,7 @@ export function DialogContent({
           </div>
           <DialogPrimitive.Close
             aria-label={fr.common.close}
-            className="-mr-2 inline-flex size-11 shrink-0 items-center justify-center rounded-control text-muted hover:bg-neutral-soft hover:text-ink md:size-8"
+            className="-mr-2 inline-flex size-11 shrink-0 items-center justify-center rounded-control text-muted hover:bg-neutral-soft hover:text-ink md:size-8 cursor-pointer"
           >
             <X className="size-4" aria-hidden="true" />
           </DialogPrimitive.Close>
@@ -74,7 +74,7 @@ export function DialogBody({ className, ...props }: ComponentProps<'div'>) {
   return (
     <div
       data-slot="dialog-body"
-      className={cn('grid min-h-0 flex-1 gap-4 overflow-y-auto px-5 py-4', className)}
+      className={cn('grid min-h-0 flex-1 gap-4 overflow-y-auto px-[22px] py-4', className)}
       {...props}
     />
   );
@@ -89,7 +89,7 @@ export function DialogFooter({ className, ...props }: ComponentProps<'div'>) {
     <div
       data-slot="dialog-footer"
       className={cn(
-        'flex flex-col-reverse gap-2 border-t border-border px-5 py-3 md:flex-row md:items-center md:justify-between',
+        'flex flex-col-reverse gap-2 border-t border-border px-[22px] py-3.5 md:flex-row md:items-center md:justify-between',
         '[&>[data-slot=button]]:w-full md:[&>[data-slot=button]]:w-auto',
         className,
       )}

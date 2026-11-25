@@ -162,6 +162,43 @@ export function EditMemberDialog({
   const [justificationError, setJustificationError] = useState<string | undefined>();
   const draft = member.status === 'draft';
 
+  // Seed reference options so selects render the current member values even while loading
+  const initialTaxOffices = useMemo(() => {
+    const list = taxOffices.data ? [...taxOffices.data] : [];
+    if (member.tax_office && !list.some((o) => o.id === member.tax_office?.id)) {
+      list.unshift({ id: member.tax_office.id, name: member.tax_office.name });
+    }
+    return list;
+  }, [taxOffices.data, member.tax_office]);
+
+  const initialCommunes = useMemo(() => {
+    const list = communes.data ? [...communes.data] : [];
+    if (member.commune && !list.some((c) => c.id === member.commune?.id)) {
+      list.unshift({ id: member.commune.id, name: member.commune.name });
+    }
+    return list;
+  }, [communes.data, member.commune]);
+
+  const initialSectors = useMemo(() => {
+    const list = sectors.data ? [...sectors.data] : [];
+    if (member.sector && !list.some((s) => s.id === member.sector?.id)) {
+      list.unshift({
+        id: member.sector.id,
+        code: member.sector.code,
+        name: member.sector.name,
+        status: member.sector.status,
+      });
+    }
+    return list;
+  }, [sectors.data, member.sector]);
+
+  // Re-sync form values once queries resolve without wiping user inputs
+  useEffect(() => {
+    if (taxOffices.data || communes.data || sectors.data) {
+      form.reset(memberFormOf(member), { keepDirtyValues: true });
+    }
+  }, [taxOffices.data, communes.data, sectors.data, member, form]);
+
   const submit = handleSubmit(async () => {
     const values = getValues();
     const found = checkMember('draft', values);
@@ -233,12 +270,12 @@ export function EditMemberDialog({
       {draft ? null : <p className="text-note text-muted">{labels.editDialog.regimeLocked}</p>}
       <IdentificationFields
         form={form}
-        taxOffices={taxOffices.data}
-        communes={communes.data}
+        taxOffices={initialTaxOffices}
+        communes={initialCommunes}
         referrers={seesReferrers ? (referrers.data ?? []) : undefined}
         regimeLocked={!draft}
       />
-      <ActivityFields form={form} sectors={sectors.data} />
+      <ActivityFields form={form} sectors={initialSectors} />
       {draft ? null : (
         <FileField
           id="member-justification"

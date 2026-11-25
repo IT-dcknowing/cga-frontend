@@ -1,4 +1,4 @@
-import { Upload, Wallet } from 'lucide-react';
+import { CalendarCheck, Upload, Wallet } from 'lucide-react';
 import type { ComponentType, ReactNode } from 'react';
 import { createBrowserRouter, Navigate, Outlet, type RouteObject } from 'react-router';
 import { authRoutes, spaces, type SpaceKind } from '@/features/auth/lib/destination';
@@ -16,7 +16,15 @@ import {
   RequireMenuEntry,
   RequireSession,
 } from '@/features/auth/session/guards';
+import { ClosingPage } from '@/features/closing/pages/closing-page';
+import { MemberClosingPage } from '@/features/closing/pages/member-closing-page';
 import { CommunicationsPage } from '@/features/communications/pages/communications-page';
+import { ConcernPage } from '@/features/concerns/pages/concern-page';
+import {
+  CgaConcernsPage,
+  MemberMessagesPage,
+  NetworkConcernsPage,
+} from '@/features/concerns/pages/concerns-pages';
 import { NewCampaignPage } from '@/features/communications/pages/new-campaign-page';
 import { DemoPage } from '@/features/demo/pages/demo-page';
 import { CgaDuesPage } from '@/features/dues/pages/cga-dues-page';
@@ -49,6 +57,28 @@ import { PlanningPage } from '@/features/obligations/pages/planning-page';
 import { MemberObligationsPage } from '@/features/member-space/pages/member-obligations-page';
 import { platformRoutes } from '@/features/platform/lib/routes';
 import { PlatformPage } from '@/features/platform/pages/platform-page';
+import { reportRoutes } from '@/features/reports/lib/routes';
+import { NetworkReportsPage } from '@/features/reports/pages/network-reports-page';
+import { ReportPage } from '@/features/reports/pages/report-page';
+import { ReportsPage } from '@/features/reports/pages/reports-page';
+import { MemberTrainingsPage } from '@/features/trainings/pages/member-trainings-page';
+import { NetworkTrainingPage } from '@/features/trainings/pages/network-training-page';
+import { TrainingPage } from '@/features/trainings/pages/training-page';
+import {
+  CgaTrainingsPage,
+  EditTrainingPage,
+  NetworkTrainingsPage,
+  NewTrainingPage,
+} from '@/features/trainings/pages/trainings-pages';
+import { NetworkCommunicationsPage } from '@/features/announcements/pages/announcements-pages';
+import {
+  CgaDashboardPage,
+  NetworkDashboardPage,
+} from '@/features/statistics/pages/dashboard-pages';
+import {
+  CgaStatisticsPage,
+  NetworkStatisticsPage,
+} from '@/features/statistics/pages/statistics-pages';
 import { fr } from '@/lib/i18n/fr';
 import { permissionCodes } from '@/lib/reference/permissions';
 
@@ -88,11 +118,47 @@ const cncgaScreens: Record<string, MenuScreen> = {
   },
   [cncgaSettingsRoutes.root]: { element: <CncgaSettingsPage /> },
   '/cncga/cotisations': { element: <NetworkDuesPage /> },
+  '/cncga/rapports': { element: <NetworkReportsPage /> },
+  '/cncga/preoccupations': {
+    element: <NetworkConcernsPage />,
+    children: [{ path: ':id', element: <ConcernPage space="network" /> }],
+  },
+  '/cncga/tableau-de-bord': { element: <NetworkDashboardPage /> },
+  '/cncga/statistiques': { element: <NetworkStatisticsPage /> },
+  '/cncga/communications': { element: <NetworkCommunicationsPage /> },
+  '/cncga/formations': {
+    element: <NetworkTrainingsPage />,
+    children: [
+      { path: 'nouvelle', element: <NewTrainingPage space="network" /> },
+      { path: ':id', element: <TrainingPage space="network" /> },
+      { path: ':id/modifier', element: <EditTrainingPage space="network" /> },
+    ],
+  },
 };
 
 const cgaScreens: Record<string, MenuScreen> = {
+  '/cga/tableau-de-bord': { element: <CgaDashboardPage /> },
+  '/cga/statistiques': { element: <CgaStatisticsPage /> },
   '/cga/echeances': { element: <PlanningPage /> },
   '/cga/gestion-interne': { element: <InternalPage /> },
+  '/cga/cloture': { element: <ClosingPage /> },
+  '/cga/preoccupations': {
+    element: <CgaConcernsPage />,
+    children: [{ path: ':id', element: <ConcernPage space="cga" /> }],
+  },
+  '/cga/formations': {
+    element: <CgaTrainingsPage />,
+    children: [
+      { path: 'nouvelle', element: <NewTrainingPage space="cga" /> },
+      { path: 'reseau/:id', element: <NetworkTrainingPage /> },
+      { path: ':id', element: <TrainingPage space="cga" /> },
+      { path: ':id/modifier', element: <EditTrainingPage space="cga" /> },
+    ],
+  },
+  [reportRoutes.list]: {
+    element: <ReportsPage />,
+    children: [{ path: ':id', element: <ReportPage /> }],
+  },
   '/cga/factures': { element: <InvoicesPage /> },
   '/cga/cotisation': { element: <CgaDuesPage /> },
   '/cga/communications': {
@@ -131,6 +197,11 @@ const memberScreens: Record<string, MenuScreen> = {
   [spaces.member.home]: { element: <MemberHomePage /> },
   [memberSpaceRoutes.documents]: { element: <MemberDocumentsPage /> },
   [memberSpaceRoutes.obligations]: { element: <MemberObligationsPage /> },
+  '/adherent/messages': {
+    element: <MemberMessagesPage />,
+    children: [{ path: ':id', element: <ConcernPage space="member" /> }],
+  },
+  '/adherent/formations': { element: <MemberTrainingsPage /> },
 };
 
 /** Écrans de l'espace adhérent hors de son menu (honoraires, depuis l'accueil), sous leur droit. */
@@ -147,6 +218,22 @@ const memberPages: RouteObject[] = [
         }}
       >
         <MemberFeesPage />
+      </RequireMenuEntry>
+    ),
+  },
+  {
+    // Ouvert depuis les rappels de la campagne de clôture (03-APPFLOW §5.2), hors du menu §5.1.
+    path: memberSpaceRoutes.closing,
+    element: (
+      <RequireMenuEntry
+        entry={{
+          path: memberSpaceRoutes.closing,
+          label: fr.closing.memberSpace.title,
+          icon: CalendarCheck,
+          permissions: [permissionCodes.member.closing],
+        }}
+      >
+        <MemberClosingPage />
       </RequireMenuEntry>
     ),
   },

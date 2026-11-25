@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { describeStatus } from '@/lib/status';
+import { fr } from '@/lib/i18n/fr';
+import { describeStatus, type StatusDomain } from '@/lib/status';
 
 describe('describeStatus (04-UX-UI §2.1)', () => {
   it.each([
@@ -49,5 +50,28 @@ describe('describeStatus (04-UX-UI §2.1)', () => {
 
   it('affiche un code inconnu tel quel, en gris', () => {
     expect(describeStatus('member', 'archived')).toEqual({ tone: 'neutral', label: 'archived' });
+  });
+
+  it('§2.1 · le bleu est réservé aux plateformes externes : aucun statut n’est en bleu', () => {
+    for (const domain of Object.keys(fr.status) as StatusDomain[]) {
+      for (const code of Object.keys(fr.status[domain])) {
+        expect(describeStatus(domain, code).tone, `${domain}.${code}`).not.toBe('info');
+      }
+    }
+  });
+
+  it('§2.1 · « Brouillon » partout en orange ; « En examen », « En cours » à traiter', () => {
+    for (const domain of ['member', 'invoice', 'campaign', 'report', 'training'] as const) {
+      expect(describeStatus(domain, 'draft'), domain).toEqual({
+        tone: 'warning',
+        label: 'Brouillon',
+      });
+    }
+    expect(describeStatus('concern', 'in_review').tone).toBe('warning');
+    expect(describeStatus('obligation', 'in_progress').tone).toBe('warning');
+    expect(describeStatus('training', 'published').tone).toBe('success');
+    expect(describeStatus('training', 'completed').tone).toBe('neutral');
+    expect(describeStatus('trainingRegistration', 'waitlisted').tone).toBe('warning');
+    expect(describeStatus('trainingRegistration', 'cancelled').tone).toBe('neutral');
   });
 });

@@ -27,7 +27,7 @@ async function open(phone = '0700000002', membership: string = demoIds.manager) 
 
   const session = await httpAuthApi.currentSession();
   const user = userEvent.setup({ delay: null });
-  const view = renderApp({ api: httpAuthApi, session, entry: '/cga/gestion-interne' });
+  const view = renderApp({ api: httpAuthApi, session, entry: '/cga/gestion-interne?onglet=obligations' });
 
   return { user, ...view };
 }
@@ -143,9 +143,136 @@ describe(
       server.failNext('GET', apiUrl('/cga/center-obligations'), { status: 500 });
       const session = await httpAuthApi.currentSession();
 
-      renderApp({ api: httpAuthApi, session, entry: '/cga/gestion-interne' });
+      renderApp({ api: httpAuthApi, session, entry: '/cga/gestion-interne?onglet=obligations' });
 
       expect(await screen.findByText(labels.loadError, {}, { timeout: 5_000 })).toBeVisible();
     });
   },
 );
+
+describe('/cga/gestion-interne · fiche permanente (5.7, F-RPT-01)', { timeout: 20_000 }, () => {
+  it('charge l’identité, les dirigeants, les moyens et la présentation depuis l’API', async () => {
+    server = installApiServer();
+    server.signIn('0700000002', demoIds.manager);
+    const session = await httpAuthApi.currentSession();
+    renderApp({ api: httpAuthApi, session, entry: '/cga/gestion-interne?onglet=fiche-permanente' });
+
+    expect(await screen.findByRole('heading', { name: fr.permanentProfile.identity })).toBeVisible();
+    const identity = screen.getByRole('heading', { name: fr.permanentProfile.identity }).closest('section');
+    expect(within(identity as HTMLElement).getByText('DC-KNOWING CGA')).toBeVisible();
+    expect(screen.getByText('Awa Koné')).toBeVisible();
+    expect(screen.getByText('Matériel informatique')).toBeVisible();
+    expect(screen.getByLabelText(fr.permanentProfile.history)).toHaveValue('Créé en 2004.');
+    expect(server.requests.some((request) => request.url === apiUrl('/cga/permanent-profile'))).toBe(true);
+  });
+
+  it('ajoute une personne, enregistre la présentation et un moyen matériel par les routes backend', async () => {
+    server = installApiServer();
+    server.signIn('0700000002', demoIds.manager);
+    const session = await httpAuthApi.currentSession();
+    const user = userEvent.setup({ delay: null });
+    renderApp({ api: httpAuthApi, session, entry: '/cga/gestion-interne?onglet=fiche-permanente' });
+    await screen.findByRole('heading', { name: fr.permanentProfile.identity });
+
+    await user.click(screen.getByRole('button', { name: fr.permanentProfile.addPerson }));
+    await user.type(screen.getByLabelText(fr.permanentProfile.name, { exact: false }), 'Mariam Traoré');
+    server.failNext('POST', apiUrl('/cga/permanent-profile/people'), {
+      status: 422,
+      data: { message: 'Le nom doit être vérifié.', errors: { full_name: ['Le nom doit être vérifié.'] } },
+    });
+    await user.click(screen.getAllByRole('button', { name: fr.permanentProfile.save })[0]);
+    expect(await screen.findByText('Le nom doit être vérifié.')).toBeVisible();
+    await user.click(screen.getAllByRole('button', { name: fr.permanentProfile.save })[0]);
+    expect(await screen.findByText('Mariam Traoré')).toBeVisible();
+    expect(server.permanentProfile.profile().people.some((person) => person.full_name === 'Mariam Traoré')).toBe(true);
+
+    await user.click(screen.getByRole('button', { name: fr.permanentProfile.addPerson }));
+    await user.click(screen.getByRole('button', { name: fr.common.cancel }));
+    expect(screen.queryByLabelText(fr.permanentProfile.name, { exact: false })).toBeNull();
+
+    const history = screen.getByLabelText(fr.permanentProfile.history);
+    await user.clear(history);
+    await user.type(history, 'Centre créé en 2004 et agréé en 2020.');
+    const presentation = screen.getByRole('heading', { name: fr.permanentProfile.presentation }).closest('section');
+    expect(presentation).not.toBeNull();
+    await user.click(within(presentation as HTMLElement).getByRole('button', { name: fr.permanentProfile.save }));
+    await waitFor(() => expect(server.permanentProfile.profile().presentation.history_text).toBe('Centre créé en 2004 et agréé en 2020.'));
+    const revenue = screen.getByLabelText(fr.permanentProfile.revenue);
+    await user.clear(revenue);
+    await user.type(revenue, '52000000');
+
+    const resourceForm = screen.getByText('Matériel informatique').closest('form');
+    expect(resourceForm).not.toBeNull();
+    const quantity = within(resourceForm as HTMLElement).getByLabelText(fr.permanentProfile.quantity);
+    await user.clear(quantity);
+    await user.type(quantity, '8');
+    const description = within(resourceForm as HTMLElement).getByLabelText(fr.permanentProfile.description);
+    await user.clear(description);
+    await user.type(description, 'Parc renouvelé');
+    const need = within(resourceForm as HTMLElement).getByLabelText(fr.permanentProfile.need);
+    await user.clear(need);
+    await user.type(need, 'Deux ordinateurs supplémentaires');
+    server.failNext('PUT', apiUrl('/cga/permanent-profile/resources/computers'), { status: 500 });
+    await user.click(within(resourceForm as HTMLElement).getByRole('button', { name: fr.permanentProfile.save }));
+    await waitFor(() => expect(server.requests.filter((request) => request.url === apiUrl('/cga/permanent-profile/resources/computers'))).toHaveLength(1));
+    await user.click(within(resourceForm as HTMLElement).getByRole('button', { name: fr.permanentProfile.save }));
+    await waitFor(() => expect(server.permanentProfile.profile().resources.find((resource) => resource.category === 'computers')?.entry).toMatchObject({ quantity: 8, description: 'Parc renouvelé', need: 'Deux ordinateurs supplémentaires' }));
+    expect(server.requests.some((request) => request.method === 'POST' && request.url === apiUrl('/cga/permanent-profile/people'))).toBe(true);
+    expect(server.requests.some((request) => request.method === 'PUT' && request.url === apiUrl('/cga/permanent-profile/presentation'))).toBe(true);
+  });
+
+  it('modifie une personne existante et conserve les valeurs si la présentation est refusée', async () => {
+    server = installApiServer();
+    server.signIn('0700000002', demoIds.manager);
+    const session = await httpAuthApi.currentSession();
+    const user = userEvent.setup({ delay: null });
+    renderApp({ api: httpAuthApi, session, entry: '/cga/gestion-interne?onglet=fiche-permanente' });
+    await screen.findByText('Awa Koné');
+
+    await user.click(screen.getByRole('button', { name: fr.permanentProfile.edit }));
+    const name = screen.getByLabelText(fr.permanentProfile.name, { exact: false });
+    await user.clear(name);
+    await user.type(name, 'Awa Koné Kouassi');
+    await user.selectOptions(screen.getByLabelText(fr.permanentProfile.kind), 'occasional');
+    await user.clear(screen.getByLabelText(fr.permanentProfile.nationality));
+    await user.type(screen.getByLabelText(fr.permanentProfile.nationality), 'Ivoirienne');
+    await user.type(screen.getByLabelText(fr.permanentProfile.profession), 'Comptable');
+    await user.type(screen.getByLabelText(fr.permanentProfile.diplomas), 'DESCOGEF');
+    await user.type(screen.getByLabelText(fr.permanentProfile.function), 'Directrice');
+    await user.type(screen.getByLabelText(fr.permanentProfile.startDate), '2021-01-15');
+    await user.type(screen.getByLabelText(fr.permanentProfile.practiceStructure), 'Cabinet ABC');
+    await user.type(screen.getByLabelText(fr.permanentProfile.practiceFunction), 'Auditrice');
+    await user.clear(screen.getByLabelText(fr.permanentProfile.practiceYears));
+    await user.type(screen.getByLabelText(fr.permanentProfile.practiceYears), '9');
+    await user.click(screen.getByLabelText(fr.permanentProfile.cnps));
+    await user.click(screen.getByLabelText(fr.permanentProfile.active));
+    expect(screen.getByLabelText(fr.permanentProfile.active)).not.toBeChecked();
+    await user.type(await screen.findByLabelText(fr.permanentProfile.endDate, { exact: false }), '2026-01-31');
+    const peopleCard = screen.getByRole('heading', { name: fr.permanentProfile.people }).closest('section');
+    expect(peopleCard).not.toBeNull();
+    await user.click(within(peopleCard as HTMLElement).getByRole('button', { name: fr.permanentProfile.save }));
+    expect(await screen.findByText('Awa Koné Kouassi')).toBeVisible();
+    expect(server.permanentProfile.profile().people[0]).toMatchObject({ kind: 'occasional', practice_years: 9, cnps_declared: false, active: false, end_date: '2026-01-31' });
+    expect(server.requests.some((request) => request.method === 'PUT' && request.url.includes('/cga/permanent-profile/people/'))).toBe(true);
+
+    const previous = server.permanentProfile.profile().presentation.history_text;
+    server.failNext('PUT', apiUrl('/cga/permanent-profile/presentation'), { status: 500 });
+    const history = screen.getByLabelText(fr.permanentProfile.history);
+    await user.clear(history);
+    await user.type(history, 'Modification temporaire');
+    const presentation = screen.getByRole('heading', { name: fr.permanentProfile.presentation }).closest('section');
+    expect(presentation).not.toBeNull();
+    await user.click(within(presentation as HTMLElement).getByRole('button', { name: fr.permanentProfile.save }));
+    await waitFor(() => expect(server.permanentProfile.profile().presentation.history_text).toBe(previous));
+  });
+
+  it('affiche l’erreur de chargement quand le backend échoue', async () => {
+    server = installApiServer();
+    server.signIn('0700000002', demoIds.manager);
+    server.failNext('GET', apiUrl('/cga/permanent-profile'), { status: 500 });
+    server.failNext('GET', apiUrl('/cga/permanent-profile'), { status: 500 });
+    const session = await httpAuthApi.currentSession();
+    renderApp({ api: httpAuthApi, session, entry: '/cga/gestion-interne?onglet=fiche-permanente' });
+    expect(await screen.findByText(fr.permanentProfile.loadError, {}, { timeout: 5_000 })).toBeVisible();
+  });
+});

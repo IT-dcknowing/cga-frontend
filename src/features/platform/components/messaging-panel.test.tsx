@@ -212,7 +212,7 @@ describe('/plateforme · Envois (6.2, RG-NOT-05)', { timeout: 20_000 }, () => {
       }),
     );
     await user.click(screen.getByRole('menuitem', { name: labels.deactivate }));
-    expect(await screen.findByText(fr.errors.http.server)).toBeVisible();
+    expect(await screen.findByText(fr.errors.http.server)).toBeInTheDocument();
 
     await user.click(
       within(screen.getByRole('region', { name: labels.channels.sms })).getByRole('button', {

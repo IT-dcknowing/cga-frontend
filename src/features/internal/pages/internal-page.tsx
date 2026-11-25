@@ -2,6 +2,7 @@ import { useSearchParams } from 'react-router';
 import { PageHeader } from '@/components/layout/page-header';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { CenterObligationsTab } from '@/features/obligations/components/center-obligations-tab';
+import { PermanentProfileTab } from '@/features/internal/components/permanent-profile-tab';
 import { fr } from '@/lib/i18n/fr';
 import { oneOf } from '@/lib/list-params';
 
@@ -10,8 +11,9 @@ import { oneOf } from '@/lib/list-params';
  * l'onglet « Fiche permanente » du rapport trimestriel suit à l'étape 5.7. L'onglet ouvert est dans
  * l'adresse (`?onglet=`).
  */
-const TABS = ['obligations'] as const;
+const TABS = ['fiche-permanente', 'obligations'] as const;
 const TAB_LABELS: Record<(typeof TABS)[number], string> = {
+  'fiche-permanente': fr.permanentProfile.tab,
   obligations: fr.obligations.center.tab,
 };
 
@@ -35,9 +37,8 @@ export function InternalPage() {
             </TabsTrigger>
           ))}
         </TabsList>
-        <TabsContent value="obligations">
-          <CenterObligationsTab />
-        </TabsContent>
+        <TabsContent value="fiche-permanente"><PermanentProfileTab /></TabsContent>
+        <TabsContent value="obligations"><CenterObligationsTab /></TabsContent>
       </Tabs>
     </>
   );

@@ -233,9 +233,21 @@ describe('Droits et erreurs (03-APPFLOW §4.1, §7)', () => {
   });
 
   it('les écrans pas encore construits s’affichent dans la coque, avec leur titre', async () => {
-    await renderSignedIn('adherent@inc.ci', '/adherent/messages');
+    // Seule la bancabilité (lot 10, sans API à ce jour) reste à construire : elle n'est ouverte qu'à
+    // un centre qui l'a activée.
+    const api = createFakeAuthApi();
+    const session = await openSession(api, 'gerant@dc-knowing.ci');
+    const banking = {
+      ...session,
+      memberships: session.memberships.map((membership) => ({
+        ...membership,
+        organization: { ...membership.organization, banking_enabled: true },
+      })),
+    };
 
-    expect(screen.getByRole('heading', { level: 1, name: fr.nav.messages })).toBeInTheDocument();
+    renderApp({ api, session: banking, entry: '/cga/bancabilite' });
+
+    expect(screen.getByRole('heading', { level: 1, name: fr.nav.bankability })).toBeInTheDocument();
     expect(screen.getByText(fr.pending.body)).toBeInTheDocument();
   });
 });

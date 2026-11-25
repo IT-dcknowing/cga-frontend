@@ -15,6 +15,7 @@ import { useOrganization } from '@/features/organizations/api/queries';
 import { IdentityTab } from '@/features/organizations/components/identity-tab';
 import { OrganizationDuesTab } from '@/features/dues/components/organization-dues-tab';
 import { useAuth } from '@/features/auth/session/auth-context';
+import { CgaReportsTab } from '@/features/reports/components/network-reports';
 import { permissionCodes } from '@/lib/reference/permissions';
 import {
   InviteManagerDialog,
@@ -42,7 +43,7 @@ const labels = fr.organization;
 
 type DialogName = 'subscription' | 'suspend' | 'reactivate' | 'withdraw' | 'invite';
 
-const LATER_TABS = ['reports', 'figures', 'concerns'] as const;
+const LATER_TABS = ['figures', 'concerns'] as const;
 
 function Breadcrumb() {
   return (
@@ -159,7 +160,9 @@ export function OrganizationPage() {
   const { id = '' } = useParams();
   const query = useOrganization(id);
   const [dialog, setDialog] = useState<DialogName | null>(null);
-  const canSeeDues = useAuth().can(permissionCodes.cncga.dues);
+  const { can: allows } = useAuth();
+  const canSeeDues = allows(permissionCodes.cncga.dues);
+  const canSeeReports = allows(permissionCodes.cncga.reports);
 
   if (query.isPending) {
     return <LoadingFiche />;
@@ -242,6 +245,7 @@ export function OrganizationPage() {
           <TabsTrigger value="identity">{labels.tabs.identity}</TabsTrigger>
           <TabsTrigger value="users">{labels.tabs.users}</TabsTrigger>
           <TabsTrigger value="dues">{labels.tabs.dues}</TabsTrigger>
+          {canSeeReports ? <TabsTrigger value="reports">{labels.tabs.reports}</TabsTrigger> : null}
           {LATER_TABS.map((tab) => (
             <TabsTrigger key={tab} value={tab}>
               {labels.tabs[tab]}
@@ -274,6 +278,11 @@ export function OrganizationPage() {
             </Card>
           )}
         </TabsContent>
+        {canSeeReports ? (
+          <TabsContent value="reports">
+            <CgaReportsTab cgaId={organization.id} year={new Date().getFullYear()} />
+          </TabsContent>
+        ) : null}
         {LATER_TABS.map((tab) => (
           <TabsContent key={tab} value={tab}>
             <Card>
