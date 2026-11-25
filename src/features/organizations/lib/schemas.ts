@@ -97,11 +97,17 @@ export const registrationApiFields = {
   agreement_date: 'agreement_date',
 } as const;
 
-/** Gérant invité (prénom, nom, téléphone), à la création ou depuis la fiche. */
+/** Canaux d'invitation disponibles (ordre d'affichage dans les menus). */
+export const INVITATION_CHANNELS = ['sms_email', 'email', 'sms'] as const;
+export type InvitationChannel = (typeof INVITATION_CHANNELS)[number];
+
+/** Gérant invité (prénom, nom, téléphone, e-mail, canal), à la création ou depuis la fiche. */
 export const managerSchema = z.object({
   first_name: z.string().trim().min(1, errors.firstNameRequired),
   last_name: z.string().trim().min(1, errors.lastNameRequired),
   phone: z.string().trim().min(1, errors.phoneRequired),
+  email: z.union([z.literal(''), z.string().trim().email(errors.emailFormat)]),
+  channel: z.enum(['sms', 'email', 'sms_email']),
 });
 
 export type ManagerForm = z.infer<typeof managerSchema>;
