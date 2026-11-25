@@ -29,7 +29,7 @@ export function FormField({
 }: FormFieldProps) {
   return (
     <div className={cn('grid gap-1.5', className)}>
-      <label htmlFor={id} className="text-label font-semibold text-muted">
+      <label htmlFor={id} className="text-[10.5px] font-extrabold uppercase tracking-[0.05em] text-muted">
         {label}
         {required ? (
           <span className="text-danger" aria-hidden="true">

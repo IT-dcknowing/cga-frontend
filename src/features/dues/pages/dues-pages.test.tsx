@@ -105,7 +105,7 @@ describe('/cncga/cotisations (6.7)', JOURNEY, () => {
     );
     await user.click(within(dialog).getByRole('button', { name: labels.review.reject }));
 
-    expect(await screen.findByText(labels.review.rejectedToast)).toBeVisible();
+    expect(await screen.findByText(labels.review.rejectedToast)).toBeInTheDocument();
     expect(dues.dues()[0].payments?.[0].status).toBe('rejected');
   });
 

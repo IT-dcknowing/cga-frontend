@@ -2,6 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useState } from 'react';
 import {
   useForm,
+  useWatch,
   type FieldValues,
   type Path,
   type UseFormRegisterReturn,
@@ -15,6 +16,7 @@ import { Checkbox, CheckboxField } from '@/components/ui/checkbox';
 import { fieldProps } from '@/components/ui/field-props';
 import { FormField } from '@/components/ui/form-field';
 import { Radio, RadioGroupField, RadioOption } from '@/components/ui/radio';
+import { Select } from '@/components/ui/select';
 import { TextField } from '@/components/ui/text-field';
 import { Textarea } from '@/components/ui/textarea';
 import { organizationsApi } from '@/features/organizations/api';
@@ -373,18 +375,33 @@ export function InviteManagerDialog({ organization, onClose }: DialogProps) {
     register,
     handleSubmit,
     setError,
+    control,
     formState: { errors: fieldErrors, isSubmitting },
   } = useForm<ManagerForm>({
     resolver: zodResolver(managerSchema),
-    defaultValues: { first_name: '', last_name: '', phone: '' },
+    defaultValues: {
+      first_name: '',
+      last_name: '',
+      phone: '',
+      email: organization.email ?? '',
+      channel: 'sms_email',
+    },
   });
+  const channel = useWatch({ control, name: 'channel' });
 
   const submit = handleSubmit((values) =>
     save(
-      () => organizationsApi.inviteManager(organization.id, values),
+      () =>
+        organizationsApi.inviteManager(organization.id, {
+          first_name: values.first_name,
+          last_name: values.last_name,
+          phone: values.phone,
+          email: emptyToNull(values.email),
+          channel: values.channel,
+        }),
       labels.invite.done,
       setError,
-      { first_name: 'first_name', last_name: 'last_name', phone: 'phone' },
+      { first_name: 'first_name', last_name: 'last_name', phone: 'phone', email: 'email', channel: 'channel' },
     ),
   );
 
@@ -423,10 +440,30 @@ export function InviteManagerDialog({ organization, onClose }: DialogProps) {
           required
           type="tel"
           autoComplete="off"
-          className="md:col-span-2"
           error={fieldErrors.phone?.message}
           {...register('phone')}
         />
+        <TextField
+          id="invite-email"
+          label={labels.invite.email}
+          type="email"
+          autoComplete="off"
+          required={channel !== 'sms'}
+          error={fieldErrors.email?.message}
+          {...register('email')}
+        />
+        <FormField
+          id="invite-channel"
+          label={labels.invite.channel}
+          className="md:col-span-2"
+          error={fieldErrors.channel?.message}
+        >
+          <Select {...fieldProps('invite-channel', fieldErrors.channel?.message)} {...register('channel')}>
+            <option value="sms_email">{labels.invite.channels.sms_email}</option>
+            <option value="email">{labels.invite.channels.email}</option>
+            <option value="sms">{labels.invite.channels.sms}</option>
+          </Select>
+        </FormField>
       </div>
     </FormDialog>
   );

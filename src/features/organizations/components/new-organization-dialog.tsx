@@ -6,6 +6,9 @@ import { toast } from 'sonner';
 import { z } from 'zod';
 import { FormDialog } from '@/components/shared/form-dialog';
 import { Checkbox, CheckboxField } from '@/components/ui/checkbox';
+import { FormField } from '@/components/ui/form-field';
+import { fieldProps } from '@/components/ui/field-props';
+import { Select } from '@/components/ui/select';
 import { TextField } from '@/components/ui/text-field';
 import { organizationsApi } from '@/features/organizations/api';
 import type { Organization } from '@/features/organizations/api/organizations-api';
@@ -13,6 +16,7 @@ import { useOrganizationSaved } from '@/features/organizations/api/queries';
 import { RegistrationFields } from '@/features/organizations/components/registration-fields';
 import { organizationRoutes } from '@/features/organizations/lib/organization';
 import {
+  INVITATION_CHANNELS,
   checkAgreement,
   emptyRegistration,
   registrationApiFields,
@@ -39,6 +43,8 @@ const schema = z
     manager_first_name: z.string().trim(),
     manager_last_name: z.string().trim(),
     manager_phone: z.string().trim(),
+    manager_email: z.union([z.literal(''), z.string().trim().email(errors.emailFormat)]),
+    manager_channel: z.enum(['sms', 'email', 'sms_email']),
   })
   .superRefine((values, context) => {
     checkAgreement(values, context);
@@ -57,6 +63,11 @@ const schema = z
       if (values[field] === '') {
         context.addIssue({ code: 'custom', path: [field], message });
       }
+    }
+
+    // E-mail obligatoire si le canal choisi utilise l'e-mail et qu'aucun e-mail (gérant ou centre) n'est renseigné
+    if (values.manager_channel !== 'sms' && values.manager_email === '' && values.email === '') {
+      context.addIssue({ code: 'custom', path: ['manager_email'], message: errors.emailFormat });
     }
   });
 
@@ -83,6 +94,8 @@ export function NewOrganizationDialog({ onClose }: { onClose: () => void }) {
       manager_first_name: '',
       manager_last_name: '',
       manager_phone: '',
+      manager_email: '',
+      manager_channel: 'sms' as const,
     },
   });
   const {
@@ -93,16 +106,25 @@ export function NewOrganizationDialog({ onClose }: { onClose: () => void }) {
     formState: { errors: fieldErrors, isSubmitting },
   } = form;
   const openAccess = useWatch({ control, name: 'open_access' });
+  const managerChannel = useWatch({ control, name: 'manager_channel' });
+  const cgaEmail = useWatch({ control, name: 'email' });
 
   async function inviteManager(organization: Organization, values: NewOrganizationForm) {
     try {
-      saved(
-        await organizationsApi.inviteManager(organization.id, {
-          first_name: values.manager_first_name,
-          last_name: values.manager_last_name,
-          phone: values.manager_phone,
-        }),
-      );
+      const email = (values.manager_email.trim() || values.email.trim()) || null;
+      const payload: Parameters<typeof organizationsApi.inviteManager>[1] = {
+        first_name: values.manager_first_name,
+        last_name: values.manager_last_name,
+        phone: values.manager_phone,
+      };
+      if (email !== null) {
+        payload.email = email;
+        payload.channel = values.manager_channel === 'sms' ? 'email' : values.manager_channel;
+      } else if (values.manager_channel !== 'sms') {
+        payload.channel = values.manager_channel;
+      }
+
+      saved(await organizationsApi.inviteManager(organization.id, payload));
       toast.success(labels.create.invited);
     } catch (error) {
       // Le CGA existe déjà : l'invitation se refait depuis l'onglet Utilisateurs de sa fiche.
@@ -186,6 +208,33 @@ export function NewOrganizationDialog({ onClose }: { onClose: () => void }) {
             error={fieldErrors.manager_phone?.message}
             {...register('manager_phone')}
           />
+          <TextField
+            id="new-org-manager-email"
+            label={labels.create.managerEmail}
+            type="email"
+            autoComplete="off"
+            placeholder={cgaEmail || undefined}
+            required={managerChannel !== 'sms' && !cgaEmail}
+            error={fieldErrors.manager_email?.message}
+            {...register('manager_email')}
+          />
+          <FormField
+            id="new-org-manager-channel"
+            label={labels.create.managerChannel}
+            className="md:col-span-2"
+            error={fieldErrors.manager_channel?.message}
+          >
+            <Select
+              {...fieldProps('new-org-manager-channel', fieldErrors.manager_channel?.message)}
+              {...register('manager_channel')}
+            >
+              {INVITATION_CHANNELS.map((ch) => (
+                <option key={ch} value={ch}>
+                  {labels.invite.channels[ch]}
+                </option>
+              ))}
+            </Select>
+          </FormField>
         </div>
       ) : null}
     </FormDialog>

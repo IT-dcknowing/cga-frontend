@@ -44,6 +44,7 @@ import { ApiBusinessError } from '@/lib/api-errors';
 import { formatTimestampDate } from '@/lib/format';
 import { toastUnexpectedError } from '@/lib/http-error-toast';
 import { ObligationsTab } from '@/features/obligations/components/obligations-tab';
+import { MemberClosingTab } from '@/features/closing/components/member-closing-tab';
 import { fr } from '@/lib/i18n/fr';
 import { permissionCodes } from '@/lib/reference/permissions';
 
@@ -60,6 +61,7 @@ const labels = fr.members.detail;
 const TABS = [
   'identity',
   'obligations',
+  'closing',
   'finance',
   'documents',
   'pieces',
@@ -519,11 +521,13 @@ export function MemberPage() {
         }}
       >
         <TabsList>
-          {TABS.map((key) => (
-            <TabsTrigger key={key} value={key}>
-              {labels.tabs[key]}
-            </TabsTrigger>
-          ))}
+          {TABS.filter((key) => key !== 'closing' || allows(permissionCodes.cga.closing)).map(
+            (key) => (
+              <TabsTrigger key={key} value={key}>
+                {labels.tabs[key]}
+              </TabsTrigger>
+            ),
+          )}
         </TabsList>
         <TabsContent value="identity">
           <IdentityTab member={member} />
@@ -531,6 +535,11 @@ export function MemberPage() {
         <TabsContent value="obligations">
           <ObligationsTab member={member} />
         </TabsContent>
+        {allows(permissionCodes.cga.closing) ? (
+          <TabsContent value="closing">
+            <MemberClosingTab memberId={member.id} />
+          </TabsContent>
+        ) : null}
         <TabsContent value="finance">
           <FinanceTab member={member} />
         </TabsContent>

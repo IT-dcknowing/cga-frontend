@@ -1,9 +1,6 @@
-import { Clock } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useSearchParams } from 'react-router';
 import { PageHeader } from '@/components/layout/page-header';
-import { EmptyState } from '@/components/shared/empty-state';
-import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/features/auth/session/auth-context';
 import { AgentsPanel } from '@/features/cga-settings/components/agents-panel';
@@ -18,6 +15,7 @@ import {
   sectorsDef,
   taxOfficesDef,
 } from '@/features/referentials/lib/definitions';
+import { SettingsPanel } from '@/features/settings/components/settings-panel';
 import { fr } from '@/lib/i18n/fr';
 import { oneOf } from '@/lib/list-params';
 import { permissionCodes } from '@/lib/reference/permissions';
@@ -25,11 +23,11 @@ import { permissionCodes } from '@/lib/reference/permissions';
 /*
  * `/cncga/parametres` (03-APPFLOW §3.2, étape 1.7) : Utilisateurs CNCGA (Présidente), Secteurs,
  * DR / CDI / communes, Catalogue des obligations (étape 4.9), Références nationales, Jours fériés,
- * Paramètres réseau — chacun selon les
- * droits effectifs de `/me`, le serveur refaisant le contrôle. Les paramètres réseau attendent leur
- * API (« Bientôt disponible »). L'onglet ouvert vit dans l'adresse.
+ * Paramètres réseau (étape 5.13), Règles du rapport (étape 5.6b), Identité du CNCGA — chacun selon
+ * les droits effectifs de `/me`, le serveur refaisant le contrôle. L'onglet ouvert vit dans l'adresse.
  */
 const labels = fr.cncgaSettings;
+const REPORT_RULE = 'report.increase_rule';
 const cncga = permissionCodes.cncga;
 
 const TABS = [
@@ -40,6 +38,7 @@ const TABS = [
   'references',
   'feries',
   'reseau',
+  'regles',
   'identite',
 ] as const;
 
@@ -56,17 +55,9 @@ const RIGHTS: Record<Tab, string> = {
   references: cncga.referentials,
   feries: cncga.referentials,
   reseau: cncga.settings,
+  // Règle « cotisation augmentée » du rapport trimestriel (étape 5.6b, RG-RPT-08).
+  regles: cncga.settings,
 };
-
-function Pending() {
-  return (
-    <Card>
-      <CardContent>
-        <EmptyState icon={Clock}>{fr.common.comingSoon}</EmptyState>
-      </CardContent>
-    </Card>
-  );
-}
 
 export function CncgaSettingsPage() {
   const { can } = useAuth();
@@ -94,7 +85,14 @@ export function CncgaSettingsPage() {
     catalogue: <CatalogTab />,
     references: <ReferentialPanel def={nationalReferencesDef} canManage={manages} />,
     feries: <ReferentialPanel def={holidaysDef} canManage={manages} />,
-    reseau: <Pending />,
+    reseau: <SettingsPanel space="network" include={(setting) => setting.key !== REPORT_RULE} />,
+    regles: (
+      <SettingsPanel
+        space="network"
+        include={(setting) => setting.key === REPORT_RULE}
+        intro={fr.settings.reportRules.intro}
+      />
+    ),
   };
 
   return (

@@ -45,12 +45,18 @@ export const permissionCodes = {
     obligations: 'obligations.manage',
     feeReminders: 'fees.remind',
     closing: 'closing.view',
+    /** Marquer une étape faite, livrable et agent d'un dossier, actions groupées (F-OBL-08). */
+    closingManage: 'closing.manage',
     reports: 'reports.prepare',
     invoices: 'invoices.issue',
     payments: 'member_payments.manage',
     concerns: 'concerns.reply',
+    /** « Écrire au CNCGA » et « Transmettre au CNCGA » (F-PRE-03) : gérant, expert-comptable. */
+    concernsNetwork: 'concerns.network.write',
     trainings: 'trainings.cga.manage',
     communications: 'communications.bulk.send',
+    /** Publier une annonce aux adhérents du centre (F-COM-02) : gérant, expert-comptable. */
+    announcements: 'announcements.cga.publish',
     /** Valider un envoi groupé au-delà du seuil (RG-COM-01) : le gérant. */
     communicationsApprove: 'communications.bulk.approve',
     internal: 'internal.manage',
@@ -76,6 +82,8 @@ export const permissionCodes = {
     payments: 'member.payments.declare',
     obligations: 'member.obligations.view',
     documents: 'member.documents.view',
+    /** `/adherent/cloture` : étapes de l'exercice et pièces attendues (F-OBL-08). */
+    closing: 'member.closing.view',
     concerns: 'member.concerns.write',
     trainings: 'member.trainings.register',
     bankability: 'member.banking.view',

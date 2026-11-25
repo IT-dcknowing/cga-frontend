@@ -1,15 +1,17 @@
 import type { ComponentProps } from 'react';
 import { cn } from '@/lib/utils';
 
-// 04-UX-UI §6 : en-tête (titre + actions à droite), corps avec marge de 16 px ou sans marge pour un tableau.
+/*
+ * Carte (maquette v4.1 & 04-UX-UI §6) :
+ * - Carte bordée sans ombre, rayon 10px (rounded-card).
+ * - En-tête 12×16 (px-4 py-3) avec titre 14px / 800 et actions à droite, séparateur border.
+ * - Corps de 16px (p-4), ou flush (p-0) pour tableaux intégrés.
+ */
 export function Card({ className, ...props }: ComponentProps<'section'>) {
   return (
     <section
       data-slot="card"
-      className={cn(
-        'overflow-hidden rounded-card border border-border bg-card shadow-card',
-        className,
-      )}
+      className={cn('overflow-hidden rounded-card border border-border bg-card', className)}
       {...props}
     />
   );
@@ -30,7 +32,11 @@ export function CardHeader({ className, ...props }: ComponentProps<'div'>) {
 
 export function CardTitle({ className, ...props }: ComponentProps<'h2'>) {
   return (
-    <h2 data-slot="card-title" className={cn('text-card-title font-bold', className)} {...props} />
+    <h2
+      data-slot="card-title"
+      className={cn('text-[14px] font-extrabold text-ink', className)}
+      {...props}
+    />
   );
 }
 

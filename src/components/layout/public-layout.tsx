@@ -28,9 +28,11 @@ export function PublicLayout({ title, children }: PublicLayoutProps) {
           {/* Liseré décoratif sous le titre (04-UX-UI §2 : `accent`, jamais pour du texte). */}
           <span className="mx-auto mt-2 mb-6 block h-0.5 w-10 rounded-full bg-accent" />
 
-          <Card>
+          <Card className="rounded-card border border-border bg-card shadow-none">
             <CardContent className="p-6">
-              <h1 className="text-page-title font-extrabold text-ink">{title}</h1>
+              <h1 className="text-page-title-mobile font-extrabold text-ink md:text-page-title">
+                {title}
+              </h1>
               <div className="mt-5">{children}</div>
             </CardContent>
           </Card>

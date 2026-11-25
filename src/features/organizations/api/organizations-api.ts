@@ -59,8 +59,14 @@ export type OrganizationPage = {
   perPage: number;
 };
 
-/** Gérant invité à l'ouverture de l'accès du CGA (F-ORG-02), par SMS par défaut. */
-export type ManagerInvitation = { first_name: string; last_name: string; phone: string };
+/** Gérant invité à l'ouverture de l'accès du CGA (F-ORG-02), par SMS, e-mail ou les deux. */
+export type ManagerInvitation = {
+  first_name: string;
+  last_name: string;
+  phone: string;
+  email?: string | null;
+  channel?: 'sms' | 'email' | 'sms_email';
+};
 
 export type OrganizationsApi = {
   list: (filters: OrganizationFilters) => Promise<OrganizationPage>;

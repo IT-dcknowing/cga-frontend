@@ -10,6 +10,16 @@ afterEach(() => {
   toast.dismiss();
 });
 
+// jsdom n'implémente pas ResizeObserver, que lit `ResponsiveContainer` de recharts (graphiques du
+// rapport et des tableaux de bord) : les graphiques gardent leur taille d'origine dans les tests.
+class ResizeObserverStub {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+}
+
+Object.defineProperty(window, 'ResizeObserver', { writable: true, value: ResizeObserverStub });
+
 // jsdom n'implémente pas matchMedia, que lit Sonner pour son thème.
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
