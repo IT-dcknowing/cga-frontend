@@ -39,7 +39,7 @@ export function ActionMenu({ label, items }: { label: string; items: ActionMenuI
       ) : null}
 
       <div
-        className="relative z-40"
+        className={cn('relative', open && 'z-40')}
         onKeyDown={(event) => {
           if (event.key === 'Escape') {
             close();
@@ -48,6 +48,7 @@ export function ActionMenu({ label, items }: { label: string; items: ActionMenuI
       >
         <Button
           variant="secondary"
+          aria-label={label}
           aria-haspopup="menu"
           aria-expanded={open}
           onClick={() => {
@@ -55,7 +56,7 @@ export function ActionMenu({ label, items }: { label: string; items: ActionMenuI
           }}
         >
           <MoreHorizontal aria-hidden="true" />
-          {label}
+          <span aria-hidden="true">Actions</span>
         </Button>
 
         {open ? (

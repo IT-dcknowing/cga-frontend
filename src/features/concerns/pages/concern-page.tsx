@@ -87,7 +87,7 @@ function ReplyForm({ space, concern }: { space: ConcernSpace; concern: Concern }
     <form
       key={formKey}
       aria-label={space === 'member' ? labels.reply.memberLabel : labels.reply.label}
-      className="sticky bottom-0 grid gap-3 rounded-card border border-border bg-card p-4"
+      className="grid gap-3 rounded-card border border-border bg-card p-4"
       onSubmit={(event) => void submit(event)}
     >
       <FormField
