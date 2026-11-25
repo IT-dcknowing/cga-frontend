@@ -52,14 +52,14 @@ export function CgaConcernsPage() {
   const navigate = useNavigate();
   const [writing, setWriting] = useState(false);
   const [tab, setTab] = useTab(['recues', 'envoyees'] as const, 'recues');
-  const canWrite = can(permissionCodes.cga.concernsNetwork);
+  const canNetwork = can(permissionCodes.cga.concernsNetwork);
 
   return (
     <>
       <PageHeader
         title={labels.title}
         actions={
-          canWrite ? (
+          canNetwork ? (
             <Button
               onClick={() => {
                 setWriting(true);
@@ -71,18 +71,22 @@ export function CgaConcernsPage() {
           ) : null
         }
       />
-      <Tabs value={tab} onValueChange={setTab}>
-        <TabsList>
-          <TabsTrigger value="recues">{labels.tabs.received}</TabsTrigger>
-          <TabsTrigger value="envoyees">{labels.tabs.sent}</TabsTrigger>
-        </TabsList>
-        <TabsContent value="recues">
-          <ConcernList space="cga" level="member_to_cga" />
-        </TabsContent>
-        <TabsContent value="envoyees">
-          <ConcernList space="cga" level="cga_to_cncga" />
-        </TabsContent>
-      </Tabs>
+      {canNetwork ? (
+        <Tabs value={tab} onValueChange={setTab}>
+          <TabsList>
+            <TabsTrigger value="recues">{labels.tabs.received}</TabsTrigger>
+            <TabsTrigger value="envoyees">{labels.tabs.sent}</TabsTrigger>
+          </TabsList>
+          <TabsContent value="recues">
+            <ConcernList space="cga" level="member_to_cga" />
+          </TabsContent>
+          <TabsContent value="envoyees">
+            <ConcernList space="cga" level="cga_to_cncga" />
+          </TabsContent>
+        </Tabs>
+      ) : (
+        <ConcernList space="cga" level="member_to_cga" />
+      )}
       {writing ? (
         <NewConcernDialog
           space="cga"

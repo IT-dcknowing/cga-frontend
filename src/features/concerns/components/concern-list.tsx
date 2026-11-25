@@ -59,7 +59,7 @@ function columns(space: ConcernSpace, withRequester: boolean): ColumnDef<Concern
               {concern.stale === true ? (
                 <span className="text-note font-semibold text-danger">{labels.list.stale}</span>
               ) : null}
-              {concern.response_late && space !== 'member' ? (
+              {concern.response_late && concern.awaiting_reply && space !== 'member' ? (
                 <span className="text-note font-semibold text-accent-text">{labels.list.late}</span>
               ) : null}
               {concern.transferred ? (

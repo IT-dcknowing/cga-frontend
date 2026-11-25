@@ -54,6 +54,14 @@ function ReplyForm({ space, concern }: { space: ConcernSpace; concern: Concern }
 
       return;
     }
+
+    const maxBytes = 10 * 1024 * 1024;
+    const oversized = files.find((f) => f.size > maxBytes);
+    if (oversized !== undefined) {
+      setError(`Le fichier « ${oversized.name} » dépasse la taille maximale autorisée de 10 Mo.`);
+
+      return;
+    }
     setError(undefined);
     setSubmitting(true);
     try {
@@ -109,7 +117,7 @@ function ReplyForm({ space, concern }: { space: ConcernSpace; concern: Concern }
             id={`${id}-files`}
             type="file"
             multiple
-            accept={DOCUMENT_TYPES}
+            accept="application/pdf,image/jpeg,image/png,.pdf,.jpg,.jpeg,.png"
             onChange={(event) => {
               setFiles(Array.from(event.target.files ?? []));
             }}

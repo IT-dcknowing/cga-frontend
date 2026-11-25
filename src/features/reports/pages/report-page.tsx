@@ -31,6 +31,8 @@ import {
 } from '@/features/reports/components/report-sections';
 import { DeadlineBanner } from '@/features/reports/components/report-indicators';
 import { reportRoutes } from '@/features/reports/lib/routes';
+import { useAuth } from '@/features/auth/session/auth-context';
+import { permissionCodes } from '@/lib/reference/permissions';
 import { ApiBusinessError, ApiValidationError } from '@/lib/api-errors';
 import { formatDate, formatTimestampDate } from '@/lib/format';
 import { toastUnexpectedError } from '@/lib/http-error-toast';
@@ -228,7 +230,19 @@ function ReportView({ report }: { report: ReportDetail }) {
             </span>
           </div>
           {report.can.update && !report.can.generate ? (
-            <p className="text-note text-muted">{labels.actions.generateHint}</p>
+            <div className="rounded-base border border-warning/30 bg-warning/10 p-3 text-note text-warning">
+              <p className="font-semibold">{labels.actions.generateHint}</p>
+              {(() => {
+                const incomplete = Object.entries(labels.sections)
+                  .map(([k, t]) => ({ key: k, title: t, pct: report.completeness[k] ?? 0 }))
+                  .filter((s) => s.pct < 100);
+                return incomplete.length > 0 ? (
+                  <p className="mt-1 font-normal">
+                    Sections incomplètes : {incomplete.map((s) => `${s.title} (${s.pct} %)`).join(', ')}
+                  </p>
+                ) : null;
+              })()}
+            </div>
           ) : null}
           {disabled ? <p className="text-note text-muted">{labels.readOnly}</p> : null}
           <SectionProgress completeness={report.completeness} />
@@ -391,12 +405,17 @@ function ReportView({ report }: { report: ReportDetail }) {
 }
 
 function ProfileReminder() {
+  const { can } = useAuth();
+  const canInternal = can(permissionCodes.cga.internal);
+
   return (
     <p className="flex flex-wrap items-center gap-2 text-note text-muted">
       {labels.profileReminder}
-      <Link className="font-semibold text-primary underline" to={reportRoutes.permanentProfile}>
-        {labels.updateProfile}
-      </Link>
+      {canInternal ? (
+        <Link className="font-semibold text-primary underline" to={reportRoutes.permanentProfile}>
+          {labels.updateProfile}
+        </Link>
+      ) : null}
     </p>
   );
 }
