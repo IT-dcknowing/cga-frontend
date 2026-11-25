@@ -65,8 +65,8 @@ const schema = z
       }
     }
 
-    // E-mail obligatoire seulement si le canal choisi est email-only
-    if (values.manager_channel === 'email' && values.manager_email === '') {
+    // E-mail obligatoire si le canal choisi utilise l'e-mail et qu'aucun e-mail (gérant ou centre) n'est renseigné
+    if (values.manager_channel !== 'sms' && values.manager_email === '' && values.email === '') {
       context.addIssue({ code: 'custom', path: ['manager_email'], message: errors.emailFormat });
     }
   });
@@ -107,10 +107,11 @@ export function NewOrganizationDialog({ onClose }: { onClose: () => void }) {
   } = form;
   const openAccess = useWatch({ control, name: 'open_access' });
   const managerChannel = useWatch({ control, name: 'manager_channel' });
+  const cgaEmail = useWatch({ control, name: 'email' });
 
   async function inviteManager(organization: Organization, values: NewOrganizationForm) {
     try {
-      const email = values.manager_email.trim() === '' ? null : values.manager_email.trim();
+      const email = (values.manager_email.trim() || values.email.trim()) || null;
       const payload: Parameters<typeof organizationsApi.inviteManager>[1] = {
         first_name: values.manager_first_name,
         last_name: values.manager_last_name,
@@ -212,7 +213,8 @@ export function NewOrganizationDialog({ onClose }: { onClose: () => void }) {
             label={labels.create.managerEmail}
             type="email"
             autoComplete="off"
-            required={managerChannel === 'email'}
+            placeholder={cgaEmail || undefined}
+            required={managerChannel !== 'sms' && !cgaEmail}
             error={fieldErrors.manager_email?.message}
             {...register('manager_email')}
           />
