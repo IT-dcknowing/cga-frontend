@@ -4,6 +4,7 @@ import { concernsFr } from './concerns';
 import { trainingsFr } from './trainings';
 import { announcementsFr } from './announcements';
 import { statisticsFr } from './statistics';
+import { exportsFr } from './exports';
 import { communicationsFr } from './communications';
 import { duesFr } from './dues';
 import { memberSpaceFr } from './member-space';
@@ -126,6 +127,12 @@ export const fr = {
       queued: 'En attente',
       processing: 'En cours',
       done: 'Terminé',
+      failed: 'En échec',
+    },
+    export: {
+      queued: 'En attente',
+      processing: 'En cours',
+      done: 'Prêt',
       failed: 'En échec',
     },
     charge: {
@@ -673,6 +680,7 @@ export const fr = {
   trainings: trainingsFr,
   announcements: announcementsFr,
   statistics: statisticsFr,
+  exports: exportsFr,
   /** `/plateforme` (03-APPFLOW §6). */
   platform: {
     tabs: {

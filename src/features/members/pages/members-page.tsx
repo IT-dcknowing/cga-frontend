@@ -13,6 +13,7 @@ import { Select } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/features/auth/session/auth-context';
 import { useCgaProfile } from '@/features/cga-settings/api/queries';
+import { ExportButton } from '@/features/exports/components/export-button';
 import {
   MEMBER_SORTS,
   REGIMES,
@@ -47,7 +48,9 @@ import { permissionCodes } from '@/lib/reference/permissions';
  * `/cga/adherents` (F-ADH-01, 03-APPFLOW §4.3) : sélecteur de portefeuille, onglets Actifs · Dossiers
  * à compléter · Radiations en cours · Radiés / clos, recherche (ancien n° compris), filtres régime,
  * CDI et apporteur (portefeuille CGA, droit « Voir les apporteurs »), tri et pagination par le
- * serveur. Critères dans l'adresse ; l'export Excel arrive avec le Lot 8.
+ * serveur. Critères dans l'adresse. « Exporter » (étape 8.6) reprend le portefeuille, l'onglet et le
+ * régime : les seuls filtres de la liste que l'export sait appliquer (décision 0017 §2) ; la modale
+ * signale la recherche, le CDI ou l'apporteur s'ils sont actifs.
  */
 const labels = fr.members.list;
 const columnsText = labels.columns;
@@ -203,8 +206,34 @@ export function MembersPage() {
       </Link>
     </Button>
   );
+  const exportButton = (
+    <ExportButton
+      space="cga"
+      type="members"
+      filters={{
+        portfolio,
+        statuses: [...MEMBER_TABS[tab]],
+        ...(filters.regime === null ? {} : { regimes: [filters.regime] }),
+      }}
+      summary={[
+        portfolio === 'all'
+          ? `${fr.members.portfolio.selector} : ${fr.members.portfolio.all}`
+          : fr.members.portfolio[portfolio],
+        labels.tabs[tab],
+        ...(filters.regime === null
+          ? []
+          : [`${labels.regimeFilter} : ${fr.status.regime[filters.regime]}`]),
+      ]}
+      ignored={[
+        ...(filters.search === '' ? [] : [fr.exports.dialog.ignoredFilters.search]),
+        ...(filters.taxOfficeId === null ? [] : [fr.exports.dialog.ignoredFilters.taxOffice]),
+        ...(filters.referrerId === null ? [] : [fr.exports.dialog.ignoredFilters.referrer]),
+      ]}
+    />
+  );
   const actions = (
     <div className="flex flex-wrap gap-2">
+      {exportButton}
       {can(permissionCodes.cga.membersImport) ? (
         <Button variant="secondary" asChild>
           <Link to={memberRoutes.import}>

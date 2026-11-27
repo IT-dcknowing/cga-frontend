@@ -26,6 +26,8 @@ export const permissionCodes = {
     trainings: 'trainings.network.manage',
     communications: 'announcements.network.publish',
     statistics: 'statistics.national.view',
+    /** « Exporter » une liste en Excel (F-EXP-01), en plus du droit de la liste exportée. */
+    exports: 'exports.run',
     users: 'network_users.manage',
     settings: 'network_settings.manage',
     referentials: 'referentials.manage',
@@ -62,6 +64,8 @@ export const permissionCodes = {
     internal: 'internal.manage',
     bankability: 'banking.manage',
     statistics: 'statistics.position.view',
+    /** « Exporter » une liste en Excel (F-EXP-01), en plus du droit de la liste exportée. */
+    exports: 'exports.run',
     profile: 'cga.profile.view',
     /** Cotisation du centre au CNCGA (F-COT-06) et déclaration d'un paiement. */
     dues: 'dues.own.view',

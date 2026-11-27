@@ -11,6 +11,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/features/auth/session/auth-context';
 import {
+  CONCERN_CATEGORIES,
+  CONCERN_STATUSES,
   concernKeys,
   concernsApi,
   type Concern,
@@ -22,6 +24,8 @@ import {
 } from '@/features/concerns/components/concern-dialogs';
 import { ConcernList } from '@/features/concerns/components/concern-list';
 import { concernRoutes } from '@/features/concerns/lib/routes';
+import type { ExportSpace } from '@/features/exports/api/exports-api';
+import { ExportButton } from '@/features/exports/components/export-button';
 import { formatNumber } from '@/lib/format';
 import { fr } from '@/lib/i18n/fr';
 import { oneOf } from '@/lib/list-params';
@@ -31,9 +35,39 @@ import { permissionCodes } from '@/lib/reference/permissions';
  * Listes des préoccupations (03-APPFLOW §3.2, §4.3, §5.2, étape 7.4) : `/cga/preoccupations` (Reçues des
  * adhérents · Envoyées au CNCGA, « + Écrire au CNCGA »), `/cncga/preoccupations` (demandes des CGA,
  * onglet « Indicateurs » agrégés, RG-PRE-03), `/adherent/messages` (« + Nouvelle demande »,
- * « Demander un document »).
+ * « Demander un document »). « Exporter » (étape 8.6) : demandes reçues des adhérents (centre) ou des
+ * CGA (réseau), avec le statut et la catégorie filtrés.
  */
 const labels = fr.concerns;
+
+/** « Exporter » de la liste affichée, avec ses filtres de statut et de catégorie (`ConcernList`). */
+function ConcernsExport({ space }: { space: ExportSpace }) {
+  const [params] = useSearchParams();
+  const status = oneOf(CONCERN_STATUSES, params.get('statut'));
+  const category = oneOf(CONCERN_CATEGORIES, params.get('categorie'));
+
+  return (
+    <ExportButton
+      space={space}
+      type={space === 'network' ? 'network_concerns' : 'concerns'}
+      filters={{
+        ...(status === null ? {} : { statuses: [status] }),
+        ...(category === null ? {} : { categories: [category] }),
+      }}
+      summary={[
+        ...(status === null ? [] : [`${labels.filters.status} : ${labels.statuses[status]}`]),
+        ...(category === null
+          ? []
+          : [`${labels.filters.category} : ${labels.categories[category]}`]),
+      ]}
+      ignored={
+        space === 'cga' && params.get('sans-reponse') === '1'
+          ? [fr.exports.dialog.ignoredFilters.stale]
+          : []
+      }
+    />
+  );
+}
 
 function useTab<T extends string>(tabs: readonly T[], fallback: T) {
   const [params, setParams] = useSearchParams();
@@ -59,16 +93,20 @@ export function CgaConcernsPage() {
       <PageHeader
         title={labels.title}
         actions={
-          canNetwork ? (
-            <Button
-              onClick={() => {
-                setWriting(true);
-              }}
-            >
-              <Plus aria-hidden="true" />
-              {labels.create.cgaAction}
-            </Button>
-          ) : null
+          <div className="flex flex-wrap gap-2">
+            {/* L'export porte sur les demandes reçues des adhérents (décision 0017 §2). */}
+            {!canNetwork || tab === 'recues' ? <ConcernsExport space="cga" /> : null}
+            {canNetwork ? (
+              <Button
+                onClick={() => {
+                  setWriting(true);
+                }}
+              >
+                <Plus aria-hidden="true" />
+                {labels.create.cgaAction}
+              </Button>
+            ) : null}
+          </div>
         }
       />
       {canNetwork ? (
@@ -204,7 +242,10 @@ export function NetworkConcernsPage() {
 
   return (
     <>
-      <PageHeader title={labels.title} />
+      <PageHeader
+        title={labels.title}
+        actions={tab === 'demandes' ? <ConcernsExport space="network" /> : null}
+      />
       <Tabs value={tab} onValueChange={setTab}>
         <TabsList>
           <TabsTrigger value="demandes">{labels.tabs.requests}</TabsTrigger>

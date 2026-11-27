@@ -7,6 +7,7 @@ import { FormField } from '@/components/ui/form-field';
 import { Select } from '@/components/ui/select';
 import { DUES_STATUSES, duesApi, duesKeys } from '@/features/dues/api/dues-api';
 import { DuesListSkeleton, NetworkDuesList } from '@/features/dues/components/network-dues-list';
+import { ExportButton } from '@/features/exports/components/export-button';
 import { config } from '@/lib/config';
 import { formatAmount } from '@/lib/format';
 import { fr } from '@/lib/i18n/fr';
@@ -15,7 +16,7 @@ import { oneOf } from '@/lib/list-params';
 /*
  * `/cncga/cotisations` (F-COT-02, 03-APPFLOW §3.2) : choix de l'année et du statut (dans l'adresse),
  * totaux dû / réglé / reste, une ligne par CGA avec ses actions (examen d'un paiement déclaré,
- * paiement reçu, relance, facture FNE).
+ * paiement reçu, relance, facture FNE). « Exporter » (étape 8.6) propose l'année et le statut choisis.
  */
 const labels = fr.dues;
 
@@ -48,7 +49,18 @@ export function NetworkDuesPage() {
 
   return (
     <>
-      <PageHeader title={labels.networkTitle} />
+      <PageHeader
+        title={labels.networkTitle}
+        actions={
+          <ExportButton
+            space="network"
+            type="dues"
+            filters={status === '' ? {} : { statuses: [status] }}
+            summary={status === '' ? [] : [`${labels.status} : ${fr.status.dues[status]}`]}
+            defaultPeriod={{ kind: 'year', year }}
+          />
+        }
+      />
       <Card>
         <CardContent className="grid gap-4">
           <div className="flex flex-wrap gap-4">

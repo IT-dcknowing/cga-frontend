@@ -10,6 +10,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TextField } from '@/components/ui/text-field';
 import type { ReportChart } from '@/features/reports/api/reports-api';
+import { ExportButton } from '@/features/exports/components/export-button';
+import { todayIso, type ExportPeriodDefault } from '@/features/exports/lib/period';
 import { ChartFigure } from '@/features/reports/components/report-charts';
 import {
   POSITION_METRICS,
@@ -17,6 +19,7 @@ import {
   statisticsKeys,
   type MacroRate,
   type NationalStatistics,
+  type PeriodQuery,
 } from '@/features/statistics/api/statistics-api';
 import {
   ComputedAt,
@@ -92,6 +95,22 @@ function chartsOf(data: NationalStatistics): ReportChart[] {
       value_axis: text.amount,
     },
   ].filter((chart) => chart.categories.length > 0) as ReportChart[];
+}
+
+/** Période de l'écran proposée pour « Exporter Excel » (le jour devient une période d'un jour). */
+function exportPeriodOf(query: PeriodQuery): ExportPeriodDefault {
+  const date = query.date ?? todayIso();
+
+  switch (query.period) {
+    case 'year':
+      return { kind: 'year', year: date.slice(0, 4) };
+    case 'month':
+      return { kind: 'month', month: date.slice(0, 7) };
+    case 'custom':
+      return { kind: 'custom', from: query.from ?? date, to: query.to ?? date };
+    default:
+      return { kind: 'custom', from: date, to: date };
+  }
 }
 
 function BrochureDialog({ onClose }: { onClose: () => void }) {
@@ -222,14 +241,22 @@ export function NetworkStatisticsPage() {
       <PageHeader
         title={labels.title}
         actions={
-          <Button
-            onClick={() => {
-              setProducing(true);
-            }}
-          >
-            <FileDown aria-hidden="true" />
-            {labels.brochure.action}
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <ExportButton
+              space="network"
+              type="statistics"
+              label={fr.exports.actionExcel}
+              defaultPeriod={exportPeriodOf(query)}
+            />
+            <Button
+              onClick={() => {
+                setProducing(true);
+              }}
+            >
+              <FileDown aria-hidden="true" />
+              {labels.brochure.action}
+            </Button>
+          </div>
         }
       />
       <div className="grid gap-4">

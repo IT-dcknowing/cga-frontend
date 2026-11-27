@@ -38,6 +38,13 @@ const TONES = {
     done: 'success',
     failed: 'danger',
   },
+  /** Export Excel en file « imports » (F-EXP-01) : en attente, en cours, prêt, en échec. */
+  export: {
+    queued: 'neutral',
+    processing: 'warning',
+    done: 'success',
+    failed: 'danger',
+  },
   /** Somme due (F-PAY-01) : impayée en rouge (RG-PAY-03), sans sanction automatique. */
   charge: {
     due: 'warning',

@@ -48,6 +48,7 @@ import { createTrainingsBackend } from './api-trainings';
 import { createAnnouncementsBackend } from './api-announcements';
 import { createStatisticsBackend } from './api-statistics';
 import { createPermanentProfileBackend } from './api-permanent-profile';
+import { createExportsBackend } from './api-exports';
 
 /*
  * Backend de la plateforme (`backend/`, `/api/v1`) simulé derrière le **vrai** client `http` :
@@ -306,6 +307,7 @@ export function installApiServer({
   statistics = createStatisticsBackend(),
   catalog = createCatalogBackend(),
   permanentProfile = createPermanentProfileBackend(),
+  exports = createExportsBackend(),
 }: {
   accounts?: Record<string, ApiAccount>;
   cgas?: Organization[];
@@ -346,6 +348,8 @@ export function installApiServer({
   /** Catalogue national des obligations (étape 4.9). */
   catalog?: ReturnType<typeof createCatalogBackend>;
   permanentProfile?: ReturnType<typeof createPermanentProfileBackend>;
+  /** Exports Excel des listes (étape 8.6). */
+  exports?: ReturnType<typeof createExportsBackend>;
 } = {}) {
   const requests: RecordedRequest[] = [];
   const forced = new Map<string, ApiReply[]>();
@@ -859,6 +863,10 @@ export function installApiServer({
     const path = parsed.pathname.replace(/^.*\/api\/v1/, '');
 
     return (
+      exports.route(method, path, input, {
+        allows,
+        membershipId: signedIn?.activeId ?? null,
+      }) ??
       notifications.route(method, path, parsed.searchParams, {
         membershipId: signedIn?.activeId ?? null,
       }) ??
@@ -995,6 +1003,8 @@ export function installApiServer({
     catalog,
     /** Fiche permanente du CGA (étape 5.7). */
     permanentProfile,
+    /** Exports Excel simulés (`api-exports.ts`). */
+    exports,
     /** Ouvre une session côté serveur, comme un cookie de session encore valide. */
     signIn(phone: string, activeId: string | null = null) {
       signedIn = { phone: normalizePhone(phone), activeId };

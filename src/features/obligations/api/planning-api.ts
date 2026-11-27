@@ -30,6 +30,15 @@ export type Planning = {
   upcoming: { days: number; count: number; members: number };
 };
 
+/**
+ * Statuts d'échéance de chaque avancement du planning, ceux du serveur (`ObligationSummary::open()`
+ * et `ObligationPlanning::finished()`) : l'export des échéances reprend ainsi le filtre « Statut ».
+ */
+export const PROGRESS_STATUSES = {
+  open: ['todo', 'to_pay', 'partially_paid', 'not_established', 'in_progress'],
+  done: ['done', 'paid', 'established'],
+} as const;
+
 export type PlanningFilters = {
   from: string;
   to: string;

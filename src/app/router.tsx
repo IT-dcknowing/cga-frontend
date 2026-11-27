@@ -1,4 +1,4 @@
-import { CalendarCheck, Upload, Wallet } from 'lucide-react';
+import { CalendarCheck, FileSpreadsheet, Upload, Wallet } from 'lucide-react';
 import type { ComponentType, ReactNode } from 'react';
 import { createBrowserRouter, Navigate, Outlet, type RouteObject } from 'react-router';
 import { authRoutes, spaces, type SpaceKind } from '@/features/auth/lib/destination';
@@ -30,6 +30,9 @@ import { DemoPage } from '@/features/demo/pages/demo-page';
 import { CgaDuesPage } from '@/features/dues/pages/cga-dues-page';
 import { NetworkDuesPage } from '@/features/dues/pages/network-dues-page';
 import { ErrorScreen, RouteErrorPage } from '@/features/errors/pages/error-screen';
+import type { ExportSpace } from '@/features/exports/api/exports-api';
+import { exportRoutes } from '@/features/exports/lib/routes';
+import { ExportsPage } from '@/features/exports/pages/exports-page';
 import { memberRoutes } from '@/features/members/lib/member';
 import { cgaPermissionRoutes, cgaSettingsRoutes } from '@/features/cga-settings/lib/routes';
 import { CgaSettingsPage } from '@/features/cga-settings/pages/cga-settings-page';
@@ -239,6 +242,36 @@ const memberPages: RouteObject[] = [
   },
 ];
 
+/**
+ * « Mes exports » (F-EXP-01, étape 8.6), hors du menu : ouvert par la notification « Export prêt »
+ * (`/cncga/exports/:id`, `/cga/exports/:id`), sous le droit d'exporter.
+ */
+function exportPages(space: ExportSpace): RouteObject[] {
+  const path = exportRoutes.list(space);
+
+  return [
+    {
+      path,
+      element: (
+        <RequireMenuEntry
+          entry={{
+            path,
+            label: fr.exports.page.title,
+            icon: FileSpreadsheet,
+            permissions: [permissionCodes.cga.exports],
+          }}
+        >
+          <Outlet />
+        </RequireMenuEntry>
+      ),
+      children: [
+        { index: true, element: <ExportsPage space={space} /> },
+        { path: ':id', element: <ExportsPage space={space} /> },
+      ],
+    },
+  ];
+}
+
 /** Écrans d'un espace hors de son menu (import du portefeuille), sous leur propre droit. */
 const cgaPages: RouteObject[] = [
   {
@@ -319,8 +352,15 @@ export const routes: RouteObject[] = [
           element: <UserPermissionsPage scope="network" back={platformRoutes.usersTab} />,
         },
       ]),
-      spaceRoute('cncga', CncgaLayout, menuRoutes(cncgaMenu, cncgaScreens)),
-      spaceRoute('cga', CgaLayout, [...menuRoutes(cgaMenu, cgaScreens), ...cgaPages]),
+      spaceRoute('cncga', CncgaLayout, [
+        ...menuRoutes(cncgaMenu, cncgaScreens),
+        ...exportPages('network'),
+      ]),
+      spaceRoute('cga', CgaLayout, [
+        ...menuRoutes(cgaMenu, cgaScreens),
+        ...cgaPages,
+        ...exportPages('cga'),
+      ]),
       spaceRoute('member', MemberLayout, [
         ...menuRoutes(memberMenu, memberScreens),
         ...memberPages,

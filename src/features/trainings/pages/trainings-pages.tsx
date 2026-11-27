@@ -7,6 +7,7 @@ import { Banner } from '@/components/ui/banner';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ExportButton } from '@/features/exports/components/export-button';
 import {
   trainingKeys,
   trainingsApi,
@@ -24,9 +25,18 @@ import { oneOf } from '@/lib/list-params';
  * Formations de l'organisateur (03-APPFLOW §3.2 et §4.3, étape 7.5) : `/cncga/formations` (à venir,
  * passées, « + Créer une formation »), `/cga/formations` (onglets « Mes formations » · « Formations du
  * réseau »), création (`…/nouvelle` : « Publier » ou « Enregistrer en brouillon ») et modification
- * (`…/:id/modifier`).
+ * (`…/:id/modifier`). « Exporter » (étape 8.6) : les inscrits aux formations de l'organisateur.
  */
 const labels = fr.trainings;
+
+function Actions({ space, withExport }: { space: TrainingSpace; withExport: boolean }) {
+  return (
+    <div className="flex flex-wrap gap-2">
+      {withExport ? <ExportButton space={space} type="training_registrations" /> : null}
+      <CreateButton space={space} />
+    </div>
+  );
+}
 
 function CreateButton({ space }: { space: TrainingSpace }) {
   const navigate = useNavigate();
@@ -42,7 +52,7 @@ function CreateButton({ space }: { space: TrainingSpace }) {
 export function NetworkTrainingsPage() {
   return (
     <>
-      <PageHeader title={labels.networkTitle} actions={<CreateButton space="network" />} />
+      <PageHeader title={labels.networkTitle} actions={<Actions space="network" withExport />} />
       <TrainingList source="network" />
     </>
   );
@@ -56,7 +66,11 @@ export function CgaTrainingsPage() {
 
   return (
     <>
-      <PageHeader title={labels.title} actions={<CreateButton space="cga" />} />
+      <PageHeader
+        title={labels.title}
+        // L'export porte sur les inscrits des formations du centre, pas sur celles du réseau.
+        actions={<Actions space="cga" withExport={tab === 'mes-formations'} />}
+      />
       <Tabs
         value={tab}
         onValueChange={(value) => {

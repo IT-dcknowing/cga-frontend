@@ -15,6 +15,20 @@ export function saveBlob(blob: Blob, fileName: string): void {
   URL.revokeObjectURL(url);
 }
 
+/**
+ * Ouvre un lien de téléchargement temporaire signé de l'API (export prêt) : le serveur répond en
+ * pièce jointe (`Content-Disposition: attachment`), le navigateur reste sur la page.
+ */
+export function startDownload(url: string): void {
+  const link = document.createElement('a');
+
+  link.href = url;
+  link.rel = 'noopener';
+  document.body.append(link);
+  link.click();
+  link.remove();
+}
+
 /** Nom d'un fichier dans l'en-tête `Content-Disposition` de la réponse, sinon le nom proposé. */
 export function fileNameOf(disposition: unknown, fallback: string): string {
   const match = typeof disposition === 'string' ? /filename="?([^";]+)"?/i.exec(disposition) : null;

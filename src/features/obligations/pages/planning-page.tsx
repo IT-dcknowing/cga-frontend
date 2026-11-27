@@ -16,11 +16,13 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/features/auth/session/auth-context';
 import { communicationsRoutes } from '@/features/communications/lib/routes';
+import { ExportButton } from '@/features/exports/components/export-button';
 import { memberRoutes } from '@/features/members/lib/member';
 import { obligationKeys, obligationsApi } from '@/features/obligations/api/obligations-api';
 import {
   planningApi,
   planningKeys,
+  PROGRESS_STATUSES,
   type PlanningFilters,
   type PlanningLine,
 } from '@/features/obligations/api/planning-api';
@@ -36,6 +38,8 @@ import { permissionCodes } from '@/lib/reference/permissions';
  * indicateur « échéances sous n jours » ; une ligne ouvre le panneau des adhérents concernés (lien
  * vers l'onglet Obligations de chaque dossier) et « Envoyer un rappel » prépare un envoi groupé aux
  * adhérents qui n'ont pas encore fait le nécessaire. Onglet « Mobilisation des recettes ».
+ * « Exporter » (étape 8.6) : les échéances, avec les dates et le statut choisis (le filtre par
+ * obligation n'existe pas dans l'export, décision 0017 §2).
  */
 const labels = fr.obligations.planning;
 const PROGRESSES = ['open', 'done'] as const;
@@ -315,13 +319,36 @@ function PlanningTab() {
   );
 }
 
+/** « Exporter » des échéances : dates du planning comme période proposée, statut repris. */
+function PlanningExport() {
+  const [params] = useSearchParams();
+  const from = dateParam(params.get('du'));
+  const to = dateParam(params.get('au'));
+  const progress = oneOf(PROGRESSES, params.get('statut'));
+
+  return (
+    <ExportButton
+      space="cga"
+      type="obligations"
+      filters={progress === null ? {} : { statuses: [...PROGRESS_STATUSES[progress]] }}
+      summary={progress === null ? [] : [`${labels.progress} : ${labels.progresses[progress]}`]}
+      ignored={
+        (params.get('obligation') ?? '') === '' ? [] : [fr.exports.dialog.ignoredFilters.obligation]
+      }
+      defaultPeriod={
+        from !== '' && to !== '' && from <= to ? { kind: 'custom', from, to } : undefined
+      }
+    />
+  );
+}
+
 export function PlanningPage() {
   const [params, setParams] = useSearchParams();
   const tab = oneOf(TABS, params.get('onglet')) ?? 'planning';
 
   return (
     <>
-      <PageHeader title={labels.title} />
+      <PageHeader title={labels.title} actions={tab === 'planning' ? <PlanningExport /> : null} />
       <Tabs
         value={tab}
         onValueChange={(value) => {
